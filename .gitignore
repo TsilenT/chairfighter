@@ -1,0 +1,36 @@
+# Godot editor
+*.tscn~
+*.tres~
+*.import/
+
+# Godot editor cache
+*.pid
+*.pid.*
+editor/
+*.log
+*.cfg
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+bin/
+*.apk
+*.aab
+*.pck
+*.zip
+*.tar.gz
+*.tar.bz2
+
+# Debug export templates
+**/export_templates/
+
+# IDE
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Exported builds
+exported/

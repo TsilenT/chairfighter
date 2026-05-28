@@ -1,0 +1,65 @@
+; Engine configuration file.
+; It's best to avoid removing links to features you're not actually
+; using.
+
+config_version=5
+
+[application]
+
+config/name="Chairfighter"
+config/features=PackedStringArray("4.3", "Forward+")
+run/main_scene="res://scenes/main/Main.tscn"
+config/icon="res://icon.svg"
+
+[autoload]
+
+GameState="*res://scripts/state/GameState.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+
+[input]
+
+move_left={
+"deadzone": 0.5,
+"events": [Object(InputActionKeyMap,"0","keycode": 65,"gui_input": false), Object(InputActionKeyMap,"1","keycode": 4194320,"gui_input": false)]
+}
+move_right={
+"deadzone": 0.5,
+"events": [Object(InputActionKeyMap,"0","keycode": 68,"gui_input": false), Object(InputActionKeyMap,"1","keycode": 4194321,"gui_input": false)]
+}
+jump={
+"deadzone": 0.5,
+"events": [Object(InputActionKeyMap,"0","keycode": 32,"gui_input": false), Object(InputActionKeyMap,"1","keycode": 4194323,"gui_input": false)]
+}
+attack={
+"deadzone": 0.5,
+"events": [Object(InputActionKeyMap,"0","keycode": 16777217,"gui_input": false), Object(InputActionKeyMap,"1","keycode": 4194342,"gui_input": false)]
+}
+special={
+"deadzone": 0.5,
+"events": [Object(InputActionKeyMap,"0","keycode": 16777220,"gui_input": false), Object(InputActionKeyMap,"1","keycode": 4194344,"gui_input": false)]
+}
+transform_next={
+"deadzone": 0.5,
+"events": [Object(InputActionKeyMap,"0","keycode": 4194305,"gui_input": false), Object(InputActionKeyMap,"1","keycode": 4194333,"gui_input": false)]
+}
+transform_prev={
+"deadzone": 0.5,
+"events": [Object(InputActionKeyMap,"0","keycode": 4194306,"gui_input": false), Object(InputActionKeyMap,"1","keycode": 4194334,"gui_input": false)]
+}
+interact={
+"deadzone": 0.5,
+"events": [Object(InputActionKeyMap,"0","keycode": 69,"gui_input": false), Object(InputActionKeyMap,"1","keycode": 4194322,"gui_input": false)]
+}
+pause={
+"deadzone": 0.5,
+"events": [Object(InputActionKeyMap,"0","keycode": 16777227,"gui_input": false), Object(InputActionKeyMap,"1","keycode": 4194351,"gui_input": false)]
+}
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"

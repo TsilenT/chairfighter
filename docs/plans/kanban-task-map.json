@@ -1,0 +1,114 @@
+[
+  {
+    "key": "CF-01",
+    "task_id": "t_242516d2",
+    "title": "CF-01 Implement Godot project skeleton",
+    "assignee": "discord-bot",
+    "parent": null
+  },
+  {
+    "key": "CF-01R",
+    "task_id": "t_b7280c5e",
+    "title": "CF-01R Review Godot project skeleton",
+    "assignee": "discord-bot-smart",
+    "parent": "t_242516d2"
+  },
+  {
+    "key": "CF-02",
+    "task_id": "t_a4287341",
+    "title": "CF-02 Implement controller-first input and Basic Chair movement",
+    "assignee": "discord-bot",
+    "parent": "t_b7280c5e"
+  },
+  {
+    "key": "CF-02R",
+    "task_id": "t_31b44930",
+    "title": "CF-02R Review Basic Chair movement",
+    "assignee": "discord-bot-smart",
+    "parent": "t_a4287341"
+  },
+  {
+    "key": "CF-03",
+    "task_id": "t_905ca164",
+    "title": "CF-03 Implement chair form architecture and instant switching",
+    "assignee": "discord-bot",
+    "parent": "t_31b44930"
+  },
+  {
+    "key": "CF-03R",
+    "task_id": "t_ac84cea8",
+    "title": "CF-03R Review form architecture",
+    "assignee": "discord-bot-smart",
+    "parent": "t_905ca164"
+  },
+  {
+    "key": "CF-04",
+    "task_id": "t_db644931",
+    "title": "CF-04 Implement combat foundations and dummy enemy",
+    "assignee": "discord-bot",
+    "parent": "t_ac84cea8"
+  },
+  {
+    "key": "CF-04R",
+    "task_id": "t_27bceabf",
+    "title": "CF-04R Review combat foundations",
+    "assignee": "discord-bot-smart",
+    "parent": "t_db644931"
+  },
+  {
+    "key": "CF-05",
+    "task_id": "t_3534458b",
+    "title": "CF-05 Implement Armchair grapple mechanic",
+    "assignee": "discord-bot",
+    "parent": "t_27bceabf"
+  },
+  {
+    "key": "CF-05R",
+    "task_id": "t_aefdf60a",
+    "title": "CF-05R Review Armchair grapple",
+    "assignee": "discord-bot-smart",
+    "parent": "t_3534458b"
+  },
+  {
+    "key": "CF-06",
+    "task_id": "t_7cfc3584",
+    "title": "CF-06 Implement metroidvania gate and test-level route",
+    "assignee": "discord-bot",
+    "parent": "t_aefdf60a"
+  },
+  {
+    "key": "CF-06R",
+    "task_id": "t_add6fbe5",
+    "title": "CF-06R Review ability gate and route",
+    "assignee": "discord-bot-smart",
+    "parent": "t_7cfc3584"
+  },
+  {
+    "key": "CF-07",
+    "task_id": "t_afbf2399",
+    "title": "CF-07 Implement Recliner Baron miniboss and Armchair unlock",
+    "assignee": "discord-bot",
+    "parent": "t_add6fbe5"
+  },
+  {
+    "key": "CF-07R",
+    "task_id": "t_481f339c",
+    "title": "CF-07R Review boss unlock flow",
+    "assignee": "discord-bot-smart",
+    "parent": "t_afbf2399"
+  },
+  {
+    "key": "CF-08",
+    "task_id": "t_2686d2a6",
+    "title": "CF-08 Implement hub NPC, HUD, checkpoint/restart polish",
+    "assignee": "discord-bot",
+    "parent": "t_481f339c"
+  },
+  {
+    "key": "CF-08R",
+    "task_id": "t_417ab659",
+    "title": "CF-08R Final review and playability pass",
+    "assignee": "discord-bot-smart",
+    "parent": "t_2686d2a6"
+  }
+]
