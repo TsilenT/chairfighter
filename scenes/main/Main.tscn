@@ -1,11 +1,11 @@
-[gd_scene load_steps=2 format=3 uid="uid://cf_main_scene"]
+[gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://scripts/state/GameState.gd" id="1_gamestate"]
+[ext_resource type="Script" path="res://scripts/state/GameState.gd" id="1_1"]
 
 [node name="Main" type="Node2D"]
+script = ExtResource("1_1")
 
 [node name="TestLevel" type="Node2D" parent="."]
-transform = Transform2D(1, 0, 0, 1, 0, 0)
 
 [node name="TestLabel" type="Label2D" parent="TestLevel"]
 offset_left = 540.0
@@ -15,17 +15,14 @@ offset_bottom = 350.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 text = "Test Level Placeholder"
 
+[node name="GroundArea" type="Area2D" parent="TestLevel"]
+position = Vector2(640, 580)
+
+[node name="GroundAreaColl" type="CollisionShape2D" parent="TestLevel/GroundArea"]
+shape = RectangleShape2D {
+size = Vector2(1280, 32)
+}
+
 [node name="Timer" type="Timer" parent="TestLevel"]
 one_shot = true
 wait_time = 1.0
-
-[node name="Area" type="Area2D" parent="TestLevel"]
-position = Vector2(640, 540)
-
-[node name="Collision" type="CollisionShape2D" parent="TestLevel/Area"]
-shape = RectangleShape2D.new()
-shape.size = Vector2(200, 20)
-offset = Vector2(0, 10)
-
-[node name="RectangleShape2D_2" type="RectangleShape2D" parent="TestLevel/Collision"]
-size = Vector2(100, 10)
