@@ -1,6 +1,5 @@
-[gd_scene load_steps=3 format=3 uid="uid://main_scene_v2"]
+[gd_scene load_steps=2 format=3 uid="uid://main_scene_v2"]
 
-[ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="1ply"]
 [ext_resource type="PackedScene" path="res://scenes/levels/TestLevel.tscn" id="2lvl"]
 
 [node name="Main" type="Node2D" uid="uid://main_root"]
@@ -8,11 +7,3 @@
 [node name="LevelContainer" type="Node2D" uid="uid://levcontainer" parent="."]
 
 [node name="TestLevel" parent="LevelContainer" uid="uid://main_testlvl" instance=ExtResource("2lvl")]
-
-[node name="PlayerContainer" type="Node2D" uid="uid://plycontainer" parent="."]
-
-[node name="Player" parent="PlayerContainer" uid="uid://main_player" instance=ExtResource("1ply")]
-position = Vector2(200, 500)
-
-[node name="Camera2D" type="Camera2D" uid="uid://maincam" parent="."]
-position = Vector2(640, 360)

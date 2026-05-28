@@ -9,17 +9,18 @@ extends CharacterBody2D
 ## Movement tuning constants
 @export_group("Movement")
 @export	var	max_speed := 280.0
-	@export	var	acceleration := 1800.0
-	@export	var	deceleration := 2000.0
-	@export	var	air_control := 0.5  # multiplier applied to accel/decel in air
+@export	var	acceleration := 1800.0
+@export	var	deceleration := 2000.0
+@export	var	air_control := 0.5  # multiplier applied to accel/decel in air
+@export	var	gravity := 980.0
 
 ## Jump tuning constants
 @export_group("Jump")
 @export	var	jump_velocity := -520.0
-	@export	var	gravity_scale := 3.5
-	@export	var	gravity_extra := 3.0  # extra gravity multiplier when releasing jump early
-	@export var coyote_time := 0.1
-	@export var jump_buffer_time := 0.15
+@export	var	gravity_scale := 3.5
+@export	var	gravity_extra := 3.0  # extra gravity multiplier when releasing jump early
+@export var coyote_time := 0.1
+@export var jump_buffer_time := 0.15
 
 ## Camera
 @export_group("Camera")
@@ -38,7 +39,7 @@ var _camera: Camera2D
 # ─────────────────────────────────────────
 
 func is_jumping() -> bool:
-	return not is_on_floor() and vertical_velocity < 0.0
+	return not is_on_floor() and velocity.y < 0.0
 
 
 func is_on_ground() -> bool:
@@ -55,6 +56,9 @@ func get_camera() -> Camera2D:
 
 func _ready() -> void:
 	_camera = find_child("Camera2D") as Camera2D
+	if _camera != null:
+		_camera.make_current()
+		_camera.position = Vector2.ZERO
 
 
 # ─────────────────────────────────────────
@@ -62,8 +66,8 @@ func _ready() -> void:
 # ─────────────────────────────────────────
 
 func _physics_process(delta: float) -> void:
-	# Clamp delta to avoid huge jumps on frame drops
-	delta = snapped(delta, 1.0 / 30.0)
+	# Clamp delta to avoid huge jumps on frame drops without zeroing normal 60 FPS ticks.
+	delta = min(delta, 1.0 / 30.0)
 
 	# Track coyote time and jump buffer timers
 	_handle_coyote(delta)
@@ -80,9 +84,8 @@ func _physics_process(delta: float) -> void:
 	if dir != 0.0:
 		_move_horizontal(dir, delta)
 		_flip_sprite(dir)
-	elif _ground_vel_zeroed:
+	else:
 		velocity.x = move_toward(velocity.x, 0.0, deceleration * delta)
-		_ground_vel_zeroed = false
 
 	# Jump execution (from buffer)
 	if _jump_buffer_duration > 0.0:
@@ -100,8 +103,7 @@ func _physics_process(delta: float) -> void:
 			velocity.x = 0.0
 			_ground_vel_zeroed = true
 
-	# Camera follow
-	_handle_camera(delta)
+	# Camera follow is handled by the active Camera2D child.
 
 
 # ─────────────────────────────────────────
@@ -131,17 +133,14 @@ func _handle_coyote(delta: float) -> void:
 
 
 func _handle_jump_buffer(delta: float) -> void:
-	if not Input.is_action_pressed("jump"):
-		_jump_buffer_duration = 0.0
+	# Keep buffered jump presses alive even if the player releases before landing.
+	# Variable jump height is handled separately by extra gravity after release.
+	pass
 
 
 func _get_jump_multiplier() -> float:
-	if is_on_floor():
-		return 1.0
 	if not Input.is_action_pressed("jump"):
 		return 0.5  # variable height: released early
-	if _get_move_direction() == 0:
-		return 1.0  # stationary jump gets full height
 	return 1.0
 
 
@@ -156,7 +155,7 @@ func _can_perform_jump() -> bool:
 
 
 func _execute_jump() -> void:
-	velocity.y = -jump_velocity * _get_jump_multiplier()
+	velocity.y = jump_velocity * _get_jump_multiplier()
 	_coyote_duration = 0.0
 
 
@@ -174,25 +173,18 @@ func _move_horizontal(dir: float, delta: float) -> void:
 		accel *= deceleration / acceleration  # ~1.56x faster decel
 	var prev_vel: float = velocity.x
 	velocity.x = move_toward(prev_vel, target_vel, accel * delta)
-	# Snap when very close
-	if sign(prev_vel - target_vel) != sign(velocity.x - prev_vel):
+	# Snap when very close.
+	if abs(velocity.x - target_vel) < 1.0:
 		velocity.x = target_vel
 
 
 func _flip_sprite(dir: float) -> void:
-	var sprite: Sprite2D = find_child("Sprite2D") as Sprite2D
-	if sprite != null:
-		sprite.flip_h = (dir < 0)
-	var anim: AnimationPlayer = find_child("AnimationPlayer") as AnimationPlayer
-	if anim != null:
-		anim.playback_speed = sign(dir)
+	# Placeholder art uses ColorRect nodes, so mirror the root scale for now.
+	if dir != 0.0:
+		scale.x = abs(scale.x) * sign(dir)
 
 
 func _handle_camera(delta: float) -> void:
 	if _camera != null:
-		var target := position
-		var smoothed := Vector2(
-			lerp(_camera.position.x, target.x, 1.0 - exp(-cam_smoothing * delta)),
-			lerp(_camera.position.y, target.y, 1.0 - exp(-cam_smoothing * delta))
-		)
-		_camera.position = smoothed
+		_camera.position_smoothing_enabled = true
+		_camera.position_smoothing_speed = cam_smoothing

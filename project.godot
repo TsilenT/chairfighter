@@ -23,11 +23,11 @@ window/stretch/mode="canvas_items"
 
 move_left={
 "deadzone": 0.5,
-"events": [Object(InputEventKey,"physical_keycode":65), Object(InputEventKey,"physical_keycode":4194320), Object(InputEventJoypadButton,"button_index":13)]
+"events": [Object(InputEventKey,"physical_keycode":65), Object(InputEventKey,"physical_keycode":4194320), Object(InputEventJoypadButton,"button_index":13), Object(InputEventJoypadMotion,"axis":0,"axis_value":-1.0)]
 }
 move_right={
 "deadzone": 0.5,
-"events": [Object(InputEventKey,"physical_keycode":68), Object(InputEventKey,"physical_keycode":4194322), Object(InputEventJoypadButton,"button_index":14)]
+"events": [Object(InputEventKey,"physical_keycode":68), Object(InputEventKey,"physical_keycode":4194322), Object(InputEventJoypadButton,"button_index":14), Object(InputEventJoypadMotion,"axis":0,"axis_value":1.0)]
 }
 jump={
 "deadzone": 0.5,
