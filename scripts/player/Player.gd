@@ -1,9 +1,18 @@
-## Player - Basic Chair controller-first platformer controller with chair form switching.
+## Player - Basic Chair controller-first platformer controller with chair form switching, health, and melee combat.
 ##
 ## Handles input (gamepad first, keyboard fallback), platformer physics with
 ## coyote time, jump buffering, variable jump height, acceleration/deceleration,
-## and attached Camera2D follow. Delegates movement values and visuals to the
-## active ChairForm via GameState.
+## attached Camera2D follow, health, and a melee hitbox for attacking
+## enemies. Delegates movement values and visuals to the active ChairForm
+## via GameState.
+##
+## Layer/Mask convention (Godot 4 bit flags):
+##  - Layer  1 (1) = collision world / static bodies
+##  - Layer  3 (4) = hitboxes (melee attacks)
+##  - Layer  4 (8) = hurtboxes (take damage targets)
+##  - Layer  5 (16) = enemies
+##  - Layer  6 (32) = grapple points
+##  - Layer  7 (64) = ability gates
 
 extends CharacterBody2D
 
@@ -28,8 +37,24 @@ extends CharacterBody2D
 @export var cam_smoothing := 8.0
 @export var zoom_base := Vector2.ONE
 
+## Health
+@export_group("Health")
+@export var max_health := 10.0
+
 ## Debounce cooldown for form switching (seconds).
 const FORM_SWITCH_COOLDOWN := 0.15
+
+## Debounce cooldown for melee attacks (seconds).
+const ATTACK_COOLDOWN := 0.3
+
+## Hitbox hitbox radius for area checks.
+const HITBOX_RADIUS := 48.0
+
+## Layer constants used by the Player's hitbox and Hurtbox.
+##   1 = collision world, 3 = hitboxes, 4 = hurtboxes, 5 = enemies
+const LAYER_HITBOX := 3
+const LAYER_HURTBOX := 4
+const LAYER_ENEMY   := 5
 
 ## Form - active form for movement/visual delegation.
 var _active_form: ChairForm = null
@@ -40,6 +65,17 @@ var _jump_buffer_duration := 0.0
 var _ground_vel_zeroed := false
 var _camera: Camera2D
 var _form_change_cooldown_remaining: float = 0.0
+
+# Health component reference (added to tree by _ready).
+var _health: Health
+
+# Hitbox Area2D reference (added to tree by _ready).
+var _hitbox: Hitbox
+
+# Attack animation state.
+var _attack_frame: int = 0
+var _attack_duration: float = 0.2
+var _last_attack_dir: float = 0.0
 
 @onready var _chair_body: ColorRect = $ChairBody
 
@@ -70,6 +106,10 @@ func _ready() -> void:
 		_camera.make_current()
 		_camera.position = Vector2.ZERO
 	
+	# Initialize hitbox and health
+	_setup_hitbox()
+	_setup_health()
+	
 	# Load form from GameState (should be BasicChair at startup)
 	_apply_current_form()
 
@@ -95,6 +135,36 @@ func _update_placeholder_color() -> void:
 	"""Apply active form's body_color to the ColorRect player visual."""
 	if _chair_body != null and _active_form != null:
 		_chair_body.color = _active_form.body_color
+
+
+# ─────────────────────────────────
+#  Hitbox + Health setup
+# ───────────────────────────────────
+
+func _setup_hitbox() -> void:
+	"""Create a Hitbox component for melee combat."""
+	_hitbox = Hitbox.new()
+	_hitbox.damage = 2.0
+	_hitbox.hit_direction = Vector2.RIGHT
+	_hitbox.active_duration = 0.15
+	_hitbox.cooldown_duration = ATTACK_COOLDOWN
+	_hitbox.set_collision_layer_bit(LAYER_HITBOX, true)
+	_hitbox.set_collision_mask_bit(LAYER_ENEMY, true)
+	_hitbox.set_collision_mask_bit(1, true)  # Also detect world-layer bodies
+	add_child(_hitbox)
+
+
+func _setup_health() -> void:
+	"""Create a Health component with exported max_health."""
+	_health = Health.new()
+	_health.max_health = max_health
+	add_child(_health)
+	_health.health_changed.connect(func(current, max_hp) -> void:
+		pass  # TODO: update HUD bar
+	)
+	_health.died.connect(func() -> void:
+		pass  # TODO: player death
+	)
 
 
 # ───────────────────────────────

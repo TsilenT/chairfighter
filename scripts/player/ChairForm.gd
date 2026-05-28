@@ -7,8 +7,8 @@
 ## placeholder appearance, and _on_grapple() / _on_attack() / _on_special()
 ## if they have unique mechanics.
 
-class_name ChairForm
 extends RefCounted
+class_name ChairForm
 
 ## Name of this form (used for switching and display).
 @export var form_name: String = "ChairForm"
@@ -28,16 +28,16 @@ extends RefCounted
 @export var collision_shape: Vector2 = Vector2.ZERO
 
 ## Visual properties for placeholder rendering.
-@export var body_color: Color = Color(0.6, 0.5, 0.3, 1.0)
+@export var body_color: Color = Color(0.6, 0.5, 0.3, 1)
 @export var label_color: Color = Color.WHITE
 @export var label_text: String = "Basic Chair"
 
 ## Called when the player enters the tree to attach the form.
-func on_enter_player(player_node: CharacterBody2D) -> void:
+func on_enter_player(player_node: Node2D) -> void:
 	pass
 
 ## Called when the player leaves the tree.
-func on_exit_player(player_node: CharacterBody2D) -> void:
+func on_exit_player(player_node: Node2D) -> void:
 	pass
 
 ## Called to update the player's visual placeholder.

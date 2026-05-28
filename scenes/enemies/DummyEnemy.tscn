@@ -1,0 +1,66 @@
+## DummyEnemy.tscn — Placeholder training dummy enemy.
+##
+## A StaticBody2D target with Health + Hurtbox components that can
+## be damaged and visually "defeated" for combat testing.
+
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/DummyEnemy.gd" id="1dun"]
+[ext_resource type="Script" path="res://scripts/components/Health.gd" id="2hlt"]
+[ext_resource type="Script" path="res://scripts/components/Hurtbox.gd" id="3hrt"]
+
+[sub_resource type="RectangleShape2D" id="1hurtbox" uid="uid://dbhurt"]
+size = Vector2(40, 60)
+
+[sub_resource type="RectangleShape2D" id="2col" uid="uid://dbcol"]
+size = Vector2(36, 56)
+
+[node name="DummyEnemy" type="StaticBody2D" uid="uid://db_root"]
+script = ExtResource("1dun")
+
+[node name="DummyBody" type="ColorRect" parent="." uid="uid://db_body"]
+offset_left = -24.0
+offset_top = -36.0
+offset_right = 24.0
+offset_bottom = 36.0
+color = Color(0.55, 0.48, 0.35, 1)
+
+[node name="DummyFace" type="ColorRect" parent="DummyBody" uid="uid://db_face"]
+offset_left = -10.0
+offset_top = -14.0
+offset_right = 10.0
+offset_bottom = 6.0
+color = Color(0.45, 0.38, 0.25, 1)
+
+[node name="DummyEyesL" type="ColorRect" parent="DummyBody" uid="uid://db_eye_l"]
+offset_left = -7.0
+offset_top = -8.0
+offset_right = -2.0
+offset_bottom = -3.0
+color = Color(0.25, 0.22, 0.15, 1)
+
+[node name="DummyEyesR" type="ColorRect" parent="DummyBody" uid="uid://db_eye_r"]
+offset_left = 2.0
+offset_top = -8.0
+offset_right = 7.0
+offset_bottom = -3.0
+color = Color(0.25, 0.22, 0.15, 1)
+
+[node name="DummyHurtbox" type="Area2D" parent="." uid="uid://db_hurt"]
+position = Vector2(0, -4)
+script = ExtResource("3hrt")
+
+[node name="HurtboxShape" type="CollisionShape2D" parent="DummyHurtbox" uid="uid://db_hurtcol"]
+shape = SubResource("1hurtbox")
+
+[node name="DummyHealth" type="Node2D" parent="." uid="uid://db_hp"]
+script = ExtResource("2hlt")
+
+[node name="DummyCol" type="CollisionShape2D" parent="." uid="uid://db_col"]
+position = Vector2(0, -8)
+shape = SubResource("2col")
+
+[node name="DummyLabel" type="Label" parent="." uid="uid://db_lbl"]
+position = Vector2(-24, -56)
+autowrap_mode = 3
+text = "DUMMY enemy for combat"

@@ -1,7 +1,8 @@
-[gd_scene load_steps=9 format=3 uid="uid://testlevel_v1"]
+[gd_scene load_steps=10 format=3 uid="uid://testlevel_v1"]
 
 [ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="1ply"]
 [ext_resource type="PackedScene" path="res://scenes/ui/HUD.tscn" id="2hud"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/DummyEnemy.tscn" id="3dum"]
 
 [sub_resource type="RectangleShape2D" id="2" uid="uid://ground_col"]
 size = Vector2(1280, 24)
@@ -119,3 +120,8 @@ position = Vector2(440, 32)
 text = "Test Level: Try jumping between platforms\nController: Left Stick, A/Space to jump"
 
 [node name="HUD" parent="." uid="uid://test_hud" instance=ExtResource("2hud")]
+
+[node name="DummyContainer" type="Node2D" parent="." uid="uid://dummy_container"]
+position = Vector2(1050, 500)
+
+[node name="DummyEnemy" parent="DummyContainer" uid="uid://dummy_instance" instance=ExtResource("3dum")]
