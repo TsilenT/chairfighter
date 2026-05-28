@@ -14,7 +14,7 @@ Basic Chair → Recliner Baron → Armchair unlock → Armchair grapple
 
 ## Known Limitations
 
-- Godot CLI headless validation available
+- Godot CLI headless validation is pending on hosts without `godot4` or `godot` installed
 - Placeholder art only
 - Controller-first input with keyboard support
 

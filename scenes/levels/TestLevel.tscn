@@ -1,36 +1,25 @@
-[gd_scene load_steps=2 format=3 uid="uid://d0testlevel"]
+[gd_scene load_steps=3 format=3 uid="uid://d0testlevel"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
+size = Vector2(1280, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_platform"]
+size = Vector2(140, 20)
 
 [node name="TestLevel" type="Node2D"]
 
-[node name="Ground" type="Node2D" parent="."]
-position = Vector2(0, 600)
+[node name="Ground" type="StaticBody2D" parent="."]
+position = Vector2(640, 600)
 
-[node name="GroundBody" type="CharacterBody2D" parent="Ground"]
+[node name="GroundColl" type="CollisionShape2D" parent="Ground"]
+shape = SubResource("RectangleShape2D_ground")
 
-[node name="GroundSprite" type="Sprite2D" parent="GroundBody"]
-texture_filter = 1
-
-[node name="GroundColl" type="CollisionShape2D" parent="GroundBody"]
-
-[node name="RectangleShape2D" type="RectangleShape2D" parent="GroundBody/GroundColl"]
-size = Vector2(1280, 32)
-
-[node name="FallingPlatform" type="Node2D" parent="."]
+[node name="FallingPlatform" type="StaticBody2D" parent="."]
 position = Vector2(900, 450)
 
-[node name="PlatformBody" type="CharacterBody2D" parent="FallingPlatform"]
-
-[node name="PlatformSprite" type="Sprite2D" parent="FallingPlatform/PlatformBody"]
-texture_filter = 1
-
-[node name="PlatformColl" type="CollisionShape2D" parent="FallingPlatform/PlatformBody"]
-
-[node name="RectangleShape2D_2" type="RectangleShape2D" parent="FallingPlatform/PlatformBody/PlatformColl"]
-size = Vector2(140, 20)
+[node name="PlatformColl" type="CollisionShape2D" parent="FallingPlatform"]
+shape = SubResource("RectangleShape2D_platform")
 
 [node name="GapWarning" type="Label2D" parent="."]
 position = Vector2(640, 100)
-
-[node name="Label2D_2" type="Label2D" parent="GapWarning"]
-theme_override_colors/font_color = Color(1, 0.8, 0, 1)
 text = "Place your arm across this gap once you have it"
