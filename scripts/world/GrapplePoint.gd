@@ -5,6 +5,7 @@
 ## point becomes the grapple target.
 
 extends Area2D
+class_name GrapplePoint
 
 
 ## Maximum range at which this point can be detected by the player.
@@ -54,8 +55,7 @@ func _physics_process(delta: float) -> void:
 
 
 func _get_tick() -> float:
-	# Use timer_0 as a simple tick counter.
-	return float(get_process_frames())
+	return float(Engine.get_process_frames())
 
 
 func _on_body_entered(body: Node) -> void:

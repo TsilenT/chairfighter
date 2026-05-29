@@ -1,4 +1,4 @@
-[gd_scene load_steps=11=3 uid="uid://testlevel_v1"]
+[gd_scene load_steps=11 format=3 uid="uid://testlevel_v1"]
 
 [ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="1ply"]
 [ext_resource type="PackedScene" path="res://scenes/ui/HUD.tscn" id="2hud"]

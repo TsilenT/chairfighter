@@ -1,4 +1,4 @@
-extends CharacterBody2D
+extends ChairForm
 class_name ArmchairForm
 
 func _init() -> void:
@@ -12,6 +12,7 @@ func _init() -> void:
 	gravity_scale = 4.0
 	collision_shape = Vector2.ZERO
 	body_color = Color(0.8, 0.3, 0.7, 1.0)
+	label_color = Color.WHITE
 	label_text = "Armchair"
 
 
