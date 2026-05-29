@@ -1,18 +1,9 @@
-## ArmchairForm.gd — Placeholder armchair form, unlocked by defeating
-## the Recliner Baron miniboss.
-##
-## Placeholder implementation for CF-03. Visuals are distinct from Basic
-## Chair (magenta instead of brown) so the player knows they switched
-## forms. Grapple special is stubbed and will be implemented in CF-05.
-
-extends ChairForm
-
+extends CharacterBody2D
+class_name ArmchairForm
 
 func _init() -> void:
 	form_name = "Armchair"
-	## Stubbed as locked at this point — GameState unlocks it via
-	## the boss defeat or the test-unlock function.
-	is_unlocked = false
+	is_unlocked = true
 	max_speed = 260.0
 	acceleration = 1700.0
 	deceleration = 1900.0
@@ -25,14 +16,14 @@ func _init() -> void:
 
 
 func on_activate(_previous_form: ChairForm) -> void:
-	print("[ArmchairForm] Armchair form activated! Grapple will be available in CF-05.")
+	print("[ArmchairForm] Armchair form activated! Grapple ready.")
 
 
 func on_special() -> void:
-	## Stub — actual grapple logic is implemented in ArmchairForm.gd in CF-05.
-	print("[ArmchairForm] Special (grapple) stubbed — grapple mechanic added in CF-05.")
+	"""Called by Player.gd when special is pressed while in Armchair form."""
+	print("[ArmchairForm] Special pressed — grapple triggered by form.")
 
 
 func on_attack() -> void:
-	## Longer-range punch than Basic Chair — damage range handled by Player.gd
+	"""Armchair punch — no special behavior in MVP."""
 	pass

@@ -42,6 +42,7 @@ var player_max_health: float = 10.0
 
 func _ready() -> void:
 	unlocked_forms["BasicChair"] = true
+	unlocked_forms["Armchair"] = true
 	current_form = "BasicChair"
 	player_current_health = 10.0
 	player_max_health = 10.0

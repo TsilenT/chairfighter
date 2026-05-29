@@ -1,27 +1,34 @@
-## Player - Basic Chair controller-first platformer controller with chair form switching, health, and melee combat.
+## Player - Basic Chair controller-first platformer controller with chair form
+## switching, health, melee combat, and extendable-arm grapple (Armchair only).
 ##
 ## Handles input (gamepad first, keyboard fallback), platformer physics with
 ## coyote time, jump buffering, variable jump height, acceleration/deceleration,
-## attached Camera2D follow, health, and a melee hitbox for attacking
-## enemies. Delegates movement values and visuals to the active ChairForm
-## via GameState.
+## attached Camera2D follow, health, melee hitbox, and grapple. Delegates
+## movement values and visuals to the active ChairForm via GameState.
 ##
 ## Attack flow:
-##   Input.just_pressed("attack") → _perform_attack() → activate Hitbox (deals damage)
-##   Hitbox overlaps Hurtbox on enemy → Hurtbox emits hitbox_entered → Enemy takes damage
+##   Input.just_pressed("attack") → _perform_attack() → activate Hitbox
+##   Hitbox overlaps enemy Hurtbox → _on_hurtbox_hit() → enemy takes damage.
 ##
 ## Damage flow:
-##   Enemy hitbox overlaps Player Hurtbox → Hurtbox emits hitbox_entered → Player._health.take_damage()
+##   Enemy hitbox overlaps Player Hurtbox → Player takes damage.
+##
+## Grapple flow (Armchair only):
+##   Input.is_action_just_pressed("special") → find nearest GrapplePoint in range
+##   and direction → attach → continuously pull toward point.
+##   Input.is_action_just_released("special") → detach → slight forward boost.
 ##
 ## Layer/mask convention (Godot 4 bit flags):
 ##  - Bit 0 (1)    = collision world
-##  - Bit 4 (16)   = hitboxes (melee attacks)    — Player's hitbox sits here
-##  - Bit 3 (8)    = hurtboxes (take damage)      — Player & enemy hurtboxes sit here
-##  - Bit 1 (2)    = enemies (player hits bodies)
+##  - Bit 4 (16)   = hitboxes (melee)     — Player hitbox sits here
+##  - Bit 3 (8)    = hurtboxes (damage)    — Player & enemy hurtboxes sit here
+##  - Bit 1 (2)    = enemies (player hits)
 
 extends CharacterBody2D
 
-## Movement tuning constants - overridden by active form at switch time.
+## ────────
+#  Movement tuning — overwritten by active form at switch time.
+## ────────
 @export_group("Movement")
 @export var max_speed := 280.0
 @export var acceleration := 1800.0
@@ -29,7 +36,9 @@ extends CharacterBody2D
 @export var air_control := 0.5
 @export var gravity := 980.0
 
-## Jump tuning constants
+## ────────
+#  Jump tuning
+## ────────
 @export_group("Jump")
 @export var jump_velocity := -520.0
 @export var gravity_scale := 3.5
@@ -37,24 +46,42 @@ extends CharacterBody2D
 @export var coyote_time := 0.1
 @export var jump_buffer_time := 0.15
 
-## Camera
+## ────────
+#  Camera
+## ────────
 @export_group("Camera")
 @export var cam_smoothing := 8.0
 @export var zoom_base := Vector2.ONE
 
-## Health
+## ────────
+#  Health
+## ────────
 @export_group("Health")
 @export var max_health := 10.0
 
-## Debounce cooldown for form switching (seconds).
-const FORM_SWITCH_COOLDOWN := 0.15
+## ────────
+#  Grapple tuning (Armchair)
+## ────────
+@export_group("Grapple")
+@export var grapple_range := 300.0
+@export var grapple_speed := 450.0
+@export var grapple_slowdown_speed := 150.0
 
-## Debounce cooldown for melee attacks (seconds).
+
+const FORM_SWITCH_COOLDOWN := 0.15
 const ATTACK_COOLDOWN := 0.3
 
+## ────────
+#  Internal state
+## ────────
 
-## Animation state for attack lean.
+## Animation lean for attack extension.
 var _attack_extension: float = 0.0
+
+## Grapple state machine.
+var _is_grappling: bool = false
+var _grapple_target: GrapplePoint = null  # the point we're attached to
+var _grapple_active: bool = false         # true while special is held & valid
 
 ## Direction the player is facing (-1 left, 1 right).
 var _facing_right: float = 1.0
@@ -62,27 +89,29 @@ var _facing_right: float = 1.0
 ## Active form for movement/visual delegation.
 var _active_form: ChairForm = null
 
-# Internal timers
-var _coyote_duration := 0.0
-var _jump_buffer_duration := 0.0
-var _ground_vel_zeroed := false
-var _form_change_cooldown_remaining: float = 0.0
+## Internal timers.
+var _coyote_duration: float = 0.0
+var _jump_buffer_duration: float = 0.0
+var _ground_vel_zeroed: bool = false
+var _form_change_cooldown: float = 0.0
 
-# Component references
+## Component references.
 var _health: Health
 var _hitbox: Hitbox
 var _hurtbox: Hurtbox
 var _camera: Camera2D
 
-# Debug
+## Debug flag (flip on damage).
 var _has_taken_damage: bool = false
 
+## Visual nodes.
 @onready var _chair_body: ColorRect = $ChairBody
+@onready var _grapple_rope: Line2D = $GrappleRope
 
 
-# ──────────────────────────────────────────────
+# ────────
 #  Public API
-# ──────────────────────────────────────────────
+# ────────
 
 func is_jumping() -> bool:
 	return not is_on_floor() and velocity.y < 0.0
@@ -100,27 +129,40 @@ func get_camera() -> Camera2D:
 	return _camera
 
 
-# ──────────────────────────────────────────────
+# ────────
 #  Initialization & form
-# ──────────────────────────────────────────────
+# ────────
 
 func _ready() -> void:
+	add_to_group("player")
+
+	# Set up camera.
 	_camera = find_child("Camera2D") as Camera2D
-	if _camera != null:
+	if _camera:
 		_camera.make_current()
 		_camera.position = Vector2.ZERO
 
-	# Initialize components
+	# Set up components.
 	_setup_hitbox()
 	_setup_health()
 	_setup_hurtbox()
+	_setup_grapple_rope()
 
-	# Load form from GameState
+	# Load the current form from GameState.
 	_apply_current_form()
 
 
+func _setup_grapple_rope() -> void:
+	"""Create the golden rope visual for grapple."""
+	if not _grapple_rope:
+		return
+	_grapple_rope.visible = false
+	_grapple_rope.width = 3.0
+	_grapple_rope.default_color = Color(0.9, 0.7, 0.1, 0.8)
+
+
 func _apply_current_form() -> void:
-	"""Load form vars and set internal reference."""
+	"""Load movement vars and reference from GameState."""
 	var form_def = GameState.get_current_form_def()
 	if form_def:
 		_active_form = form_def
@@ -137,25 +179,20 @@ func _apply_current_form() -> void:
 
 
 func _update_placeholder_color() -> void:
-	"""Apply active form's body_color to the ColorRect player visual."""
-	if _chair_body != null and _active_form != null:
+	if _chair_body and _active_form:
 		_chair_body.color = _active_form.body_color
 
 
-# ──────────────────────────────────────────────
-#  Hitbox + Health + Hurtbox setup
-# ──────────────────────────────────────────────
+# ────────
+#  Health + Hitbox + Hurtbox setup
+# ────────
 
 func _setup_hitbox() -> void:
-	"""Create a Hitbox component for melee combat."""
 	_hitbox = Hitbox.new()
 	_hitbox.name = "MeleeHitbox"
-
-	# Apply properties
 	_hitbox.damage = 2.0
 	_hitbox.hit_direction = Vector2.RIGHT
 	_hitbox.active_duration = 0.15
-
 	add_child(_hitbox)
 	var hit_shape := CollisionShape2D.new()
 	var hit_rect := RectangleShape2D.new()
@@ -166,7 +203,6 @@ func _setup_hitbox() -> void:
 
 
 func _setup_hurtbox() -> void:
-	"""Create a Hurtbox for the player to receive damage from enemies."""
 	_hurtbox = Hurtbox.new()
 	_hurtbox.name = "Hurtbox"
 	_hurtbox.hitbox_entered.connect(_on_hurtbox_hit)
@@ -180,11 +216,8 @@ func _setup_hurtbox() -> void:
 
 
 func _setup_health() -> void:
-	"""Create a Health component with exported max_health."""
 	_health = Health.new()
 	_health.max_health = max_health
-
-	# Connect to GameState for HUD updates before add_child() triggers _ready().
 	_health.health_changed.connect(func(current: float, max_hp: float) -> void:
 		GameState.update_player_health(current, max_hp)
 	)
@@ -196,66 +229,163 @@ func _setup_health() -> void:
 	add_child(_health)
 
 
-func _on_hurtbox_hit(hitbox) -> void:
-	"""Handle incoming hitbox damage from enemies."""
-	if not _health:
+func _on_hurtbox_hit(hitbox: Hitbox) -> void:
+	if not _health or not is_alive() or not hitbox:
 		return
-	if not is_alive():
-		return
-	if not (hitbox is Hitbox):
-		return
-	var damage_amount = hitbox.damage
+	var dmg = hitbox.damage
 	var kb = -hitbox.hit_direction.normalized()
-	print("[Player] Took %d damage from hitbox!" % damage_amount)
-	_health.take_damage(damage_amount, kb)
+	_health.take_damage(dmg, kb)
 
 
-# ──────────────────────────────────────────────
+# ────────
+#  Grapple logic
+# ────────
+
+var _closest_grapple_dist: float = INF
+
+
+func _update_grapple_state(delta: float) -> void:
+	"""Handle grapple input, detection, and physics."""
+	if not _active_form or not _active_form is ArmchairForm:
+		_release_grapple()
+		return
+
+	# Always draw the rope when holding special (even if no point targetted).
+	if Input.is_action_pressed("special"):
+		if _grapple_rope and not _grapple_rope.visible:
+			_grapple_rope.visible = true
+
+	# Find closest grapple point in range and direction.
+	_update_grapple_scan()
+
+	var want_start = Input.is_action_just_pressed("special")
+	var want_release = Input.is_action_just_released("special")
+
+	if want_release:
+		_release_grapple()
+	elif want_start and _closest_grapple_dist <= grapple_range:
+		_start_grapple()
+
+
+func _update_grapple_scan() -> void:
+	"""Scan scene for closest GrapplePoint in range AND direction."""
+	_closest_grapple_dist = INF
+	var candidate: GrapplePoint = null
+	var scan_radius = grapple_range
+
+	# Walk _all_ GrapplePoint nodes in the scene.
+	for gp in get_tree().get_nodes_in_group("grapple_points"):
+		if not (gp is GrapplePoint):
+			continue
+		var dist = global_position.distance_to(gp.global_position)
+		if dist > scan_radius:
+			continue
+		# Only grapple things in front of us (dot test with facing direction).
+		var to_point = gp.global_position - global_position
+		var fwd = Vector2.RIGHT * _facing_right
+		if to_point.dot(fwd) < 0:
+			continue
+		if dist < _closest_grapple_dist:
+			_closest_grapple_dist = dist
+			candidate = gp
+
+	_grapple_target = candidate
+
+
+func _start_grapple() -> void:
+	if not _grapple_target or _closest_grapple_dist > grapple_range:
+		print("[Player] Can't grapple — no valid target.")
+		return
+	_is_grappling = true
+	_grapple_active = true
+	print("[Player] Grapple started — pulling toward %s at dist %.0f" % [
+		_grapple_target.global_position,
+		_closest_grapple_dist,
+	])
+
+
+func _release_grapple() -> void:
+	if not _is_grappling:
+		return
+	print("[Player] Grapple released.")
+	_is_grappling = false
+	_grapple_active = false
+	_grapple_target = null
+	if _grapple_rope:
+		_grapple_rope.visible = false
+	# Give a tiny forward kick on release for better feel.
+	velocity.x += _facing_right * grapple_slowdown_speed * 0.3
+
+
+func _apply_grapple_pull(delta: float) -> void:
+	"""While grapple is active, pull velocity toward the target."""
+	if not _is_grappling:
+		return
+	if not _grapple_target:
+		_release_grapple()
+		return
+
+	var dist = global_position.distance_to(_grapple_target.global_position)
+
+	# Stop if we've reached the point.
+	if dist < 5.0:
+		_release_grapple()
+		return
+
+	# Interpolate speed: fast when far, slow when close.
+	var t = clampf((_closest_grapple_dist - dist) / max(1.0, grapple_range - 5.0), 0.0, 1.0)
+	var speed = lerp(grapple_speed, grapple_slowdown_speed, t)
+
+	var dir = (_grapple_target.global_position - global_position).normalized()
+	velocity.x = dir.x * speed
+	velocity.y = dir.y * speed  # also pull vertically toward point
+
+
+func _draw_grapple_rope() -> void:
+	if not _grapple_target or not _grapple_rope:
+		return
+	_grapple_rope.clear_points()
+	_grapple_rope.add_point(Vector2.ZERO)
+	_grapple_rope.add_point(_grapple_target.global_position - global_position)
+
+
+# ────────
 #  Form switching
-# ──────────────────────────────────────────────
+# ────────
 
 func change_form(target_name: String) -> bool:
-	"""Switch the active form. Returns true on success."""
 	if not GameState.is_form_unlocked(target_name):
-		printerr("[Player] Locked form: %s" % target_name)
+		printerr("[Player] Form locked: %s" % target_name)
 		return false
-
 	if GameState.current_form == target_name:
-		return true  # Already active
+		return true
 
 	var prev_form = _active_form
-
-	# Switch in GameState first
-	var success = GameState.set_current_form(target_name)
-	if not success:
+	if not GameState.set_current_form(target_name):
 		return false
 
-	# Deactivate old
-	if prev_form != null:
+	if prev_form:
 		prev_form.on_deactivate(GameState.get_current_form_def())
 
-	# Activate new
 	var new_form = GameState.get_current_form_def()
 	_apply_current_form()
-	if new_form != null:
+	if new_form:
 		new_form.on_activate(prev_form)
 
-	print("[Player] Switched to form: %s" % target_name)
+	print("[Player] Switched form to: %s" % target_name)
 	return true
 
 
 func _cycle_form(direction: int) -> void:
-	"""Cycle forms by direction (+1 = next, -1 = prev). Skips locked."""
 	var current_idx = GameState.get_unlocked_form_index()
 	if current_idx < 0:
 		return
-
 	var i = current_idx
 	var iterations = GameState.form_order.size()
 	while iterations > 0:
 		i = (i + direction + GameState.form_order.size()) % GameState.form_order.size()
 		if i == current_idx:
-			return  # Wrapped, no other unlocked form
+			return
 		var candidate = GameState.form_order[i]
 		if candidate in GameState.unlocked_forms:
 			change_form(candidate)
@@ -264,40 +394,46 @@ func _cycle_form(direction: int) -> void:
 
 
 func _handle_form_cycle(delta: float) -> void:
-	"""Handle transform_next/prev input with debounce cooldown."""
-	if _form_change_cooldown_remaining > 0.0:
-		_form_change_cooldown_remaining -= delta
+	if _form_change_cooldown > 0.0:
+		_form_change_cooldown -= delta
 		return
-
 	if Input.is_action_just_pressed("transform_next"):
 		_cycle_form(1)
-		_form_change_cooldown_remaining = FORM_SWITCH_COOLDOWN
+		_form_change_cooldown = FORM_SWITCH_COOLDOWN
 		return
-
 	if Input.is_action_just_pressed("transform_prev"):
 		_cycle_form(-1)
-		_form_change_cooldown_remaining = FORM_SWITCH_COOLDOWN
+		_form_change_cooldown = FORM_SWITCH_COOLDOWN
 
 
-# ──────────────────────────────────────────────
+# ────────
 #  Physics step
-# ──────────────────────────────────────────────
+# ────────
 
 func _physics_process(delta: float) -> void:
-	# Clamp delta
 	delta = min(delta, 1.0 / 30.0)
 
-	# Handle timers
+	# Timers.
 	_handle_coyote(delta)
 	_handle_jump_buffer(delta)
 	_handle_attack(delta)
 	_handle_damage_reaction(delta)
 	_count_jump_press()
+	_handle_form_cycle(delta)
 
-	# Always apply gravity
+	# ─── Grapple update (form-gated) ───
+	_update_grapple_state(delta)
+	_apply_grapple_pull(delta)
+	if _grapple_active:
+		_draw_grapple_rope()
+	else:
+		if _grapple_rope:
+			_grapple_rope.visible = false
+
+	# Gravity.
 	velocity.y += gravity * delta * _get_gravity_multiplier()
 
-	# Horizontal
+	# Horizontal movement.
 	var dir = _get_move_direction()
 	if dir != 0.0:
 		_move_horizontal(dir, delta)
@@ -305,34 +441,29 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.x = move_toward(velocity.x, 0.0, acceleration * delta)
 
-	# Jump execution
+	# Jump buffer → execute.
 	if _jump_buffer_duration > 0.0:
 		_jump_buffer_duration -= delta
 		if is_on_floor() or _coyote_duration > 0.0:
 			_execute_jump()
 			_jump_buffer_duration = 0.0
 
-	# Form cycle
-	_handle_form_cycle(delta)
-
-	# Move & slide
+	# Move & slide.
 	move_and_slide()
 
-	# Auto-zero velocity on ground
+	# Auto-zero ground velocity.
 	if is_on_floor() and not _ground_vel_zeroed:
 		if abs(velocity.x) < acceleration * delta * 0.5:
 			velocity.x = 0.0
 			_ground_vel_zeroed = true
 
 
-# ──────────────────────────────────────────────
-#  Input / mechanics
-# ──────────────────────────────────────────────
+# ────────
+#  Input & mechanics
+# ────────
 
 func _get_move_direction() -> float:
-	"""Get combined keyboard/controller move direction with deadzone filtering."""
 	var dir = Input.get_axis("move_left", "move_right")
-	# Controller sticks are already deadzone-filtered
 	if Input.get_connected_joypads().size() > 0:
 		var stick = Input.get_axis("move_left", "move_right")
 		if stick != 0.0:
@@ -341,7 +472,6 @@ func _get_move_direction() -> float:
 
 
 func _count_jump_press() -> void:
-	"""Buffer jump on just-pressed input for coyote time compatibility."""
 	if Input.is_action_just_pressed("jump"):
 		_jump_buffer_duration = max(_jump_buffer_duration, jump_buffer_time)
 
@@ -354,19 +484,18 @@ func _handle_coyote(delta: float) -> void:
 
 
 func _handle_jump_buffer(delta: float) -> void:
-	"""Keep buffered jump presses alive."""
+	# Buffer lives naturally; handled elsewhere.
 	pass
 
 
 func _execute_jump() -> void:
-	"""Execute jump using form-specific jump velocity."""
 	velocity.y = jump_velocity * _get_jump_multiplier()
 	_coyote_duration = 0.0
 
 
 func _get_jump_multiplier() -> float:
 	if not Input.is_action_pressed("jump"):
-		return 0.5  # Variable height: released early
+		return 0.5  # variable-height: released early = half speed
 	return 1.0
 
 
@@ -376,21 +505,17 @@ func _get_gravity_multiplier() -> float:
 	return gravity_scale + gravity_extra
 
 
-# ──────────────────────────────────────────────
-#  Movement helpers
-# ──────────────────────────────────────────────
-
 func _move_horizontal(dir: float, delta: float) -> void:
 	var accel = acceleration
 	if not is_on_floor():
 		accel *= air_control
-	var target_vel = dir * max_speed
+	var target = dir * max_speed
 	if sign(velocity.x) != sign(dir):
 		accel *= deceleration / acceleration
-	var prev_vel = velocity.x
-	velocity.x = move_toward(prev_vel, target_vel, accel * delta)
-	if abs(velocity.x - target_vel) < 1.0:
-		velocity.x = target_vel
+	var prev = velocity.x
+	velocity.x = move_toward(prev, target, accel * delta)
+	if abs(velocity.x - target) < 1.0:
+		velocity.x = target
 
 
 func _flip_sprite(dir: float) -> void:
@@ -399,14 +524,13 @@ func _flip_sprite(dir: float) -> void:
 		scale.x = abs(scale.x) * sign(dir)
 
 
-# ──────────────────────────────────────────────
-#  Combat / Attack handling
-# ──────────────────────────────────────────────
+# ────────
+#  Combat
+# ────────
 
 func _handle_attack(delta: float) -> void:
 	if Input.is_action_just_pressed("attack"):
 		_perform_attack()
-
 	if _attack_extension > 0.0:
 		_attack_extension -= delta * 5.0
 		if _attack_extension < 0.0:
@@ -417,14 +541,11 @@ func _perform_attack() -> void:
 	if not _hitbox:
 		printerr("[Player] Hitbox not initialized!")
 		return
-
 	_hitbox.hit_direction = Vector2.RIGHT * _facing_right
 	if not _hitbox.activate():
 		return
 	_attack_extension = 1.0
-
-	var attack_direction := "right" if _facing_right > 0 else "left"
-	print("[Player] Attack! Direction: %s" % attack_direction)
+	print("[Player] Attack! Direction: %s" % "right" if _facing_right > 0 else "left")
 
 
 func _handle_damage_reaction(delta: float) -> void:

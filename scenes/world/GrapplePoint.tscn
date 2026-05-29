@@ -1,0 +1,15 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/GrapplePoint.gd" id="1gp"]
+
+[node name="GrapplePoint" type="Area2D"]
+script = ExtResource("1gp")
+grapple_range = 300.0
+visible_radius = 20.0
+position = Vector2(0, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="." uid="uid://gp_sprite"]
+position = Vector2(0, 0)
+scale = Vector2(2, 2)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." uid="uid://gp_col"]
