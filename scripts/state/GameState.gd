@@ -12,6 +12,9 @@ signal form_unlocked(form_name: String)
 # Signal emitted when the player dies.
 signal player_died
 
+# Signal emitted when player health changes (for HUD updates).
+signal player_health_changed(current: float, max_hp: float)
+
 # Current checkpoint position in the test level.
 var current_checkpoint := Vector2.ZERO
 
@@ -28,6 +31,10 @@ var form_registry: Dictionary = {}
 # List of form names in the recommended unlock order (for next/prev cycling).
 var form_order: Array[String] = []
 
+# Current player health tracking (for HUD display).
+var player_current_health: float = 10.0
+var player_max_health: float = 10.0
+
 
 # ─────────────────────────────
 #  Initialization
@@ -36,6 +43,8 @@ var form_order: Array[String] = []
 func _ready() -> void:
 	unlocked_forms["BasicChair"] = true
 	current_form = "BasicChair"
+	player_current_health = 10.0
+	player_max_health = 10.0
 
 	_populate_form_registry()
 
@@ -46,10 +55,6 @@ func _ready() -> void:
 func _populate_form_registry() -> void:
 	"""Scan known form files and store their instances in form_registry."""
 	var forms_dir := "res://scripts/player/forms/"
-	if not DirAccess.dir_exists_absolute(forms_dir):
-		printerr("[GameState] Forms directory not found: %s" % forms_dir)
-		return
-
 	var dir := DirAccess.open(forms_dir)
 	if dir == null:
 		printerr("[GameState] Could not open forms directory: %s" % forms_dir)
@@ -64,8 +69,6 @@ func _populate_form_registry() -> void:
 		file_name = dir.get_next()
 	dir.list_dir_end()
 
-	# Build form_order from registry keys.
-	form_order = form_registry.keys()
 	print("[GameState] Loaded %d form definition(s)." % form_registry.size())
 
 
@@ -150,6 +153,16 @@ func get_unlocked_form_index() -> int:
 		if form_order[i] in unlocked_forms and form_order[i] == current_form:
 			return i
 	return -1
+
+
+# ─────────────────────────────
+#  Health tracking (for HUD)
+# ─────────────────────────────
+
+func update_player_health(current: float, max_hp: float) -> void:
+	player_current_health = current
+	player_max_health = max_hp
+	player_health_changed.emit(current, max_hp)
 
 
 # ─────────────────────────────

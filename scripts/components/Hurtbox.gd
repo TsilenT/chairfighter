@@ -1,40 +1,32 @@
-## Hurtbox.gd — Melee hurtbox target.
+## Hurtbox.gd — Area2D damage receiver (hurtbox).
 ##
-## Attach to any enemy/boss node that should be hittable by Hitbox
-## Area2D overlaps. Places node on layer 8 so hitboxes (layer 4)
-## can detect it via mask.
+## Detects incoming hitboxes via mutual-layer area collision.
+## When a hitbox enters, emits hitbox_entered(hitbox) with the hitbox Area2D.
 ##
-## Layer/Mask convention (Godot 4 bit flags):
-##  - Layer  1 (1) = collision world / static bodies
-##  - Layer  3 (4) = hitboxes (melee attacks)
-##  - Layer  4 (8) = hurtboxes (take damage targets)
-##  - Layer  5 (16) = enemies
-##  - Layer  6 (32) = grapple points
-##  - Layer  7 (64) = ability gates
+## Layer 4 (bit 3) for hurtboxes; Layer 5 (bit 4) for hitboxes.
 
 extends Area2D
 
 class_name Hurtbox
 
-## Width of the hurtbox area (automatically mirrored left/right).
-@export var half_width: float = 48.0
+signal hitbox_entered(hitbox: Area2D)
 
-## Height of the hurtbox area.
-@export var half_height: float = 64.0
-
-## Offset from the parent node's center.
-@export var offset: Vector2 = Vector2.ZERO
+# Collision layer numbers (Godot's set_collision_*_value API is 1-indexed)
+const LAYER_HURTBOX := 4  # bit 3 — damage receiver areas
+const LAYER_HITBOX  := 5  # bit 4 — melee attack areas
 
 
 func _ready() -> void:
-	# Place on hurtbox layer, receive from hitbox layer
-	set_collision_layer_bit(4, true)   # Layer 4 = hurtboxes
-	set_collision_mask_bit(3, true)    # Layer 3 = hitboxes
+	collision_layer = 0
+	collision_mask = 0
+	set_collision_layer_value(LAYER_HURTBOX, true)
+	set_collision_mask_value(LAYER_HITBOX, true)
+	monitoring = true
+	monitorable = true
+	area_entered.connect(_on_area_entered)
 
-	# Create the collision shape
-	var shape := RectangleShape2D.new()
-	shape.size = Vector2(half_width * 2, half_height * 2)
-	var col_shape := CollisionShape2D.new()
-	col_shape.position = offset
-	col_shape.shape = shape
-	add_child(col_shape)
+
+func _on_area_entered(area: Area2D) -> void:
+	"""Pass through hitbox areas."""
+	if area is Hitbox:
+		hitbox_entered.emit(area)

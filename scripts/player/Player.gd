@@ -6,13 +6,18 @@
 ## enemies. Delegates movement values and visuals to the active ChairForm
 ## via GameState.
 ##
-## Layer/Mask convention (Godot 4 bit flags):
-##  - Layer  1 (1) = collision world / static bodies
-##  - Layer  3 (4) = hitboxes (melee attacks)
-##  - Layer  4 (8) = hurtboxes (take damage targets)
-##  - Layer  5 (16) = enemies
-##  - Layer  6 (32) = grapple points
-##  - Layer  7 (64) = ability gates
+## Attack flow:
+##   Input.just_pressed("attack") → _perform_attack() → activate Hitbox (deals damage)
+##   Hitbox overlaps Hurtbox on enemy → Hurtbox emits hitbox_entered → Enemy takes damage
+##
+## Damage flow:
+##   Enemy hitbox overlaps Player Hurtbox → Hurtbox emits hitbox_entered → Player._health.take_damage()
+##
+## Layer/mask convention (Godot 4 bit flags):
+##  - Bit 0 (1)    = collision world
+##  - Bit 4 (16)   = hitboxes (melee attacks)    — Player's hitbox sits here
+##  - Bit 3 (8)    = hurtboxes (take damage)      — Player & enemy hurtboxes sit here
+##  - Bit 1 (2)    = enemies (player hits bodies)
 
 extends CharacterBody2D
 
@@ -47,42 +52,37 @@ const FORM_SWITCH_COOLDOWN := 0.15
 ## Debounce cooldown for melee attacks (seconds).
 const ATTACK_COOLDOWN := 0.3
 
-## Hitbox hitbox radius for area checks.
-const HITBOX_RADIUS := 48.0
 
-## Layer constants used by the Player's hitbox and Hurtbox.
-##   1 = collision world, 3 = hitboxes, 4 = hurtboxes, 5 = enemies
-const LAYER_HITBOX := 3
-const LAYER_HURTBOX := 4
-const LAYER_ENEMY   := 5
+## Animation state for attack lean.
+var _attack_extension: float = 0.0
 
-## Form - active form for movement/visual delegation.
+## Direction the player is facing (-1 left, 1 right).
+var _facing_right: float = 1.0
+
+## Active form for movement/visual delegation.
 var _active_form: ChairForm = null
 
-# Internal state
+# Internal timers
 var _coyote_duration := 0.0
 var _jump_buffer_duration := 0.0
 var _ground_vel_zeroed := false
-var _camera: Camera2D
 var _form_change_cooldown_remaining: float = 0.0
 
-# Health component reference (added to tree by _ready).
+# Component references
 var _health: Health
-
-# Hitbox Area2D reference (added to tree by _ready).
 var _hitbox: Hitbox
+var _hurtbox: Hurtbox
+var _camera: Camera2D
 
-# Attack animation state.
-var _attack_frame: int = 0
-var _attack_duration: float = 0.2
-var _last_attack_dir: float = 0.0
+# Debug
+var _has_taken_damage: bool = false
 
 @onready var _chair_body: ColorRect = $ChairBody
 
 
-# ───────────────────────────────
+# ──────────────────────────────────────────────
 #  Public API
-# ───────────────────────────────
+# ──────────────────────────────────────────────
 
 func is_jumping() -> bool:
 	return not is_on_floor() and velocity.y < 0.0
@@ -92,25 +92,30 @@ func is_on_ground() -> bool:
 	return is_on_floor()
 
 
+func is_alive() -> bool:
+	return _health != null and _health.is_alive()
+
+
 func get_camera() -> Camera2D:
 	return _camera
 
 
-# ───────────────────────────────
+# ──────────────────────────────────────────────
 #  Initialization & form
-# ───────────────────────────────
+# ──────────────────────────────────────────────
 
 func _ready() -> void:
 	_camera = find_child("Camera2D") as Camera2D
 	if _camera != null:
 		_camera.make_current()
 		_camera.position = Vector2.ZERO
-	
-	# Initialize hitbox and health
+
+	# Initialize components
 	_setup_hitbox()
 	_setup_health()
-	
-	# Load form from GameState (should be BasicChair at startup)
+	_setup_hurtbox()
+
+	# Load form from GameState
 	_apply_current_form()
 
 
@@ -137,76 +142,114 @@ func _update_placeholder_color() -> void:
 		_chair_body.color = _active_form.body_color
 
 
-# ─────────────────────────────────
-#  Hitbox + Health setup
-# ───────────────────────────────────
+# ──────────────────────────────────────────────
+#  Hitbox + Health + Hurtbox setup
+# ──────────────────────────────────────────────
 
 func _setup_hitbox() -> void:
 	"""Create a Hitbox component for melee combat."""
 	_hitbox = Hitbox.new()
+	_hitbox.name = "MeleeHitbox"
+
+	# Apply properties
 	_hitbox.damage = 2.0
 	_hitbox.hit_direction = Vector2.RIGHT
 	_hitbox.active_duration = 0.15
-	_hitbox.cooldown_duration = ATTACK_COOLDOWN
-	_hitbox.set_collision_layer_bit(LAYER_HITBOX, true)
-	_hitbox.set_collision_mask_bit(LAYER_ENEMY, true)
-	_hitbox.set_collision_mask_bit(1, true)  # Also detect world-layer bodies
+
 	add_child(_hitbox)
+	var hit_shape := CollisionShape2D.new()
+	var hit_rect := RectangleShape2D.new()
+	hit_rect.size = Vector2(36.0, 36.0)
+	hit_shape.shape = hit_rect
+	hit_shape.position = Vector2(34.0, -32.0)
+	_hitbox.add_child(hit_shape)
+
+
+func _setup_hurtbox() -> void:
+	"""Create a Hurtbox for the player to receive damage from enemies."""
+	_hurtbox = Hurtbox.new()
+	_hurtbox.name = "Hurtbox"
+	_hurtbox.hitbox_entered.connect(_on_hurtbox_hit)
+	add_child(_hurtbox)
+	var hurt_shape := CollisionShape2D.new()
+	var hurt_rect := RectangleShape2D.new()
+	hurt_rect.size = Vector2(44.0, 60.0)
+	hurt_shape.shape = hurt_rect
+	hurt_shape.position = Vector2(0.0, -32.0)
+	_hurtbox.add_child(hurt_shape)
 
 
 func _setup_health() -> void:
 	"""Create a Health component with exported max_health."""
 	_health = Health.new()
 	_health.max_health = max_health
-	add_child(_health)
-	_health.health_changed.connect(func(current, max_hp) -> void:
-		pass  # TODO: update HUD bar
+
+	# Connect to GameState for HUD updates before add_child() triggers _ready().
+	_health.health_changed.connect(func(current: float, max_hp: float) -> void:
+		GameState.update_player_health(current, max_hp)
 	)
 	_health.died.connect(func() -> void:
-		pass  # TODO: player death
+		print("[Player] Player died!")
+		_has_taken_damage = true
+		_chair_body.color = Color(0.3, 0.0, 0.0, 0.5)
 	)
+	add_child(_health)
 
 
-# ───────────────────────────────
+func _on_hurtbox_hit(hitbox) -> void:
+	"""Handle incoming hitbox damage from enemies."""
+	if not _health:
+		return
+	if not is_alive():
+		return
+	if not (hitbox is Hitbox):
+		return
+	var damage_amount = hitbox.damage
+	var kb = -hitbox.hit_direction.normalized()
+	print("[Player] Took %d damage from hitbox!" % damage_amount)
+	_health.take_damage(damage_amount, kb)
+
+
+# ──────────────────────────────────────────────
 #  Form switching
-# ───────────────────────────────
+# ──────────────────────────────────────────────
 
 func change_form(target_name: String) -> bool:
 	"""Switch the active form. Returns true on success."""
 	if not GameState.is_form_unlocked(target_name):
 		printerr("[Player] Locked form: %s" % target_name)
 		return false
-	
+
 	if GameState.current_form == target_name:
 		return true  # Already active
-	
+
 	var prev_form = _active_form
-	
-	# Switch in GameState first (so current_form is updated)
+
+	# Switch in GameState first
 	var success = GameState.set_current_form(target_name)
 	if not success:
 		return false
-	
-	# Deactivate old (now GameState.current_form = new, so old can see new)
+
+	# Deactivate old
 	if prev_form != null:
 		prev_form.on_deactivate(GameState.get_current_form_def())
-	
+
 	# Activate new
 	var new_form = GameState.get_current_form_def()
 	_apply_current_form()
 	if new_form != null:
 		new_form.on_activate(prev_form)
-	
-	print("[Player] Switched to: %s" % target_name)
+
+	print("[Player] Switched to form: %s" % target_name)
 	return true
 
 
 func _cycle_form(direction: int) -> void:
-	"""Cycle forms by given direction (+1 = next, -1 = prev). Skips locked."""
+	"""Cycle forms by direction (+1 = next, -1 = prev). Skips locked."""
 	var current_idx = GameState.get_unlocked_form_index()
 	if current_idx < 0:
 		return
-	
+
 	var i = current_idx
 	var iterations = GameState.form_order.size()
 	while iterations > 0:
@@ -222,58 +265,59 @@ func _cycle_form(direction: int) -> void:
 
 func _handle_form_cycle(delta: float) -> void:
 	"""Handle transform_next/prev input with debounce cooldown."""
-	# Check cooldown first
 	if _form_change_cooldown_remaining > 0.0:
 		_form_change_cooldown_remaining -= delta
 		return
-	
+
 	if Input.is_action_just_pressed("transform_next"):
 		_cycle_form(1)
 		_form_change_cooldown_remaining = FORM_SWITCH_COOLDOWN
 		return
-	
+
 	if Input.is_action_just_pressed("transform_prev"):
 		_cycle_form(-1)
 		_form_change_cooldown_remaining = FORM_SWITCH_COOLDOWN
 
 
-# ───────────────────────────────
+# ──────────────────────────────────────────────
 #  Physics step
-# ───────────────────────────────
+# ──────────────────────────────────────────────
 
 func _physics_process(delta: float) -> void:
 	# Clamp delta
 	delta = min(delta, 1.0 / 30.0)
-	
+
 	# Handle timers
 	_handle_coyote(delta)
 	_handle_jump_buffer(delta)
+	_handle_attack(delta)
+	_handle_damage_reaction(delta)
 	_count_jump_press()
-	
+
 	# Always apply gravity
 	velocity.y += gravity * delta * _get_gravity_multiplier()
-	
+
 	# Horizontal
 	var dir = _get_move_direction()
 	if dir != 0.0:
 		_move_horizontal(dir, delta)
 		_flip_sprite(dir)
 	else:
-		velocity.x = move_toward(velocity.x, 0.0, deceleration * delta)
-	
+		velocity.x = move_toward(velocity.x, 0.0, acceleration * delta)
+
 	# Jump execution
 	if _jump_buffer_duration > 0.0:
 		_jump_buffer_duration -= delta
 		if is_on_floor() or _coyote_duration > 0.0:
 			_execute_jump()
 			_jump_buffer_duration = 0.0
-	
+
 	# Form cycle
 	_handle_form_cycle(delta)
-	
+
 	# Move & slide
 	move_and_slide()
-	
+
 	# Auto-zero velocity on ground
 	if is_on_floor() and not _ground_vel_zeroed:
 		if abs(velocity.x) < acceleration * delta * 0.5:
@@ -281,9 +325,9 @@ func _physics_process(delta: float) -> void:
 			_ground_vel_zeroed = true
 
 
-# ───────────────────────────────
+# ──────────────────────────────────────────────
 #  Input / mechanics
-# ───────────────────────────────
+# ──────────────────────────────────────────────
 
 func _get_move_direction() -> float:
 	"""Get combined keyboard/controller move direction with deadzone filtering."""
@@ -310,7 +354,7 @@ func _handle_coyote(delta: float) -> void:
 
 
 func _handle_jump_buffer(delta: float) -> void:
-	"""Keep buffered jump presses alive even if player releases before landing."""
+	"""Keep buffered jump presses alive."""
 	pass
 
 
@@ -332,13 +376,9 @@ func _get_gravity_multiplier() -> float:
 	return gravity_scale + gravity_extra
 
 
-func _can_perform_jump() -> bool:
-	return is_on_floor() or _coyote_duration > 0.0
-
-
-# ───────────────────────────────
+# ──────────────────────────────────────────────
 #  Movement helpers
-# ───────────────────────────────
+# ──────────────────────────────────────────────
 
 func _move_horizontal(dir: float, delta: float) -> void:
 	var accel = acceleration
@@ -355,10 +395,39 @@ func _move_horizontal(dir: float, delta: float) -> void:
 
 func _flip_sprite(dir: float) -> void:
 	if dir != 0.0:
+		_facing_right = sign(dir)
 		scale.x = abs(scale.x) * sign(dir)
 
 
-func _handle_camera(delta: float) -> void:
-	if _camera != null:
-		_camera.position_smoothing_enabled = true
-		_camera.position_smoothing_speed = cam_smoothing
+# ──────────────────────────────────────────────
+#  Combat / Attack handling
+# ──────────────────────────────────────────────
+
+func _handle_attack(delta: float) -> void:
+	if Input.is_action_just_pressed("attack"):
+		_perform_attack()
+
+	if _attack_extension > 0.0:
+		_attack_extension -= delta * 5.0
+		if _attack_extension < 0.0:
+			_attack_extension = 0.0
+
+
+func _perform_attack() -> void:
+	if not _hitbox:
+		printerr("[Player] Hitbox not initialized!")
+		return
+
+	_hitbox.hit_direction = Vector2.RIGHT * _facing_right
+	if not _hitbox.activate():
+		return
+	_attack_extension = 1.0
+
+	var attack_direction := "right" if _facing_right > 0 else "left"
+	print("[Player] Attack! Direction: %s" % attack_direction)
+
+
+func _handle_damage_reaction(delta: float) -> void:
+	if _health and _health.knockback_force != Vector2.ZERO:
+		velocity.x = _health.knockback_force.x
+		_health.knockback_force = Vector2.ZERO

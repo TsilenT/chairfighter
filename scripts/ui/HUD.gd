@@ -1,20 +1,24 @@
-## HUD.gd — Simple HUD that shows the current chair form.
+## HUD.gd — Simple HUD that shows the current chair form and player health.
 ##
 ## Reads the active form from GameState and updates a label and color box.
+## Also displays player health via the GameState signal.
 
 extends CanvasLayer
 
-
 @onready var form_label := $FormLabel as Label
 @onready var form_color_box := $FormColorBox as ColorRect
+@onready var health_label := $HealthLabel as Label
+@onready var health_bar_bg := $HealthBarBG as ColorRect
+@onready var health_bar_fill := $HealthBarFill as ColorRect
 
 
 func _ready() -> void:
 	var form_def : ChairForm = GameState.get_current_form_def()
 	if form_def:
 		_update_display(form_def.form_name, form_def.body_color, form_def.label_text)
-	
+
 	GameState.form_unlocked.connect(_on_form_unlocked)
+	GameState.player_health_changed.connect(_on_player_health_changed)
 
 
 func _process(_delta: float) -> void:
@@ -23,6 +27,23 @@ func _process(_delta: float) -> void:
 	if form_def and form_label:
 		if form_label.text != form_def.label_text:
 			_update_display(form_def.form_name, form_def.body_color, form_def.label_text)
+
+	## Update health bar width based on current HP
+	if health_bar_fill and health_bar_bg:
+		var pct = clampf(GameState.player_current_health / GameState.player_max_health, 0.0, 1.0)
+		health_bar_fill.position = health_bar_bg.position
+		health_bar_fill.size = Vector2(190.0 * pct, health_bar_bg.size.y)
+		health_bar_fill.color = _green_color(pct)
+		if health_label:
+			health_label.text = "HP: %d / %d" % [
+				max(0, int(GameState.player_current_health)),
+				int(GameState.player_max_health)
+			]
+
+
+func _on_player_health_changed(current, max_hp) -> void:
+	# Health bar width is updated in _process() which runs every frame
+	pass
 
 
 func _update_display(name: String, color: Color, label: String) -> void:
@@ -39,3 +60,11 @@ func _on_form_unlocked(form_name: String) -> void:
 	else:
 		if form_label:
 			form_label.text = "%s unlocked!" % form_name
+
+
+func _green_color(pct: float) -> Color:
+	# Smooth transition from red to yellow to green
+	var r = 0.0 if pct > 0.5 else 0.6 + 0.4 * (pct * 2)
+	var g = 0.2 + 0.6 * min(pct, 1.0)
+	var b = 0.2
+	return Color(r, g, b, 1)

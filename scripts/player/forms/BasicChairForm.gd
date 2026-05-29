@@ -3,7 +3,7 @@
 ## Standard wooden chair with basic movement and melee attack.
 ## No special mechanics — pure baseline platformer form.
 
-extends RefCounted
+extends ChairForm
 class_name BasicChairForm
 
 ## Name of this form (used for switching and display).

@@ -117,11 +117,13 @@ color = Color(0.3, 0.4, 0.2, 1)
 
 [node name="Info" type="Label" parent="." uid="uid://info"]
 position = Vector2(440, 32)
-text = "Test Level: Try jumping between platforms\nController: Left Stick, A/Space to jump"
+text = "Test Level: Try jumping between platforms\\nDefeat the pink DummyEnemy to test combat"
+horizontal_alignment = 1
+font_size = 14
 
 [node name="HUD" parent="." uid="uid://test_hud" instance=ExtResource("2hud")]
 
 [node name="DummyContainer" type="Node2D" parent="." uid="uid://dummy_container"]
-position = Vector2(1050, 500)
+position = Vector2(1000, 320)
 
 [node name="DummyEnemy" parent="DummyContainer" uid="uid://dummy_instance" instance=ExtResource("3dum")]
