@@ -7,7 +7,7 @@
 [ext_resource type="PackedScene" path="res://scenes/world/AbilityGate.tscn" id="5agg"]
 
 [sub_resource type="RectangleShape2D" id="2" uid="uid://ground_col"]
-size = Vector2(1280, 24)
+size = Vector2(1400, 24)
 
 [sub_resource type="RectangleShape2D" id="3" uid="uid://plat1_col"]
 size = Vector2(200, 16)
@@ -29,7 +29,7 @@ size = Vector2(16, 640)
 [node name="Visuals" type="Node2D" uid="uid://visuals" parent="."]
 
 [node name="Floor" type="StaticBody2D" parent="Visuals" uid="uid://floor"]
-position = Vector2(640, 632)
+position = Vector2(700, 632)
 
 [node name="FloorCol" type="CollisionShape2D" parent="Visuals/Floor" uid="uid://floor_col"]
 shape = SubResource("2")
