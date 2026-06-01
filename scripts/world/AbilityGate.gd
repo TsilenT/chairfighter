@@ -36,7 +36,7 @@ var _is_unlocked: bool = false
 var _denied_timer: Timer = Timer.new()
 var _lock_label: Label = Label.new()
 var _vis_layer := Node2D.new()
-var _col_layer := Node2D.new()
+var _col_layer := StaticBody2D.new()
 
 
 func _ready() -> void:
@@ -48,10 +48,12 @@ func _ready() -> void:
 
 	# --- Collision sensor (invisible circle at the gate opening) ---
 	var circle := CircleShape2D.new()
+	circle.radius = 44.0
 	var col_sens := CollisionShape2D.new()
+	col_sens.name = "Sensor"
 	col_sens.shape = circle
 	col_sens.position = Vector2(0, -2)
-	_col_layer.add_child(col_sens)
+	add_child(col_sens)
 
 	# --- Bottom post (vertical rectangle) ---
 	var vis_post := ColorRect.new()
@@ -118,23 +120,43 @@ func _on_body_entered(body: Node) -> void:
 
 
 func _get_player_current_form(body: Node2D) -> String:
-	# Use GameState autoload to read the current active form.
-	# GameState is an autoload in project.godot — it is always available as a global.
-	return str(GameState.current_form)
+	# Use the GameState autoload to read the current active form.
+	# Resolve it by path so the gate scene still compiles in isolated load checks.
+	var game_state := get_node_or_null("/root/GameState")
+	if game_state != null:
+		return str(game_state.get("current_form"))
+	return "BasicChair"
 
 
 func _unlock() -> void:
 	_is_unlocked = true
 	print("[AbilityGate] Gate unlocked! Required: %s" % required_form)
 	gate_unlocked.emit(self)
+	_update_locked_text()
+	_update_color()
+	set_deferred("monitoring", false)
+	set_deferred("monitorable", false)
+	_col_layer.set_deferred("collision_layer", 0)
+	_col_layer.set_deferred("collision_mask", 0)
+	for child in _col_layer.get_children():
+		if child is CollisionShape2D:
+			child.set_deferred("disabled", true)
 
-	# Animate out: brief rise then fade.
+	if not consume_on_unlock:
+		return
+
+	# Animate out: brief rise then fade for one-time gates.
 	var tween := create_tween()
 	tween.tween_property(self, "global_position", global_position + Vector2(0, -10), 0.15)
 	tween.tween_interval(0.2)
 	tween.tween_property(self, "modulate:a", 0.0, 0.3)
 	await tween.finished
 	queue_free()
+
+
+func _on_body_exited(body: Node) -> void:
+	if not body.is_in_group("player"):
+		return
 
 
 func _denied(player_form: String) -> void:
