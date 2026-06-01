@@ -112,6 +112,127 @@ offset_right = 1400.0
 offset_bottom = 640.0
 color = Color(0.3, 0.4, 0.2, 1)
 
+[node name="RouteVisuals" type="Node2D" parent="Visuals" uid="uid://route_visuals"]
+
+# Dashed grapple path: a series of small colored dots along the route
+# From Platform2 (right edge) → GrappleMarker2 → GrappleMarker1 → past Gate
+[node name="RouteDot" type="ColorRect" parent="Visuals/RouteVisuals" uid="uid://route_dot"]
+offset_left = -4.0
+offset_top = -4.0
+offset_right = 4.0
+offset_bottom = 4.0
+color = Color(1, 0.85, 0, 0.7)
+
+[node name="RouteDot2" type="ColorRect" parent="Visuals/RouteVisuals" uid="uid://route_dot2"]
+offset_left = -4.0
+offset_top = -4.0
+offset_right = 4.0
+offset_bottom = 4.0
+color = Color(1, 0.85, 0, 0.7)
+
+[node name="RouteDot3" type="ColorRect" parent="Visuals/RouteVisuals" uid="uid://route_dot3"]
+offset_left = -4.0
+offset_top = -4.0
+offset_right = 4.0
+offset_bottom = 4.0
+color = Color(1, 0.85, 0, 0.7)
+
+[node name="RouteDot4" type="ColorRect" parent="Visuals/RouteVisuals" uid="uid://route_dot4"]
+offset_left = -4.0
+offset_top = -4.0
+offset_right = 4.0
+offset_bottom = 4.0
+color = Color(1, 0.85, 0, 0.7)
+
+[node name="RouteDot5" type="ColorRect" parent="Visuals/RouteVisuals" uid="uid://route_dot5"]
+offset_left = -4.0
+offset_top = -4.0
+offset_right = 4.0
+offset_bottom = 4.0
+color = Color(1, 0.85, 0, 0.7)
+
+# Path direction labels using Unicode characters
+[node name="LabelArrow1" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_arrow1"]
+position = Vector2(825, 310)
+text = "→"
+horizontal_alignment = 1
+font_size = 24
+font_color = Color(1, 0.85, 0, 0.8)
+
+[node name="LabelArrow2" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_arrow2"]
+position = Vector2(945, 310)
+text = "→"
+horizontal_alignment = 1
+font_size = 24
+font_color = Color(1, 0.85, 0, 0.8)
+
+[node name="LabelArrow3" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_arrow3"]
+position = Vector2(850, 295)
+text = "↑"
+horizontal_alignment = 1
+font_size = 24
+font_color = Color(1, 0.85, 0, 0.8)
+
+[node name="LabelArrow4" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_arrow4"]
+position = Vector2(1050, 215)
+text = "↑"
+horizontal_alignment = 1
+font_size = 24
+font_color = Color(1, 0.85, 0, 0.8)
+
+[node name="LabelArrow5" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_arrow5"]
+position = Vector2(1115, 215)
+text = "→"
+horizontal_alignment = 1
+font_size = 24
+font_color = Color(1, 0.85, 0, 0.8)
+
+# Instruction label above the grapple route
+[node name="LabelRoute" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_route"]
+position = Vector2(820, 250)
+text = "GRAPPLE PATH:"
+horizontal_alignment = 1
+font_size = 12
+font_color = Color(1, 0.85, 0, 0.9)
+
+# Grapple waypoint labels on the markers
+[node name="LabelGrapple1" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_grapple1"]
+position = Vector2(850, 410)
+text = "GRAPPLE 2"
+horizontal_alignment = 1
+font_size = 10
+font_color = Color(1, 0.85, 0, 0.7)
+
+[node name="LabelGrapple2" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_grapple2"]
+position = Vector2(1050, 300)
+text = "GRAPPLE 1"
+horizontal_alignment = 1
+font_size = 10
+font_color = Color(1, 0.85, 0, 0.7)
+
+# Gate label
+[node name="LabelGate" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_gate"]
+position = Vector2(830, 230)
+text = "GATE →"
+horizontal_alignment = 1
+font_size = 12
+font_color = Color(1, 0.4, 0.4, 0.9)
+
+[node name="LabelDest" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_dest"]
+position = Vector2(1120, 248)
+text = "PLATFORM 3"
+horizontal_alignment = 1
+font_size = 12
+font_color = Color(0.5, 1, 0.5, 0.9)
+
+# Background panel for the route labels
+[node name="RoutePanel" type="ColorRect" parent="Visuals/RouteVisuals" uid="uid://route_panel"]
+offset_left = 800.0
+offset_top = 238.0
+offset_right = 1140.0
+offset_bottom = 268.0
+color = Color(0, 0, 0, 0.5)
+
 [node name="PlayerContainer" type="Node2D" parent="." uid="uid://player_container"]
 position = Vector2(200, 500)
 
