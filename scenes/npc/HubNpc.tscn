@@ -8,7 +8,6 @@
 [ext_resource type="Script" path="res://scripts/npc/HubNpc.gd" id="1hub"]
 
 [node name="HubNpc" type="CharacterBody2D" uid="uid://hubnpc_root"]
-position = Vector2(700, 560)
 script = ExtResource("1hub")
 
 [node name="Body" type="ColorRect" parent="." uid="uid://hubnpc_body"]

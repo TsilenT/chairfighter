@@ -10,6 +10,7 @@ extends CharacterBody2D
 
 var _is_armchair_unlocked := false
 var _flavor_line_index := 0
+var _base_y := 0.0
 
 # Pre-written flavor lines keyed on the armchair-unlock state.
 
@@ -28,13 +29,15 @@ var _flavor_after := [
 ]
 
 func _ready() -> void:
+	_base_y = position.y
+	_is_armchair_unlocked = GameState.is_form_unlocked("Armchair")
 	_update_text()
 	# Monitor GameState for Armchair unlock.
 	GameState.form_unlocked.connect(_on_form_unlocked)
 
 func _process(_delta: float) -> void:
 	# Subtle up-and-down idle animation.
-	position.y = 560 + sin(Time.get_ticks_msec() / 600.0) * 2.0
+	position.y = _base_y + sin(Time.get_ticks_msec() / 600.0) * 2.0
 
 func _update_text() -> void:
 	if _is_armchair_unlocked:
