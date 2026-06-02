@@ -272,6 +272,7 @@ func _on_player_died() -> void:
 	_is_dead = true
 	velocity = Vector2.ZERO
 	player_died.emit()
+	GameState.player_died.emit()
 
 
 func respawn() -> void:

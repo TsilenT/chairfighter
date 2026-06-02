@@ -17,6 +17,8 @@ extends CanvasLayer
 
 
 func _ready() -> void:
+	add_to_group("hud")
+
 	var form_def : ChairForm = GameState.get_current_form_def()
 	if form_def:
 		_update_display(form_def.form_name, form_def.body_color, form_def.label_text)
