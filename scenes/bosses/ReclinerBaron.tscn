@@ -1,0 +1,83 @@
+; ReclinerBaron.tscn — A placeable purple miniboss with two attack patterns.
+;
+; Visual: Purple placeholder with "RECLINING BARON" label.
+; When defeated: turns gray, fades out, and queue_free().
+;
+; Attack patterns (timer-based):
+;   IDLE   : wanders back and forth slowly on X axis.
+;   PREP_SWIPE : yellow wind-up for 0.5s then a SwipeHitbox extends right for 0.3s.
+;   LURGE    : darts upward on Y for 0.6s then drops back.
+;
+; Combat layers: Hurtbox on layer 4 (bit 3, hurtboxes). SwipeHitbox on layer 5 (bit 4, hitboxes).
+; The Player's Hitbox (layer 5) can damage the boss's Hurtbox (layer 4). The boss's SwipeHitbox (layer 5) damages the Player's Hurtbox (layer 4). Collision is two-way.
+
+[gd_scene load_steps=5 format=3 uid="uid://recliner_baron_scene_v1"]
+
+[ext_resource type="Script" path="res://scripts/bosses/ReclinerBaron.gd" id="1baron"]
+[ext_resource type="Script" path="res://scripts/components/Health.gd" id="2hp"]
+[ext_resource type="Script" path="res://scripts/components/Hurtbox.gd" id="3hurt"]
+[ext_resource type="Script" path="res://scripts/components/Hitbox.gd" id="4hit"]
+
+[sub_resource type="RectangleShape2D" id="1" uid="uid://rb_hurtbox_col"]
+size = Vector2(60.0, 80.0)
+
+[sub_resource type="RectangleShape2D" id="2" uid="uid://rb_swipe_col"]
+size = Vector2(80.0, 50.0)
+
+
+[node name="ReclinerBaron" type="CharacterBody2D" uid="uid://rb_root"]
+position = Vector2(0.0, 0.0)
+script = ExtResource("1baron")
+
+[node name="Visual" type="ColorRect" parent="." uid="uid://rb_vis"]
+size = Vector2(60.0, 80.0)
+offset_left = -30.0
+offset_top = -80.0
+offset_right = 30.0
+offset_bottom = 0.0
+color = Color(0.55, 0.25, 0.75, 1)
+
+[node name="Label" type="Label" parent="Visual" uid="uid://rb_lbl_base"]
+position = Vector2(-28.0, -70.0)
+text = "BARON"
+font_size = 8
+
+[node name="PreparationPanel" type="ColorRect" parent="Visual" uid="uid://rb_prep_panel"]
+visible = false
+size = Vector2(56.0, 68.0)
+offset_left = -28.0
+offset_top = -66.0
+offset_right = 28.0
+offset_bottom = 2.0
+color = Color(1.0, 1.0, 0.0, 0.25)
+
+[node name="PreparationLabel" type="Label" parent="Visual" uid="uid://rb_prep_lbl"]
+visible = false
+position = Vector2(-20.0, -56.0)
+text = "CHARGING!"
+font_size = 7
+autowrap_mode = 2
+
+[node name="Health" type="Node" parent="." uid="uid://rb_hp"]
+script = ExtResource("2hp")
+
+[node name="Hurtbox" type="Area2D" parent="." uid="uid://rb_hrbox"]
+position = Vector2(0.0, -38.0)
+monitoring = true
+collision_layer = 8
+script = ExtResource("3hurt")
+
+[node name="HurtboxCol" type="CollisionShape2D" parent="Hurtbox" uid="uid://rb_hrbox_col"]
+shape = SubResource("1")
+
+[node name="SwipeHitbox" type="Area2D" parent="." uid="uid://rb_swbox"]
+visible = false
+position = Vector2(70.0, -38.0)
+monitoring = false
+monitorable = true
+collision_layer = 16
+collision_mask = 8
+script = ExtResource("4hit")
+
+[node name="SwipeCol" type="CollisionShape2D" parent="SwipeHitbox" uid="uid://rb_sw_col"]
+shape = SubResource("2")
