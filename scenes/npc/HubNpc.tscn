@@ -1,0 +1,87 @@
+; HubNpc.tscn — A central flavor NPC with a speech bubble.
+; The speech bubble is always visible; text changes based on Armchair unlock state.
+;
+; Visual: Green placeholder sprite with speech bubble showing dynamic text.
+
+[gd_scene load_steps=2 format=3 uid="uid://hubnpc_scene_v2"]
+
+[ext_resource type="Script" path="res://scripts/npc/HubNpc.gd" id="1hub"]
+
+[node name="HubNpc" type="CharacterBody2D" uid="uid://hubnpc_root"]
+position = Vector2(700, 560)
+script = ExtResource("1hub")
+
+[node name="Body" type="ColorRect" parent="." uid="uid://hubnpc_body"]
+size = Vector2(40, 60)
+offset_left = -20
+offset_top = -80
+offset_right = 20
+offset_bottom = -20
+color = Color(0.6, 0.8, 0.4, 1)
+
+[node name="Head" type="ColorRect" parent="." uid="uid://hubnpc_head"]
+size = Vector2(30, 30)
+offset_left = -15
+offset_top = -105
+offset_right = 15
+offset_bottom = -75
+color = Color(0.9, 0.8, 0.5, 1)
+
+[node name="Base" type="ColorRect" parent="." uid="uid://hubnpc_base"]
+size = Vector2(50, 10)
+offset_left = -25
+offset_top = -5
+offset_right = 25
+offset_bottom = 5
+color = Color(0.35, 0.35, 0.25, 1)
+
+[node name="SpeechBubble" type="Control" parent="." uid="uid://hubnpc_speech"]
+anchors_preset = 15
+anchor_left = 0.5
+anchor_top = 0.0
+anchor_right = 0.5
+anchor_bottom = 0.0
+offset_left = -80
+offset_top = -130
+anchor_right_minus_offset_left = 80
+anchor_bottom_minus_offset_top = -80
+
+[node name="BubbleBg" type="ColorRect" parent="SpeechBubble" uid="uid://hubnpc_bubble_bg"]
+size = Vector2(160, 50)
+offset_left = -80
+offset_top = -25
+offset_right = 80
+offset_bottom = 25
+color = Color(0.95, 0.93, 0.85, 0.95)
+
+[node name="BubbleBorder" type="ColorRect" parent="SpeechBubble" uid="uid://hubnpc_bubble_border"]
+size = Vector2(166, 56)
+offset_left = -83
+offset_top = -28
+offset_right = 83
+offset_bottom = 28
+color = Color(0.4, 0.4, 0.3, 0.6)
+
+[node name="BubbleText" type="Label" parent="SpeechBubble" uid="uid://hubnpc_bubble_text"]
+position = Vector2(-70, -15)
+size = Vector2(140, 30)
+text = "..."
+autowrap_mode = 2
+horizontal_alignment = 1
+font_size = 10
+theme_override_colors/font_color = Color(0.15, 0.15, 0.15, 1)
+
+[node name="NameLabel" type="Label" parent="SpeechBubble" uid="uid://hubnpc_name"]
+position = Vector2(-25, -27)
+size = Vector2(50, 14)
+text = "???"
+font_size = 8
+theme_override_colors/font_color = Color(0.3, 0.3, 0.3, 1)
+
+[node name="PulseIndicator" type="ColorRect" parent="SpeechBubble" uid="uid://hubnpc_pulse"]
+size = Vector2(20, 12)
+offset_left = -10
+offset_top = -22
+offset_right = 10
+offset_bottom = -10
+color = Color(1, 0.85, 0, 0.8)

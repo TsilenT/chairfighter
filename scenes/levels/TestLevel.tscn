@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://testlevel_v1"]
+[gd_scene load_steps=18 format=3 uid="uid://testlevel_v1"]
 
 [ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="1ply"]
 [ext_resource type="PackedScene" path="res://scenes/ui/HUD.tscn" id="2hud"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://scenes/world/GrapplePoint.tscn" id="4gp"]
 [ext_resource type="PackedScene" path="res://scenes/world/AbilityGate.tscn" id="5agg"]
 [ext_resource type="PackedScene" path="res://scenes/bosses/ReclinerBaron.tscn" id="6baron"]
+[ext_resource type="PackedScene" path="res://scenes/npc/HubNpc.tscn" id="7hubnpc"]
 
 
 [sub_resource type="RectangleShape2D" id="2" uid="uid://ground_col"]
@@ -282,4 +283,9 @@ text = "⚔ ARENA ⚔"
 horizontal_alignment = 1
 font_size = 12
 font_color = Color(0.8, 0.6, 0.9, 1)
+
+[node name="HubNpcContainer" type="Node2D" uid="uid://hubnpc_container" parent="."]
+position = Vector2(700, 550)
+
+[node name="HubNpc" parent="HubNpcContainer" uid="uid://hubnpc_instance" instance=ExtResource("7hubnpc")]
 
