@@ -16,7 +16,7 @@ size = Vector2(44.0, 56.0)
 position = Vector2(0.0, 0.0)
 script = ExtResource("2dummy")
 
-[node name="Visual" type="ColorRect" uid="uid://de_vis"]
+[node name="Visual" type="ColorRect" parent="." uid="uid://de_vis"]
 size = Vector2(40.0, 56.0)
 offset_left = -20.0
 offset_top = -56.0
@@ -29,14 +29,14 @@ position = Vector2(-24.0, -48.0)
 text = "DUMMY"
 font_size = 8
 
-[node name="Health" type="Node" uid="uid://de_hp"]
-script = ExtResource("3")
+[node name="Health" type="Node" parent="." uid="uid://de_hp"]
+script = ExtResource("3health")
 
-[node name="Hurtbox" type="Area2D" uid="uid://de_hb"]
+[node name="Hurtbox" type="Area2D" parent="." uid="uid://de_hb"]
 position = Vector2(0.0, -28.0)
 monitoring = true
 collision_layer = 8
-script = ExtResource("4")
+script = ExtResource("4hurtbox")
 
 [node name="HurtboxCol" type="CollisionShape2D" parent="Hurtbox" uid="uid://de_hb_col"]
 shape = SubResource("1")

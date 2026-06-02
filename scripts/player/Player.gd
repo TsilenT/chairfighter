@@ -26,6 +26,13 @@
 
 extends CharacterBody2D
 
+const ChairFormType = preload("res://scripts/player/ChairForm.gd")
+const ArmchairFormType = preload("res://scripts/player/forms/ArmchairForm.gd")
+const GrapplePointType = preload("res://scripts/world/GrapplePoint.gd")
+const HealthType = preload("res://scripts/components/Health.gd")
+const HitboxType = preload("res://scripts/components/Hitbox.gd")
+const HurtboxType = preload("res://scripts/components/Hurtbox.gd")
+
 ## ────────
 #  Movement tuning — overwritten by active form at switch time.
 ## ────────
@@ -80,7 +87,8 @@ var _attack_extension: float = 0.0
 
 ## Grapple state machine.
 var _is_grappling: bool = false
-var _grapple_target: GrapplePoint = null  # the point we're attached to
+## Grapple point we're currently attached to (Object to avoid parse-time type resolution).
+var _grapple_target: Object = null  # the point we're attached to
 var _grapple_active: bool = false         # true while special is held & valid
 
 ## Direction the player is facing (-1 left, 1 right).
@@ -95,6 +103,15 @@ var _jump_buffer_duration: float = 0.0
 var _ground_vel_zeroed: bool = false
 var _form_change_cooldown: float = 0.0
 
+## Saved spawn position for respawn.
+var _spawn_position: Vector2 = Vector2.ZERO
+
+## Whether the player is currently dead and waiting for restart input.
+var _is_dead: bool = false
+
+## Signal emitted when the player dies.
+signal player_died
+
 ## Component references.
 var _health: Health
 var _hitbox: Hitbox
@@ -108,6 +125,8 @@ var _has_taken_damage: bool = false
 @onready var _chair_body: ColorRect = $ChairBody
 @onready var _grapple_rope: Line2D = $GrappleRope
 
+## Visual overlay shown when dead.
+var _death_overlay: ColorRect = null
 
 # ────────
 #  Public API
@@ -135,6 +154,15 @@ func get_camera() -> Camera2D:
 
 func _ready() -> void:
 	add_to_group("player")
+	_spawn_position = position
+	# Connect to restart signal from GameState.
+	GameState.game_restart.connect(func() -> void:
+		if not _is_dead:
+			print("[Player] Restart called but player is alive — ignoring.")
+			return
+		print("[Player] Game restart received. Respawning.")
+		respawn()
+	)
 
 	# Set up camera.
 	_camera = find_child("Camera2D") as Camera2D
@@ -221,11 +249,7 @@ func _setup_health() -> void:
 	_health.health_changed.connect(func(current: float, max_hp: float) -> void:
 		GameState.update_player_health(current, max_hp)
 	)
-	_health.died.connect(func() -> void:
-		print("[Player] Player died!")
-		_has_taken_damage = true
-		_chair_body.color = Color(0.3, 0.0, 0.0, 0.5)
-	)
+	_health.died.connect(_on_player_died)
 	add_child(_health)
 
 
@@ -235,6 +259,35 @@ func _on_hurtbox_hit(hitbox: Hitbox) -> void:
 	var dmg = hitbox.damage
 	var kb = -hitbox.hit_direction.normalized()
 	_health.take_damage(dmg, kb)
+
+
+# ────────
+#  Death & respawn
+# ────────
+
+func _on_player_died() -> void:
+	print("[Player] Player died!")
+	_has_taken_damage = true
+	_chair_body.color = Color(0.3, 0.0, 0.0, 0.5)
+	_is_dead = true
+	velocity = Vector2.ZERO
+	player_died.emit()
+
+
+func respawn() -> void:
+	"""Respawn player: fully restore health and reset position."""
+	print("[Player] Player respawning!")
+	_has_taken_damage = false
+	_is_dead = false
+	_chair_body.color = Color(0.6, 0.5, 0.3, 1)
+	position = _spawn_position
+	velocity = Vector2.ZERO
+	if _health:
+		_health.max_health = max_health
+		_health.current_hp = max_health
+		_health.health_changed.emit(max_health, max_health)
+	if GameState.get_current_form_def():
+		GameState.update_player_health(max_health, max_health)
 
 
 # ────────
@@ -413,6 +466,15 @@ func _handle_form_cycle(delta: float) -> void:
 func _physics_process(delta: float) -> void:
 	delta = min(delta, 1.0 / 30.0)
 
+	# ────────
+	#  Death overlay & restart input
+	# ────────
+	_handle_death_overlay()
+	if _is_dead and Input.is_action_just_pressed("restart"):
+		print("[Player] Restart input detected — requesting game restart.")
+		GameState.restart_game()
+		return
+
 	# Timers.
 	_handle_coyote(delta)
 	_handle_jump_buffer(delta)
@@ -552,3 +614,22 @@ func _handle_damage_reaction(delta: float) -> void:
 	if _health and _health.knockback_force != Vector2.ZERO:
 		velocity.x = _health.knockback_force.x
 		_health.knockback_force = Vector2.ZERO
+
+
+# ────────
+#  Death overlay
+# ────────
+
+func _handle_death_overlay() -> void:
+	# Toggle the HUD death overlay based on the player's death state.
+	if get_tree() == null:
+		return
+	var hud := get_tree().get_first_node_in_group("hud")
+	if not hud or not hud is CanvasLayer:
+		return
+	var overlay := hud.get_node_or_null("DeathOverlay")
+	var text := hud.get_node_or_null("DeathText")
+	if overlay:
+		overlay.visible = _is_dead
+	if text:
+		text.visible = _is_dead

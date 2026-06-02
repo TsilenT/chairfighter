@@ -61,6 +61,10 @@ pause={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"physical_keycode":16777217), Object(InputEventJoypadButton,"button_index":6)]
 }
+restart={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":82), Object(InputEventJoypadButton,"button_index":5)]
+}
 
 [rendering]
 

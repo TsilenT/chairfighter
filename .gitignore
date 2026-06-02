@@ -4,6 +4,7 @@
 *.import/
 
 # Godot editor cache
+.godot/
 *.pid
 *.pid.*
 editor/

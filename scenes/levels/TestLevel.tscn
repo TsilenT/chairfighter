@@ -1,10 +1,12 @@
-[gd_scene load_steps=12 format=3 uid="uid://testlevel_v1"]
+[gd_scene load_steps=17 format=3 uid="uid://testlevel_v1"]
 
 [ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="1ply"]
 [ext_resource type="PackedScene" path="res://scenes/ui/HUD.tscn" id="2hud"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/DummyEnemy.tscn" id="3dum"]
 [ext_resource type="PackedScene" path="res://scenes/world/GrapplePoint.tscn" id="4gp"]
 [ext_resource type="PackedScene" path="res://scenes/world/AbilityGate.tscn" id="5agg"]
+[ext_resource type="PackedScene" path="res://scenes/bosses/ReclinerBaron.tscn" id="6baron"]
+
 
 [sub_resource type="RectangleShape2D" id="2" uid="uid://ground_col"]
 size = Vector2(1400, 24)
@@ -220,7 +222,7 @@ font_color = Color(1, 0.4, 0.4, 0.9)
 
 [node name="LabelDest" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_dest"]
 position = Vector2(1120, 248)
-text = "PLATFORM 3"
+text = "ARMCHAIR ROUTE"
 horizontal_alignment = 1
 font_size = 12
 font_color = Color(0.5, 1, 0.5, 0.9)
@@ -241,7 +243,7 @@ position = Vector2(200, 500)
 
 [node name="Info" type="Label" parent="." uid="uid://info"]
 position = Vector2(440, 32)
-text = "Test Level: Try jumping between platforms. Reach Platform3 with Armchair grapple."
+text = "Test Level: Defeat ReclinerBaron, then use Armchair grapple to reach Platform3."
 horizontal_alignment = 1
 font_size = 14
 
@@ -266,3 +268,18 @@ scale = Vector2(1, 1)
 position = Vector2(1000, 320)
 
 [node name="DummyEnemy" parent="DummyContainer" uid="uid://dummy_instance" instance=ExtResource("3dum")]
+
+[node name="BossContainer" type="Node2D" uid="uid://boss_container" parent="."]
+position = Vector2(600, 620)
+scale = Vector2(1.1, 1.1)
+
+[node name="ReclinerBaron" parent="BossContainer" uid="uid://baron_instance" instance=ExtResource("6baron")]
+position = Vector2(0.0, 0.0)
+
+[node name="BossLabel" type="Label" parent="BossContainer" uid="uid://boss_label"]
+position = Vector2(0.0, -90.0)
+text = "⚔ ARENA ⚔"
+horizontal_alignment = 1
+font_size = 12
+font_color = Color(0.8, 0.6, 0.9, 1)
+

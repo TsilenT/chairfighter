@@ -1,5 +1,13 @@
 extends Node
 
+const ChairFormClass = preload("res://scripts/player/ChairForm.gd")
+const ArmchairFormClass = preload("res://scripts/player/forms/ArmchairForm.gd")
+const BasicChairFormClass = preload("res://scripts/player/forms/BasicChairForm.gd")
+const HealthClass = preload("res://scripts/components/Health.gd")
+const HitboxClass = preload("res://scripts/components/Hitbox.gd")
+const HurtboxClass = preload("res://scripts/components/Hurtbox.gd")
+const GrapplePointClass = preload("res://scripts/world/GrapplePoint.gd")
+
 ## GameState — autoload singleton tracking player progress.
 ##
 ## Tracks which chair forms have been unlocked and checkpoint state
@@ -14,6 +22,9 @@ signal player_died
 
 # Signal emitted when player health changes (for HUD updates).
 signal player_health_changed(current: float, max_hp: float)
+
+# Signal emitted when the game is restarted (respawn).
+signal game_restart
 
 # Current checkpoint position in the test level.
 var current_checkpoint := Vector2.ZERO
@@ -42,7 +53,6 @@ var player_max_health: float = 10.0
 
 func _ready() -> void:
 	unlocked_forms["BasicChair"] = true
-	unlocked_forms["Armchair"] = true
 	current_form = "BasicChair"
 	player_current_health = 10.0
 	player_max_health = 10.0
@@ -80,13 +90,13 @@ func _load_form_definition(path: String) -> void:
 		push_warning("[GameState] Could not load form from: %s" % path)
 		return
 
-	var instance: ChairForm = script.new()
+	var instance: Object = script.new()
 	if instance == null:
 		push_warning("[GameState] Could not instantiate form from: %s" % path)
 		return
 
-	form_registry[instance.form_name] = instance
-	form_order.append(instance.form_name)
+	form_registry[instance.get("form_name")] = instance
+	form_order.append(str(instance.get("form_name")))
 
 
 # ─────────────────────────────
@@ -95,12 +105,12 @@ func _load_form_definition(path: String) -> void:
 
 ## Unlock a new chair form by name and return the form definition.
 ## Returns null if the form is already unlocked or doesn't exist.
-func unlock_form(form_name: String) -> ChairForm:
+func unlock_form(form_name: String) -> Object:
 	if form_name in unlocked_forms:
 		push_warning("[GameState] Form %s already unlocked." % form_name)
 		return null
 
-	var form_def := form_registry.get(form_name)
+	var form_def: Object = form_registry.get(form_name)
 	if form_def == null:
 		push_warning("[GameState] Cannot unlock unknown form: %s" % form_name)
 		return null
@@ -119,7 +129,7 @@ func set_current_form(form_name: String) -> bool:
 		push_warning("[GameState] Form %s not unlocked." % form_name)
 		return false
 
-	var form_def := form_registry.get(form_name)
+	var form_def: Object = form_registry.get(form_name)
 	if form_def == null:
 		push_warning("[GameState] Cannot set unknown form: %s" % form_name)
 		return false
@@ -130,8 +140,9 @@ func set_current_form(form_name: String) -> bool:
 
 
 ## Get the current form definition (for reading movement properties).
-func get_current_form_def() -> ChairForm:
-	return form_registry.get(current_form)
+func get_current_form_def() -> Object:
+	var result: Object = form_registry.get(current_form)
+	return result
 
 
 ## Get whether a form is unlocked.
@@ -200,3 +211,20 @@ func respawn_at_checkpoint() -> Vector2:
 	var pos := current_checkpoint
 	print("[GameState] Respawning at checkpoint: %s" % str(pos))
 	return pos
+
+
+# ─────────────────────────────
+#  Game restart / respawn
+# ─────────────────────────────
+
+## Full game restart: reset checkpoint, restore BasicChair, health to max.
+func restart_game() -> void:
+	current_checkpoint = Vector2.ZERO
+	current_form = "BasicChair"
+	unlocked_forms.clear()
+	unlocked_forms["BasicChair"] = true
+	player_current_health = player_max_health
+	player_health_changed.emit(player_current_health, player_max_health)
+	reset_checkpoint()
+	game_restart.emit()
+	print("[GameState] Game restarted. Forms: %s" % str(unlocked_forms))
