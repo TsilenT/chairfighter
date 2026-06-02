@@ -9,7 +9,9 @@
 *.pid.*
 editor/
 *.log
-*.cfg
+
+# Deploy secrets (itch.io / butler)
+.itch.env
 
 # OS
 .DS_Store
@@ -35,3 +37,4 @@ bin/
 
 # Exported builds
 exported/
+build/
