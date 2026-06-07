@@ -120,6 +120,11 @@ func _set_up_steps() -> void:
 		{
 			"description": "Press Interact to talk to the NPC.",
 			"actions": ["interact"],
+			"next_prompt": "Great! Now grapple across to Platform 3 using the yellow markers.",
+		},
+		{
+			"description": "Press Special (K / Y) to grapple across to Platform 3.",
+			"actions": ["special"],
 		},
 	]
 
