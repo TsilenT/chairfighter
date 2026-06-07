@@ -1,0 +1,1 @@
+- 2026-06-07 Sihl opening-guided-sequence KOQP-A..KOQP-FR — Natural opening tutorial prompts for movement, attack, interaction, and safe first progression. Spec: docs/plans/intake/2026-06-07-opening-guided-sequence.md.
