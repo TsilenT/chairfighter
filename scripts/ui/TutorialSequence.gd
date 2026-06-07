@@ -40,7 +40,7 @@ func _ready() -> void:
 	_build_overlay()
 	_set_up_steps()
 	if active and not _sequence_finished:
-		yield(get_tree().create_timer(0.5), "timeout")
+		await get_tree().create_timer(0.5).timeout
 		_start_prompt(0)
 
 
@@ -51,8 +51,8 @@ func _build_overlay() -> void:
 	_overlay.name = "TutorialOverlay"
 	_overlay.color = Color(0.0, 0.0, 0.0, 0.3)
 	_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_overlay.rect_size = Vector2(1280, 720)
-	_overlay.rect_position = Vector2(0, 0)
+	_overlay.size = Vector2(1280, 720)
+	_overlay.position = Vector2(0, 0)
 	_overlay.z_index = 100
 	add_child(_overlay)
 
@@ -61,7 +61,7 @@ func _build_overlay() -> void:
 	_banner_bg.name = "BannerBG"
 	_banner_bg.color = Color(0.05, 0.05, 0.08, 0.9)
 	_banner_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_banner_bg.rect_size = Vector2(480, 90)
+	_banner_bg.size = Vector2(480, 90)
 	_banner_bg.anchor_right = 1.0
 	_banner_bg.anchor_bottom = 1.0
 	_overlay.add_child(_banner_bg)
@@ -70,7 +70,7 @@ func _build_overlay() -> void:
 	_banner = VBoxContainer.new()
 	_banner.name = "TutorialBanner"
 	_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_banner.rect_size = Vector2(450, 80)
+	_banner.size = Vector2(450, 80)
 	_banner.anchor_right = 1.0
 	_banner.anchor_bottom = 1.0
 	_overlay.add_child(_banner)
@@ -80,7 +80,7 @@ func _build_overlay() -> void:
 	_prompt_label.name = "PromptLabel"
 	_prompt_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	_prompt_label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	_prompt_label.rect_size = Vector2(400, 40)
+	_prompt_label.size = Vector2(400, 40)
 	_prompt_label.position = Vector2(15, 10)
 	_prompt_label.add_theme_font_size_override("font_size", prompt_font_size)
 	_prompt_label.add_theme_color_override("font_color", Color.WHITE)
@@ -91,7 +91,7 @@ func _build_overlay() -> void:
 	_progression_label.name = "ProgressionLabel"
 	_progression_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	_progression_label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	_progression_label.rect_size = Vector2(400, 20)
+	_progression_label.size = Vector2(400, 20)
 	_progression_label.position = Vector2(15, 50)
 	_progression_label.add_theme_font_size_override("font_size", 16)
 	_progression_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.9, 0.8))
@@ -150,14 +150,14 @@ func _start_prompt(index: int) -> void:
 
 	# Stop previous timer (if any).
 	if _current_step >= 0 and _current_step < _step_timers.size():
-		var prev := _step_timers[_current_step]
+		var prev: Timer = _step_timers[_current_step]
 		if prev and not prev.is_stopped():
 			prev.stop()
 
 	_current_step = index
 	_step_done = false
 
-	var step := _steps[index]
+	var step: Dictionary = _steps[index]
 	var desc: Variant = step.get("description", "")
 	if desc:
 		_prompt_label.text = desc
@@ -194,7 +194,7 @@ func _process(_delta: float) -> void:
 	if _current_step < 0 or _sequence_finished:
 		return
 
-	var step := _steps[_current_step]
+	var step: Dictionary = _steps[_current_step]
 	var actions: Array = step.get("actions", [])
 	for action in actions:
 		if Input.is_action_just_pressed(action) and action not in _done_actions:
@@ -211,11 +211,16 @@ func _on_step_complete() -> void:
 		_progression_label.visible = false
 		_step_delay_left = prompt_delay
 		if _current_step >= 0 and _current_step < _step_timers.size():
-			var t := _step_timers[_current_step]
+			var t: Timer = _step_timers[_current_step]
 			if t and not t.is_stopped():
 				t.stop()
 		if _current_step + 1 < _steps.size():
-			_start_prompt(_current_step + 1)
+			var next_step: int = _current_step + 1
+			if prompt_delay > 0.0:
+				await get_tree().create_timer(prompt_delay).timeout
+			if _sequence_finished or not is_inside_tree():
+				return
+			_start_prompt(next_step)
 		else:
 			_on_sequence_end()
 
@@ -226,7 +231,7 @@ func _on_sequence_end() -> void:
 	for t in _step_timers:
 		if t and not t.is_stopped():
 			t.stop()
-	yield(get_tree().create_timer(0.3), "timeout")
+	await get_tree().create_timer(0.3).timeout
 	if _overlay and is_inside_tree():
 		_overlay.queue_free()
 		_overlay = null
