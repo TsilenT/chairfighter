@@ -12,20 +12,23 @@ var _is_armchair_unlocked := false
 var _flavor_line_index := 0
 var _base_y := 0.0
 
+var _next_step_hint := "Press Interact to talk to the NPC."
+
 # Pre-written flavor lines keyed on the armchair-unlock state.
+# First line is always the tutorial hint; rest cycle as flavor.
 
 var _flavor_before := [
-	"Excuse me, little chair. You look like someone who's been through the wringer.",
-	"The Baron's tough, but you'll figure it out. Eventually.",
-	"I've seen a hundred chairs try this place. Most don't make it past the second platform.",
-	"You want to get up there? Grapple's the way. Don't forget that."
+	"Take a breath. This game starts slow — just move, jump, and attack.",
+	"Find the Baron, take him down, then you'll unlock the Armchair form.",
+	_next_step_hint,
+	"The grapple path goes up past Platform 3 — don't forget to look up."
 ]
 
 var _flavor_after := [
-	"Oh! You've unlocked the Armchair! Now you're really getting somewhere.",
-	"That grapple thing of yours is quite the contraption, isn't it?",
-	"The Baron won't stand a chance now. You've got reach AND attitude.",
-	"If you hadn't seen the Armchair, you'd never find that route. Quite clever, really."
+	"Oh! You've unlocked the Armchair! Now you can really move.",
+	_next_step_hint,
+	"Grapple up to that high platform — there's a gate only the Armchair can pass.",
+	"Your reach just got an upgrade. Use it wisely."
 ]
 
 func _ready() -> void:
