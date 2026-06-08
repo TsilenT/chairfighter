@@ -5,11 +5,11 @@
 ## instant its action is completed, then clears the whole overlay when the
 ## sequence finishes.
 ##
-## Usage: Attach to any Node in a level (e.g. TestLevel). Set `active` true
+## Usage: Attach as a CanvasLayer in a level (e.g. TestLevel). Set `active` true
 ## to start; or leave it false in the editor and wire `start_sequence()`
 ## from a scene signal.
 
-extends Node2D
+extends CanvasLayer
 
 
 ## Export config
@@ -103,7 +103,7 @@ func _build_overlay() -> void:
 func _set_up_steps() -> void:
 	_steps = [
 		{
-			"description": "Move left and right to navigate.",
+			"description": "Move left or right to navigate.",
 			"actions": ["move_left", "move_right"],
 			"next_prompt": "Now jump over to the next ledge!",
 		},
@@ -118,13 +118,15 @@ func _set_up_steps() -> void:
 			"next_prompt": "Good! Now talk to the NPC ahead.",
 		},
 		{
-			"description": "Press Interact to talk to the NPC.",
+			"description": "Stand by the NPC and press Interact to talk.",
 			"actions": ["interact"],
+			"completion": "near_npc_interact",
 			"next_prompt": "Great! Now grapple across to Platform 3 using the yellow markers.",
 		},
 		{
-			"description": "Press Special (K / Y) to grapple across to Platform 3.",
+			"description": "Defeat ReclinerBaron, switch to Armchair, then hold Special by the yellow markers.",
 			"actions": ["special"],
+			"completion": "armchair_grapple",
 		},
 	]
 
@@ -195,34 +197,78 @@ func _process(_delta: float) -> void:
 		return
 
 	var step: Dictionary = _steps[_current_step]
-	var actions: Array = step.get("actions", [])
-	for action in actions:
-		if Input.is_action_just_pressed(action) and action not in _done_actions:
-			_step_done = true
-			_done_actions.append(action)
-			_on_step_complete()
-			return
+	if _is_step_completed(step):
+		_step_done = true
+		for action in step.get("actions", []):
+			if action not in _done_actions:
+				_done_actions.append(action)
+		_on_step_complete()
+		return
+
+
+## Return true only when the current prompt's requested action really happened.
+func _is_step_completed(step: Dictionary) -> bool:
+	var completion: String = step.get("completion", "input")
+	match completion:
+		"near_npc_interact":
+			return Input.is_action_just_pressed("interact") and _is_player_near_node("HubNpc", 160.0)
+		"armchair_grapple":
+			var player: Node = _get_player()
+			return Input.is_action_pressed("special") and player != null and player.has_method("is_grappling") and player.is_grappling()
+		_:
+			var actions: Array = step.get("actions", [])
+			for action in actions:
+				if action in _done_actions:
+					continue
+				if action == "move_left" or action == "move_right":
+					if Input.is_action_pressed(action):
+						return true
+				elif Input.is_action_just_pressed(action):
+					return true
+	return false
+
+
+func _get_player() -> Node:
+	return get_tree().get_first_node_in_group("player")
+
+
+func _is_player_near_node(node_name: String, radius: float) -> bool:
+	var player: Node = _get_player()
+	var target: Node = get_tree().root.find_child(node_name, true, false)
+	if player == null or target == null or not (player is Node2D) or not (target is Node2D):
+		return false
+	return (player as Node2D).global_position.distance_to((target as Node2D).global_position) <= radius
 
 
 ## Called when the player completes an input or the timer expires.
 func _on_step_complete() -> void:
-	if _step_done:
-		_prompt_label.text = ""
-		_progression_label.visible = false
-		_step_delay_left = prompt_delay
-		if _current_step >= 0 and _current_step < _step_timers.size():
-			var t: Timer = _step_timers[_current_step]
-			if t and not t.is_stopped():
-				t.stop()
+	_prompt_label.text = ""
+	_progression_label.visible = false
+	if _current_step >= 0 and _current_step < _step_timers.size():
+		var t: Timer = _step_timers[_current_step]
+		if t and not t.is_stopped():
+			t.stop()
+	if _current_step < 0 or _sequence_finished:
+		return
+	# If the current step has no input actions (pure progression cue), skip it instantly
+	var step: Dictionary = _steps[_current_step]
+	var actions: Array = step.get("actions", [])
+	if actions.is_empty():
 		if _current_step + 1 < _steps.size():
-			var next_step: int = _current_step + 1
-			if prompt_delay > 0.0:
-				await get_tree().create_timer(prompt_delay).timeout
-			if _sequence_finished or not is_inside_tree():
-				return
-			_start_prompt(next_step)
+			_start_prompt(_current_step + 1)
 		else:
 			_on_sequence_end()
+		return
+	_step_delay_left = prompt_delay
+	if _current_step + 1 < _steps.size():
+		var next_step: int = _current_step + 1
+		if prompt_delay > 0.0:
+			await get_tree().create_timer(prompt_delay).timeout
+		if _sequence_finished or not is_inside_tree():
+			return
+		_start_prompt(next_step)
+	else:
+		_on_sequence_end()
 
 
 ## Called when the entire sequence has completed.

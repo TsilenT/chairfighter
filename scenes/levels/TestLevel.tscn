@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://testlevel_v1"]
+[gd_scene load_steps=19 format=3 uid="uid://testlevel_v1"]
 
 [ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="1ply"]
 [ext_resource type="PackedScene" path="res://scenes/ui/HUD.tscn" id="2hud"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://scenes/world/AbilityGate.tscn" id="5agg"]
 [ext_resource type="PackedScene" path="res://scenes/bosses/ReclinerBaron.tscn" id="6baron"]
 [ext_resource type="PackedScene" path="res://scenes/npc/HubNpc.tscn" id="7hubnpc"]
+[ext_resource type="Script" path="res://scripts/ui/TutorialSequence.gd" id="8tut"]
 
 
 [sub_resource type="RectangleShape2D" id="2" uid="uid://ground_col"]
@@ -115,10 +116,65 @@ offset_right = 1400.0
 offset_bottom = 640.0
 color = Color(0.3, 0.4, 0.2, 1)
 
+# Safe zone indicator (teaching area before first platform)
+[node name="SafeZoneFloor" type="ColorRect" parent="Visuals" uid="uid://safezone_floor"]
+z_index = -1
+offset_left = 80.0
+offset_top = 500.0
+offset_right = 500.0
+offset_bottom = 640.0
+color = Color(0.4, 0.8, 0.4, 0.15)
+
+[node name="SafeZoneDotTL" type="ColorRect" parent="Visuals" uid="uid://safezone_dot_tl"]
+z_index = -2
+offset_left = 93.0
+offset_top = 498.0
+offset_right = 107.0
+offset_bottom = 512.0
+color = Color(0.7, 1, 0.7, 0.9)
+
+[node name="SafeZoneDotTR" type="ColorRect" parent="Visuals" uid="uid://safezone_dot_tr"]
+z_index = -2
+offset_left = 485.0
+offset_top = 498.0
+offset_right = 499.0
+offset_bottom = 512.0
+color = Color(0.7, 1, 0.7, 0.9)
+
+[node name="SafeZoneDotBL" type="ColorRect" parent="Visuals" uid="uid://safezone_dot_bl"]
+z_index = -2
+offset_left = 93.0
+offset_top = 625.0
+offset_right = 107.0
+offset_bottom = 639.0
+color = Color(0.7, 1, 0.7, 0.9)
+
+[node name="SafeZoneDotBR" type="ColorRect" parent="Visuals" uid="uid://safezone_dot_br"]
+z_index = -2
+offset_left = 485.0
+offset_top = 625.0
+offset_right = 499.0
+offset_bottom = 639.0
+color = Color(0.7, 1, 0.7, 0.9)
+
+[node name="SafeZoneLabel" type="Label" parent="Visuals" uid="uid://safezone_label"]
+position = Vector2(295, 540)
+text = "SAFE ZONE"
+horizontal_alignment = 1
+font_size = 14
+font_color = Color(0.7, 1, 0.7, 0.8)
+
+[node name="TrainingLabel" type="Label" parent="Visuals" uid="uid://training_label"]
+position = Vector2(295, 558)
+text = "TRAINING AREA"
+horizontal_alignment = 1
+font_size = 10
+font_color = Color(0.6, 0.9, 0.6, 0.6)
+
 [node name="RouteVisuals" type="Node2D" parent="Visuals" uid="uid://route_visuals"]
 
 # Dashed grapple path: a series of small colored dots along the route
-# From Platform2 (right edge) → GrappleMarker2 → GrappleMarker1 → past Gate
+# From Platform2 (right edge) -> GrappleMarker2 -> GrappleMarker1 -> past Gate
 [node name="RouteDot" type="ColorRect" parent="Visuals/RouteVisuals" uid="uid://route_dot"]
 offset_left = 820.0
 offset_top = 370.0
@@ -157,48 +213,47 @@ color = Color(1, 0.85, 0, 0.7)
 # Path direction labels using Unicode characters
 [node name="LabelArrow1" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_arrow1"]
 position = Vector2(825, 310)
-text = "→"
+text = "->"
 horizontal_alignment = 1
 font_size = 24
 font_color = Color(1, 0.85, 0, 0.8)
 
 [node name="LabelArrow2" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_arrow2"]
 position = Vector2(945, 310)
-text = "→"
+text = "->"
 horizontal_alignment = 1
 font_size = 24
 font_color = Color(1, 0.85, 0, 0.8)
 
 [node name="LabelArrow3" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_arrow3"]
 position = Vector2(850, 295)
-text = "↑"
+text = "^"
 horizontal_alignment = 1
 font_size = 24
 font_color = Color(1, 0.85, 0, 0.8)
 
 [node name="LabelArrow4" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_arrow4"]
 position = Vector2(1050, 215)
-text = "↑"
+text = "^"
 horizontal_alignment = 1
 font_size = 24
 font_color = Color(1, 0.85, 0, 0.8)
 
 [node name="LabelArrow5" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_arrow5"]
 position = Vector2(1115, 215)
-text = "→"
+text = "->"
 horizontal_alignment = 1
 font_size = 24
 font_color = Color(1, 0.85, 0, 0.8)
 
 # Instruction label above the grapple route
-[node name="LabelRoute" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_route"]
+[node name="LabelRoute1" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_route1"]
 position = Vector2(820, 250)
 text = "GRAPPLE PATH:"
 horizontal_alignment = 1
 font_size = 12
 font_color = Color(1, 0.85, 0, 0.9)
 
-# Grapple waypoint labels on the markers
 [node name="LabelGrapple1" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_grapple1"]
 position = Vector2(850, 410)
 text = "GRAPPLE 2"
@@ -214,14 +269,14 @@ font_size = 10
 font_color = Color(1, 0.85, 0, 0.7)
 
 # Gate label
-[node name="LabelGate" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_gate"]
+[node name="LabelGate1" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_gate1"]
 position = Vector2(830, 230)
-text = "GATE →"
+text = "GATE ->"
 horizontal_alignment = 1
 font_size = 12
 font_color = Color(1, 0.4, 0.4, 0.9)
 
-[node name="LabelDest" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_dest"]
+[node name="LabelDest1" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_dest1"]
 position = Vector2(1120, 248)
 text = "ARMCHAIR ROUTE"
 horizontal_alignment = 1
@@ -229,7 +284,7 @@ font_size = 12
 font_color = Color(0.5, 1, 0.5, 0.9)
 
 # Background panel for the route labels
-[node name="RoutePanel" type="ColorRect" parent="Visuals/RouteVisuals" uid="uid://route_panel"]
+[node name="RoutePanel1" type="ColorRect" parent="Visuals/RouteVisuals" uid="uid://route_panel1"]
 z_index = -1
 offset_left = 800.0
 offset_top = 238.0
@@ -244,7 +299,7 @@ position = Vector2(200, 500)
 
 [node name="Info" type="Label" parent="." uid="uid://info"]
 position = Vector2(440, 32)
-text = "Test Level: Defeat ReclinerBaron, then use Armchair grapple to reach Platform3."
+text = "Practice basics, defeat ReclinerBaron, then use Armchair grapple to reach Platform 3."
 horizontal_alignment = 1
 font_size = 14
 
@@ -265,13 +320,21 @@ scale = Vector2(1, 1)
 
 [node name="HUD" parent="." uid="uid://test_hud" instance=ExtResource("2hud")]
 
+# TutorialSequence wired into the safe zone
+[node name="TutorialSequence" type="CanvasLayer" parent="." uid="uid://tut_seq"]
+script = ExtResource("8tut")
+active = true
+prompt_delay = 0.5
+prompt_timeout = 30.0
+prompt_font_size = 28
+
 [node name="DummyContainer" type="Node2D" uid="uid://dummy_container" parent="."]
-position = Vector2(1000, 320)
+position = Vector2(1290, 280)
 
 [node name="DummyEnemy" parent="DummyContainer" uid="uid://dummy_instance" instance=ExtResource("3dum")]
 
 [node name="BossContainer" type="Node2D" uid="uid://boss_container" parent="."]
-position = Vector2(600, 620)
+position = Vector2(1120, 620)
 scale = Vector2(1.1, 1.1)
 
 [node name="ReclinerBaron" parent="BossContainer" uid="uid://baron_instance" instance=ExtResource("6baron")]
@@ -279,13 +342,12 @@ position = Vector2(0.0, 0.0)
 
 [node name="BossLabel" type="Label" parent="BossContainer" uid="uid://boss_label"]
 position = Vector2(0.0, -90.0)
-text = "⚔ ARENA ⚔"
+text = "ARENA"
 horizontal_alignment = 1
 font_size = 12
 font_color = Color(0.8, 0.6, 0.9, 1)
 
 [node name="HubNpcContainer" type="Node2D" uid="uid://hubnpc_container" parent="."]
-position = Vector2(700, 550)
+position = Vector2(850, 550)
 
 [node name="HubNpc" parent="HubNpcContainer" uid="uid://hubnpc_instance" instance=ExtResource("7hubnpc")]
-

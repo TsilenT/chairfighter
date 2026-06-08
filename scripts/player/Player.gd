@@ -144,6 +144,10 @@ func is_alive() -> bool:
 	return _health != null and _health.is_alive()
 
 
+func is_grappling() -> bool:
+	return _is_grappling
+
+
 func get_camera() -> Camera2D:
 	return _camera
 
@@ -169,6 +173,11 @@ func _ready() -> void:
 	if _camera:
 		_camera.make_current()
 		_camera.position = Vector2.ZERO
+
+	# Pivot the chair visual around its own center so left/right flips look
+	# centered on the body instead of swinging around the top-left corner.
+	if _chair_body:
+		_chair_body.pivot_offset = _chair_body.size * 0.5
 
 	# Set up components.
 	_setup_hitbox()
@@ -584,7 +593,11 @@ func _move_horizontal(dir: float, delta: float) -> void:
 func _flip_sprite(dir: float) -> void:
 	if dir != 0.0:
 		_facing_right = sign(dir)
-		scale.x = abs(scale.x) * sign(dir)
+		# Flip only the visual, never the CharacterBody2D — negative scale on
+		# the body corrupts its collision shapes (jitter / being shoved) and
+		# mirrors the grapple rope. Attack direction uses _facing_right instead.
+		if _chair_body:
+			_chair_body.scale.x = sign(dir)
 
 
 # ────────
