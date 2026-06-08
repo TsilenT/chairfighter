@@ -97,7 +97,7 @@ func _build_overlay() -> void:
 
 ## Define the guided sequence steps.
 func _set_up_steps() -> void:
-	_steps = [
+	var _steps_list: Array = [
 		{
 			"description": "HOLD move_left or move_right to walk. Walk to the next ledge.",
 			"actions": ["move_left", "move_right"],
@@ -117,14 +117,19 @@ func _set_up_steps() -> void:
 			"description": "Walk close to the NPC, then press the Interact action to talk.",
 			"actions": ["interact"],
 			"completion": "near_npc_interact",
-			"next_prompt": "After this tutorial, defeat ReclinerBaron, switch to Armchair form, then grapple across to Platform 3.",
-		},
-		{
-			"description": "After defeating ReclinerBaron, switch to Armchair form, hold Special near the yellow markers to grapple.",
-			"actions": ["special"],
-			"completion": "armchair_grapple",
+			"next_prompt": "Defeat ReclinerBaron and switch to Armchair form. Continue toward the arena.",
 		},
 	]
+
+	# Only show grapple guidance after Armchair is unlocked.
+	if GameState.is_form_unlocked("Armchair"):
+		_steps_list.append({
+			"description": "Hold Special near the yellow markers to grapple across.",
+			"actions": ["special"],
+			"completion": "armchair_grapple",
+		})
+
+	_steps = _steps_list
 
 	# Create one Timer per step for per-prompt timeouts.
 	_step_timers.clear()
