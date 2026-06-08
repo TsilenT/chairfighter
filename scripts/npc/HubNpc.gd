@@ -12,21 +12,19 @@ var _is_armchair_unlocked := false
 var _flavor_line_index := 0
 var _base_y := 0.0
 
-var _next_step_hint := "Press Interact to talk to the NPC."
-
 # Pre-written flavor lines keyed on the armchair-unlock state.
 # First line is always the tutorial hint; rest cycle as flavor.
 
 var _flavor_before := [
-	"Take a breath. This game starts slow — just move, jump, and attack.",
+	"Move, jump, and attack. Defeat the Baron to unlock Armchair.",
 	"Find the Baron, take him down, then you'll unlock the Armchair form.",
-	_next_step_hint,
+	"If the way ahead looks blocked, go challenge the Baron first.",
 	"The grapple path goes up past Platform 3 — don't forget to look up."
 ]
 
 var _flavor_after := [
-	"Oh! You've unlocked the Armchair! Now you can really move.",
-	_next_step_hint,
+	"Armchair unlocked! Use Special to grapple up the high path.",
+	"Now that you have Armchair, look up for grapple points.",
 	"Grapple up to that high platform — there's a gate only the Armchair can pass.",
 	"Your reach just got an upgrade. Use it wisely."
 ]
