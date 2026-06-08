@@ -159,44 +159,44 @@ color = Color(0.7, 1, 0.7, 0.9)
 
 [node name="SafeZoneLabel" type="Label" parent="Visuals" uid="uid://safezone_label"]
 position = Vector2(295, 540)
-text = "SAFE ZONE"
+text = "[ SAFE ZONE ]"
 horizontal_alignment = 1
 font_size = 14
 font_color = Color(0.7, 1, 0.7, 0.8)
 
 [node name="TrainingLabel" type="Label" parent="Visuals" uid="uid://training_label"]
-position = Vector2(295, 558)
-text = "TRAINING AREA"
+position = Vector2(295, 556)
+text = "Training Area"
 horizontal_alignment = 1
 font_size = 10
 font_color = Color(0.6, 0.9, 0.6, 0.6)
 
-# Control hints inside the safe zone
+# Control hints inside the safe zone (plain ASCII, no Unicode arrows/icons)
 [node name="ControlHint1" type="Label" parent="Visuals" uid="uid://control_hint1"]
-position = Vector2(295, 574)
-text = "MOVE ←→"
+position = Vector2(295, 570)
+text = "[<><>] Move"
 horizontal_alignment = 1
 font_size = 12
 font_color = Color(0.8, 1, 0.8, 0.7)
 
 [node name="ControlHint2" type="Label" parent="Visuals" uid="uid://control_hint2"]
-position = Vector2(295, 590)
-text = "JUMP SPACE"
+position = Vector2(295, 586)
+text = "[SPACE] Jump"
 horizontal_alignment = 1
 font_size = 12
 font_color = Color(0.8, 1, 0.8, 0.7)
 
 [node name="ControlHint3" type="Label" parent="Visuals" uid="uid://control_hint3"]
-position = Vector2(295, 606)
-text = "ATTACK X"
+position = Vector2(295, 602)
+text = "[X] Attack"
 horizontal_alignment = 1
 font_size = 12
 font_color = Color(0.8, 1, 0.8, 0.7)
 
-# Directional cue from safe zone toward NPC
+# Directional cue from safe zone toward NPC (plain ASCII arrow)
 [node name="DirectionLabel1" type="Label" parent="Visuals" uid="uid://direction_label1"]
-position = Vector2(600, 520)
-text = "NPC →"
+position = Vector2(595, 520)
+text = "NPC [->]"
 horizontal_alignment = 1
 font_size = 14
 font_color = Color(0.8, 1, 0.8, 0.8)
@@ -204,23 +204,23 @@ font_color = Color(0.8, 1, 0.8, 0.8)
 # NPC interact hint near HubNpc (850, 550)
 [node name="NpcHint" type="Label" parent="Visuals" uid="uid://npc_hint"]
 position = Vector2(850, 510)
-text = "TALK"
+text = "Interact"
 horizontal_alignment = 1
 font_size = 14
 font_color = Color(1, 1, 0.8, 0.9)
 
-# Directional cue from NPC toward boss/arena
+# Directional cue from NPC toward boss/arena (plain ASCII arrow)
 [node name="DirectionLabel2" type="Label" parent="Visuals" uid="uid://direction_label2"]
 position = Vector2(1120, 590)
-text = "ARENA →"
+text = "ARENA [->]"
 horizontal_alignment = 1
 font_size = 12
 font_color = Color(0.9, 0.7, 1, 0.7)
 
-# Grapple route signpost near platform area
+# Grapple route signpost near platform area (plain ASCII, no Unicode down arrows)
 [node name="GrappleSignpost" type="Label" parent="Visuals" uid="uid://grapple_signpost"]
 position = Vector2(970, 340)
-text = "↓ GRAPPLE TO PLATFORM 3 ↓"
+text = "[v] GRAPPLE TO PLATFORM 3 [v]"
 horizontal_alignment = 1
 font_size = 11
 font_color = Color(1, 0.85, 0, 0.85)
