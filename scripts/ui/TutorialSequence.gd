@@ -56,75 +56,71 @@ func _build_overlay() -> void:
 	_overlay.z_index = 100
 	add_child(_overlay)
 
-	# Dark purple banner background.
+	# Dark purple banner background — top-center, safe margins.
 	_banner_bg = ColorRect.new()
 	_banner_bg.name = "BannerBG"
 	_banner_bg.color = Color(0.05, 0.05, 0.08, 0.9)
 	_banner_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_banner_bg.size = Vector2(480, 90)
-	_banner_bg.anchor_right = 1.0
-	_banner_bg.anchor_bottom = 1.0
+	_banner_bg.size = Vector2(640, 100)
+	_banner_bg.position = Vector2((1280 - 640) / 2.0, 16.0)
 	_overlay.add_child(_banner_bg)
 
 	# Container inside banner.
 	_banner = VBoxContainer.new()
 	_banner.name = "TutorialBanner"
 	_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_banner.size = Vector2(450, 80)
-	_banner.anchor_right = 1.0
-	_banner.anchor_bottom = 1.0
+	_banner.size = Vector2(610, 90)
+	_banner.position = Vector2(15, 5)
 	_overlay.add_child(_banner)
-
-	# Main prompt label.
-	_prompt_label = Label.new()
-	_prompt_label.name = "PromptLabel"
-	_prompt_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	_prompt_label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	_prompt_label.size = Vector2(400, 40)
-	_prompt_label.position = Vector2(15, 10)
-	_prompt_label.add_theme_font_size_override("font_size", prompt_font_size)
-	_prompt_label.add_theme_color_override("font_color", Color.WHITE)
-	_banner.add_child(_prompt_label)
 
 	# Progression hint label (shown above main prompt).
 	_progression_label = Label.new()
 	_progression_label.name = "ProgressionLabel"
 	_progression_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	_progression_label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	_progression_label.size = Vector2(400, 20)
-	_progression_label.position = Vector2(15, 50)
+	_progression_label.size = Vector2(580, 24)
 	_progression_label.add_theme_font_size_override("font_size", 16)
 	_progression_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.9, 0.8))
 	_progression_label.visible = false
 	_banner.add_child(_progression_label)
+
+	# Main prompt label.
+	_prompt_label = Label.new()
+	_prompt_label.name = "PromptLabel"
+	_prompt_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	_prompt_label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_prompt_label.size = Vector2(580, 50)
+	_prompt_label.add_theme_font_size_override("font_size", 28)
+	_prompt_label.add_theme_color_override("font_color", Color.WHITE)
+	_banner.add_child(_prompt_label)
 
 
 ## Define the guided sequence steps.
 func _set_up_steps() -> void:
 	_steps = [
 		{
-			"description": "Move left or right to navigate.",
+			"description": "HOLD move_left or move_right to walk. Walk to the next ledge.",
 			"actions": ["move_left", "move_right"],
-			"next_prompt": "Now jump over to the next ledge!",
+			"next_prompt": "Next: jump over to the next ledge using the Jump action.",
 		},
 		{
-			"description": "Press Jump to leap forward.",
+			"description": "Press the Jump action to leap forward. Press Jump to jump!",
 			"actions": ["jump"],
-			"next_prompt": "Great! Now try attacking.",
+			"next_prompt": "Next: strike forward with the Attack action.",
 		},
 		{
-			"description": "Press Attack to strike forward.",
+			"description": "Press the Attack action to strike forward. Press Attack to attack!",
 			"actions": ["attack"],
-			"next_prompt": "Good! Now talk to the NPC ahead.",
+			"next_prompt": "Next: talk to the NPC ahead using the Interact action.",
 		},
 		{
-			"description": "Stand by the NPC and press Interact to talk.",
+			"description": "Walk close to the NPC, then press the Interact action to talk.",
 			"actions": ["interact"],
 			"completion": "near_npc_interact",
-			"next_prompt": "Great! Now grapple across to Platform 3 using the yellow markers.",
+			"next_prompt": "After this tutorial, defeat ReclinerBaron, switch to Armchair form, then grapple across to Platform 3.",
 		},
 		{
-			"description": "Defeat ReclinerBaron, switch to Armchair, then hold Special by the yellow markers.",
+			"description": "After defeating ReclinerBaron, switch to Armchair form, hold Special near the yellow markers to grapple.",
 			"actions": ["special"],
 			"completion": "armchair_grapple",
 		},
