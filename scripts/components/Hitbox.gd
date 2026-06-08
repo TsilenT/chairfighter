@@ -17,6 +17,7 @@ class_name Hitbox
 var _active: bool = false
 var _active_timer: float = 0.0
 var _cooldown_timer: float = 0.0
+var _activation_hits: Dictionary = {}
 
 # Collision layer numbers (Godot's set_collision_*_value API is 1-indexed)
 const LAYER_HURTBOX := 4  # bit 3 — damage receiver areas
@@ -47,7 +48,13 @@ func activate() -> bool:
 		return false
 	_active = true
 	_active_timer = active_duration
+	_activation_hits.clear()
 	monitoring = true
+	# If the player presses attack while already overlapping an enemy hurtbox,
+	# Godot may not emit a fresh area_entered signal. Sweep existing overlaps on
+	# the next frame so attacks feel like deliberate melee strikes, not like
+	# damage that only happens when the player happens to ram into the target.
+	call_deferred("_damage_current_overlaps")
 	return true
 
 
@@ -63,3 +70,23 @@ func _on_area_entered(area: Area2D) -> void:
 		hitbox_entered.emit(area)
 
 signal hitbox_entered(area: Area2D)
+
+
+func _damage_current_overlaps() -> void:
+	if not _active:
+		return
+	for area in get_overlapping_areas():
+		_damage_overlapping_hurtbox(area)
+
+
+func _damage_overlapping_hurtbox(area: Area2D) -> void:
+	if not area is Hurtbox:
+		return
+	# Do not let a hitbox immediately damage its owner's own hurtbox.
+	if area.get_parent() == get_parent():
+		return
+	var area_id := area.get_instance_id()
+	if _activation_hits.has(area_id):
+		return
+	_activation_hits[area_id] = true
+	area.hitbox_entered.emit(self)

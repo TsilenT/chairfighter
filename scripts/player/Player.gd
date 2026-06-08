@@ -117,6 +117,8 @@ var _health: Health
 var _hitbox: Hitbox
 var _hurtbox: Hurtbox
 var _camera: Camera2D
+var _hitbox_shape: CollisionShape2D
+var _attack_flash: ColorRect
 
 ## Debug flag (flip on damage).
 var _has_taken_damage: bool = false
@@ -231,12 +233,21 @@ func _setup_hitbox() -> void:
 	_hitbox.hit_direction = Vector2.RIGHT
 	_hitbox.active_duration = 0.15
 	add_child(_hitbox)
-	var hit_shape := CollisionShape2D.new()
+	_hitbox_shape = CollisionShape2D.new()
 	var hit_rect := RectangleShape2D.new()
-	hit_rect.size = Vector2(36.0, 36.0)
-	hit_shape.shape = hit_rect
-	hit_shape.position = Vector2(34.0, -32.0)
-	_hitbox.add_child(hit_shape)
+	hit_rect.size = Vector2(48.0, 34.0)
+	_hitbox_shape.shape = hit_rect
+	_hitbox_shape.position = Vector2(52.0, -34.0)
+	_hitbox.add_child(_hitbox_shape)
+
+	_attack_flash = ColorRect.new()
+	_attack_flash.name = "AttackFlash"
+	_attack_flash.size = Vector2(48.0, 22.0)
+	_attack_flash.position = Vector2(28.0, -46.0)
+	_attack_flash.color = Color(1.0, 0.9, 0.25, 0.75)
+	_attack_flash.visible = false
+	_attack_flash.z_index = 5
+	add_child(_attack_flash)
 
 
 func _setup_hurtbox() -> void:
@@ -611,6 +622,8 @@ func _handle_attack(delta: float) -> void:
 		_attack_extension -= delta * 5.0
 		if _attack_extension < 0.0:
 			_attack_extension = 0.0
+	if _attack_flash:
+		_attack_flash.visible = _attack_extension > 0.0
 
 
 func _perform_attack() -> void:
@@ -618,6 +631,10 @@ func _perform_attack() -> void:
 		printerr("[Player] Hitbox not initialized!")
 		return
 	_hitbox.hit_direction = Vector2.RIGHT * _facing_right
+	if _hitbox_shape:
+		_hitbox_shape.position = Vector2(52.0 * _facing_right, -34.0)
+	if _attack_flash:
+		_attack_flash.position = Vector2(28.0 if _facing_right > 0 else -76.0, -46.0)
 	if not _hitbox.activate():
 		return
 	_attack_extension = 1.0

@@ -61,6 +61,7 @@ position = Vector2(708, 420)
 
 [node name="GapWallCol" type="CollisionShape2D" parent="Visuals/GapWall" uid="uid://gapwall_col"]
 shape = SubResource("6")
+disabled = true
 
 [node name="WallLeft" type="StaticBody2D" parent="Visuals" uid="uid://wall_left"]
 position = Vector2(8, 320)
@@ -116,7 +117,7 @@ offset_right = 1400.0
 offset_bottom = 640.0
 color = Color(0.3, 0.4, 0.2, 1)
 
-# Safe zone indicator (teaching area before first platform)
+; Safe zone indicator (teaching area before first platform)
 [node name="SafeZoneFloor" type="ColorRect" parent="Visuals" uid="uid://safezone_floor"]
 z_index = -1
 offset_left = 80.0
@@ -171,7 +172,7 @@ horizontal_alignment = 1
 font_size = 10
 font_color = Color(0.6, 0.9, 0.6, 0.6)
 
-# Control hints inside the safe zone (plain ASCII, no Unicode arrows/icons)
+; Control hints inside the safe zone (plain ASCII, no Unicode arrows/icons)
 [node name="ControlHint1" type="Label" parent="Visuals" uid="uid://control_hint1"]
 position = Vector2(295, 570)
 text = "[LEFT/RIGHT] Move"
@@ -193,15 +194,15 @@ horizontal_alignment = 1
 font_size = 12
 font_color = Color(0.8, 1, 0.8, 0.7)
 
-# Directional cue from safe zone toward NPC (plain ASCII arrow)
+; Directional cue from safe zone toward NPC (plain ASCII arrow)
 [node name="DirectionLabel1" type="Label" parent="Visuals" uid="uid://direction_label1"]
 position = Vector2(595, 520)
-text = "NPC [->]"
+text = "BASIC PATH: NPC [->]"
 horizontal_alignment = 1
 font_size = 14
 font_color = Color(0.8, 1, 0.8, 0.8)
 
-# NPC interact hint near HubNpc (850, 550)
+; NPC interact hint near HubNpc (850, 550)
 [node name="NpcHint" type="Label" parent="Visuals" uid="uid://npc_hint"]
 position = Vector2(850, 510)
 text = "Interact"
@@ -209,15 +210,15 @@ horizontal_alignment = 1
 font_size = 14
 font_color = Color(1, 1, 0.8, 0.9)
 
-# Directional cue from NPC toward boss/arena (plain ASCII arrow)
+; Directional cue from NPC toward boss/arena (plain ASCII arrow)
 [node name="DirectionLabel2" type="Label" parent="Visuals" uid="uid://direction_label2"]
 position = Vector2(1120, 590)
-text = "ARENA [->]"
+text = "BASIC PATH: ARENA [->]"
 horizontal_alignment = 1
 font_size = 12
 font_color = Color(0.9, 0.7, 1, 0.7)
 
-# Grapple route signpost near platform area (plain ASCII, no Unicode down arrows)
+; Grapple route signpost near platform area (plain ASCII, no Unicode down arrows)
 [node name="GrappleSignpost" type="Label" parent="Visuals" uid="uid://grapple_signpost"]
 position = Vector2(970, 290)
 text = "[ARMCHAIR] LATER: GRAPPLE TO PLATFORM 3 [ARMCHAIR]"
@@ -228,8 +229,8 @@ font_color = Color(1, 0.85, 0, 0.45)
 [node name="RouteVisuals" type="Node2D" parent="Visuals" uid="uid://route_visuals"]
 modulate = Color(1, 1, 1, 0.55)
 
-# Dashed grapple path: a series of small colored dots along the route
-# From Platform2 (right edge) -> GrappleMarker2 -> GrappleMarker1 -> past Gate
+; Dashed grapple path: a series of small colored dots along the route
+; From Platform2 (right edge) -> GrappleMarker2 -> GrappleMarker1 -> past Gate
 [node name="RouteDot" type="ColorRect" parent="Visuals/RouteVisuals" uid="uid://route_dot"]
 offset_left = 820.0
 offset_top = 370.0
@@ -265,7 +266,7 @@ offset_right = 1058.0
 offset_bottom = 244.0
 color = Color(1, 0.85, 0, 0.7)
 
-# Path direction labels using Unicode characters
+; Path direction labels using Unicode characters
 [node name="LabelArrow1" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_arrow1"]
 position = Vector2(825, 310)
 text = "->"
@@ -301,7 +302,7 @@ horizontal_alignment = 1
 font_size = 24
 font_color = Color(1, 0.85, 0, 0.8)
 
-# Instruction label above the grapple route
+; Instruction label above the grapple route
 [node name="LabelRoute1" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_route1"]
 position = Vector2(820, 250)
 text = "ARMCHAIR LATER PATH:"
@@ -323,7 +324,7 @@ horizontal_alignment = 1
 font_size = 10
 font_color = Color(1, 0.85, 0, 0.7)
 
-# Gate label
+; Gate label
 [node name="LabelGate1" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_gate1"]
 position = Vector2(830, 230)
 text = "ARMCHAIR GATE ->"
@@ -338,7 +339,7 @@ horizontal_alignment = 1
 font_size = 12
 font_color = Color(0.5, 1, 0.5, 0.9)
 
-# Background panel for the route labels
+; Background panel for the route labels
 [node name="RoutePanel1" type="ColorRect" parent="Visuals/RouteVisuals" uid="uid://route_panel1"]
 z_index = -1
 offset_left = 800.0
@@ -375,7 +376,7 @@ scale = Vector2(1, 1)
 
 [node name="HUD" parent="." uid="uid://test_hud" instance=ExtResource("2hud")]
 
-# TutorialSequence wired into the safe zone
+; TutorialSequence wired into the safe zone
 [node name="TutorialSequence" type="CanvasLayer" parent="." uid="uid://tut_seq"]
 script = ExtResource("8tut")
 active = true
