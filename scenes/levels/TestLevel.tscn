@@ -174,7 +174,7 @@ font_color = Color(0.6, 0.9, 0.6, 0.6)
 # Control hints inside the safe zone (plain ASCII, no Unicode arrows/icons)
 [node name="ControlHint1" type="Label" parent="Visuals" uid="uid://control_hint1"]
 position = Vector2(295, 570)
-text = "[<><>] Move"
+text = "[LEFT/RIGHT] Move"
 horizontal_alignment = 1
 font_size = 12
 font_color = Color(0.8, 1, 0.8, 0.7)
