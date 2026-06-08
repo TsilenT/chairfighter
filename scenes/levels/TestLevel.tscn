@@ -212,7 +212,7 @@ font_color = Color(1, 1, 0.8, 0.9)
 # Directional cue from NPC toward boss/arena
 [node name="DirectionLabel2" type="Label" parent="Visuals" uid="uid://direction_label2"]
 position = Vector2(1120, 590)
-text = "ARENА →"
+text = "ARENA →"
 horizontal_alignment = 1
 font_size = 12
 font_color = Color(0.9, 0.7, 1, 0.7)
