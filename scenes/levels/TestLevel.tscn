@@ -171,6 +171,60 @@ horizontal_alignment = 1
 font_size = 10
 font_color = Color(0.6, 0.9, 0.6, 0.6)
 
+# Control hints inside the safe zone
+[node name="ControlHint1" type="Label" parent="Visuals" uid="uid://control_hint1"]
+position = Vector2(295, 574)
+text = "MOVE ←→"
+horizontal_alignment = 1
+font_size = 12
+font_color = Color(0.8, 1, 0.8, 0.7)
+
+[node name="ControlHint2" type="Label" parent="Visuals" uid="uid://control_hint2"]
+position = Vector2(295, 590)
+text = "JUMP SPACE"
+horizontal_alignment = 1
+font_size = 12
+font_color = Color(0.8, 1, 0.8, 0.7)
+
+[node name="ControlHint3" type="Label" parent="Visuals" uid="uid://control_hint3"]
+position = Vector2(295, 606)
+text = "ATTACK X"
+horizontal_alignment = 1
+font_size = 12
+font_color = Color(0.8, 1, 0.8, 0.7)
+
+# Directional cue from safe zone toward NPC
+[node name="DirectionLabel1" type="Label" parent="Visuals" uid="uid://direction_label1"]
+position = Vector2(600, 520)
+text = "NPC →"
+horizontal_alignment = 1
+font_size = 14
+font_color = Color(0.8, 1, 0.8, 0.8)
+
+# NPC interact hint near HubNpc (850, 550)
+[node name="NpcHint" type="Label" parent="Visuals" uid="uid://npc_hint"]
+position = Vector2(850, 510)
+text = "TALK"
+horizontal_alignment = 1
+font_size = 14
+font_color = Color(1, 1, 0.8, 0.9)
+
+# Directional cue from NPC toward boss/arena
+[node name="DirectionLabel2" type="Label" parent="Visuals" uid="uid://direction_label2"]
+position = Vector2(1120, 590)
+text = "ARENА →"
+horizontal_alignment = 1
+font_size = 12
+font_color = Color(0.9, 0.7, 1, 0.7)
+
+# Grapple route signpost near platform area
+[node name="GrappleSignpost" type="Label" parent="Visuals" uid="uid://grapple_signpost"]
+position = Vector2(970, 340)
+text = "↓ GRAPPLE TO PLATFORM 3 ↓"
+horizontal_alignment = 1
+font_size = 11
+font_color = Color(1, 0.85, 0, 0.85)
+
 [node name="RouteVisuals" type="Node2D" parent="Visuals" uid="uid://route_visuals"]
 
 # Dashed grapple path: a series of small colored dots along the route
