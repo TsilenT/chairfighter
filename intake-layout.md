@@ -20,6 +20,17 @@ cd /home/stevets/projects/chairfighter && godot4 --headless --path . --quit
 
 If `godot4` is unavailable, the fallback is `godot --headless --path . --quit`. If neither exists, the card is expected to document that clearly and run static checks appropriate to the touched files.
 
+## Deploy command
+
+The final reviewer/deployer card runs this from the project root after the feature is approved and the working tree is clean:
+
+```bash
+scripts/deploy_itch.sh
+git push origin master
+```
+
+If deploy fails, the final card blocks instead of completing, with the exact failing command and the shortest useful error.
+
 ## Strategy rules block (verbatim — paste into every implementer card body)
 
 ```
@@ -139,15 +150,15 @@ When the reviewer card runs against a parent implementer's diff, it should addit
 The standard shape for a feature is:
 
 ```
-<HASH>-A    Implementer  (artifact / mechanic / wiring)
-<HASH>-AR   Reviewer
-<HASH>-B    Implementer  (next narrow piece)
-<HASH>-BR   Reviewer
+<HASH>-A    Implementer: implementer-worker  (artifact / mechanic / wiring)
+<HASH>-AR   Reviewer: review-worker
+<HASH>-B    Implementer: implementer-worker  (next narrow piece)
+<HASH>-BR   Reviewer: review-worker
 ...
-<HASH>-FR   Final reviewer (full-feature playability pass)
+<HASH>-FR   Final reviewer/deployer: review-worker (full-feature playability pass, deploy, push)
 ```
 
-One artifact per implementer card. Every implementer has a paired reviewer. The chain ends with a final reviewer that checks the feature as a whole. See the chairfighter board's CF-06A..CF-08FR for the gold-standard examples — match that shape.
+One artifact per implementer card. Every implementer has a paired reviewer. The chain ends with a final reviewer/deployer that checks the feature as a whole, deploys it with the command above, pushes the final commit, and relies on the intake-created notification subscription to report completion back to the originating Discord thread. See the chairfighter board's CF-06A..CF-08FR for the gold-standard examples — match that shape, with the updated worker profile names.
 
 ## Notes for Big Al specifically
 
