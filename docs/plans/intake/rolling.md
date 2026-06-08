@@ -1,1 +1,2 @@
 - 2026-06-07 Sihl opening-guided-sequence KOQP-A..KOQP-FR — Natural opening tutorial prompts for movement, attack, interaction, and safe first progression. Spec: docs/plans/intake/2026-06-07-opening-guided-sequence.md.
+- 2026-06-08 Sihl improve-tutorial-prompts IAKE-A..IAKE-FR — Clear tutorial commands, readable NPC support, and visible next-objective cues. Spec: docs/plans/intake/2026-06-08-improve-tutorial-prompts.md.
