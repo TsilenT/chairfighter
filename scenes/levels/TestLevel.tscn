@@ -226,6 +226,7 @@ font_size = 11
 font_color = Color(1, 0.85, 0, 0.45)
 
 [node name="RouteVisuals" type="Node2D" parent="Visuals" uid="uid://route_visuals"]
+modulate = Color(1, 1, 1, 0.55)
 
 # Dashed grapple path: a series of small colored dots along the route
 # From Platform2 (right edge) -> GrappleMarker2 -> GrappleMarker1 -> past Gate
@@ -303,21 +304,21 @@ font_color = Color(1, 0.85, 0, 0.8)
 # Instruction label above the grapple route
 [node name="LabelRoute1" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_route1"]
 position = Vector2(820, 250)
-text = "GRAPPLE PATH:"
+text = "ARMCHAIR LATER PATH:"
 horizontal_alignment = 1
 font_size = 12
 font_color = Color(1, 0.85, 0, 0.9)
 
 [node name="LabelGrapple1" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_grapple1"]
 position = Vector2(850, 410)
-text = "GRAPPLE 2"
+text = "ARMCHAIR GRAPPLE 2"
 horizontal_alignment = 1
 font_size = 10
 font_color = Color(1, 0.85, 0, 0.7)
 
 [node name="LabelGrapple2" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_grapple2"]
 position = Vector2(1050, 300)
-text = "GRAPPLE 1"
+text = "ARMCHAIR GRAPPLE 1"
 horizontal_alignment = 1
 font_size = 10
 font_color = Color(1, 0.85, 0, 0.7)
@@ -325,7 +326,7 @@ font_color = Color(1, 0.85, 0, 0.7)
 # Gate label
 [node name="LabelGate1" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_gate1"]
 position = Vector2(830, 230)
-text = "GATE ->"
+text = "ARMCHAIR GATE ->"
 horizontal_alignment = 1
 font_size = 12
 font_color = Color(1, 0.4, 0.4, 0.9)
