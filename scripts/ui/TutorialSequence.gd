@@ -71,7 +71,7 @@ func _build_overlay() -> void:
 	_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_banner.size = Vector2(610, 90)
 	_banner.position = Vector2(15, 5)
-	_overlay.add_child(_banner)
+	_banner_bg.add_child(_banner)
 
 	# Progression hint label (shown above main prompt).
 	_progression_label = Label.new()
