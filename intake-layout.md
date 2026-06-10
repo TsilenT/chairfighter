@@ -93,6 +93,7 @@ Instructions:
 - Verify EVERY acceptance criterion on the parent card individually. Recompute quantitative criteria (jump heights, distances, ranges) against the actual values in the scene/script files — do not trust the implementer's summary.
 - A passing parse check is the floor, not approval. For content cards, approval requires verified traversability/behavior.
 - Prefer tiny direct fixes for parse/import mistakes.
+- Before approving, run git status: the parent's work must be committed. If the implementer left its diff uncommitted, commit it with the card's suggested commit message before completing. Commit your own review fixes too. Never approve over a dirty tree.
 - Do not add new feature scope.
 - If substantial design/implementation work remains, create a new narrow remediation card assigned to implementer-worker and link it before downstream work if possible. The remediation card must quote concrete evidence (file, node, measured value vs required value).
 - Leave a review comment on the card even when approving: what you checked, what you ran, residual risks. Silent approvals fail review policy.
