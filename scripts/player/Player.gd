@@ -120,6 +120,10 @@ var _camera: Camera2D
 var _hitbox_shape: CollisionShape2D
 var _attack_flash: ColorRect
 
+## Screenshake state: set on hit, applied for ~0.1s then reset to Vector2.ZERO.
+var _screen_shake_time: float = 0.0
+var _screen_shake_offset: Vector2 = Vector2.ZERO
+
 ## Debug flag (flip on damage).
 var _has_taken_damage: bool = false
 
@@ -175,6 +179,7 @@ func _ready() -> void:
 	if _camera:
 		_camera.make_current()
 		_camera.position = Vector2.ZERO
+		_camera.position_smoothing_enabled = false
 
 	# Pivot the chair visual around its own center so left/right flips look
 	# centered on the body instead of swinging around the top-left corner.
@@ -279,6 +284,13 @@ func _on_hurtbox_hit(hitbox: Hitbox) -> void:
 	var dmg = hitbox.damage
 	var kb = -hitbox.hit_direction.normalized()
 	_health.take_damage(dmg, kb)
+
+	# Trigger screenshake on camera (magnitude <= ±5px for ~0.1s).
+	_screen_shake_time = 0.1
+	var _shake = Vector2(randf_range(-5.0, 5.0), randf_range(-5.0, 5.0))
+	if _shake.length_squared() > 25.0:
+		_shake = _shake.normalized() * 5.0
+	_screen_shake_offset = _shake
 
 
 # ────────
@@ -540,8 +552,29 @@ func _physics_process(delta: float) -> void:
 			velocity.x = 0.0
 			_ground_vel_zeroed = true
 
+	# ─── Camera follow with lookahead ───
+	if _camera:
+		# Fade screenshake offset to Vector2.ZERO after 0.1s.
+		if _screen_shake_time > 0.0:
+			_screen_shake_time -= delta
+			if _screen_shake_time <= 0.0:
+				_screen_shake_time = 0.0
+				_camera.offset = Vector2.ZERO
+			else:
+				_camera.offset = _screen_shake_offset
+		else:
+			_camera.offset = Vector2.ZERO
 
-# ────────
+		# Smoothly follow player: 100px lookahead in facing dir, -30px vert.
+		var _cam_target = Vector2(100.0 * _facing_right, -30.0)
+		_camera.position = _camera.position.lerp(_cam_target, cam_smoothing * delta)
+
+	# Attack extension visual: stretch chair body horizontally (peak 1.25, decay to exact 1.0).
+	if _chair_body:
+		_chair_body.scale.x = _facing_right * (1.0 + 0.25 * _attack_extension)
+
+
+# ──────
 #  Input & mechanics
 # ────────
 
@@ -616,12 +649,12 @@ func _flip_sprite(dir: float) -> void:
 # ────────
 
 func _handle_attack(delta: float) -> void:
-	if Input.is_action_just_pressed("attack"):
-		_perform_attack()
 	if _attack_extension > 0.0:
-		_attack_extension -= delta * 5.0
+		_attack_extension -= delta / 0.15
 		if _attack_extension < 0.0:
 			_attack_extension = 0.0
+	if Input.is_action_just_pressed("attack"):
+		_perform_attack()
 	if _attack_flash:
 		_attack_flash.visible = _attack_extension > 0.0
 
