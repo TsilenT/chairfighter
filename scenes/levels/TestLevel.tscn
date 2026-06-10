@@ -39,13 +39,13 @@ position = Vector2(700, 632)
 shape = SubResource("2")
 
 [node name="Platform1" type="StaticBody2D" parent="Visuals" uid="uid://plat1"]
-position = Vector2(500, 480)
+position = Vector2(500, 590)
 
 [node name="Platform1Col" type="CollisionShape2D" parent="Visuals/Platform1" uid="uid://plat1_col"]
 shape = SubResource("3")
 
 [node name="Platform2" type="StaticBody2D" parent="Visuals" uid="uid://plat2"]
-position = Vector2(800, 400)
+position = Vector2(800, 470)
 
 [node name="Platform2Col" type="CollisionShape2D" parent="Visuals/Platform2" uid="uid://plat2_col"]
 shape = SubResource("4")
@@ -84,16 +84,16 @@ color = Color(0.4, 0.5, 0.3, 1)
 
 [node name="Plat1Rect" type="ColorRect" parent="Visuals" uid="uid://plat1_rect"]
 offset_left = 400.0
-offset_top = 472.0
+offset_top = 582.0
 offset_right = 600.0
-offset_bottom = 480.0
+offset_bottom = 602.0
 color = Color(0.5, 0.6, 0.4, 1)
 
 [node name="Plat2Rect" type="ColorRect" parent="Visuals" uid="uid://plat2_rect"]
 offset_left = 720.0
-offset_top = 392.0
+offset_top = 462.0
 offset_right = 880.0
-offset_bottom = 400.0
+offset_bottom = 482.0
 color = Color(0.5, 0.6, 0.4, 1)
 
 [node name="Plat3Rect" type="ColorRect" parent="Visuals" uid="uid://plat3_rect"]
@@ -163,7 +163,7 @@ position = Vector2(295, 540)
 text = "[ SAFE ZONE ]"
 horizontal_alignment = 1
 font_size = 14
-font_color = Color(0.7, 1, 0.7, 0.8)
+font_color = Color(0.7, 1, 0.8, 0.8)
 
 [node name="TrainingLabel" type="Label" parent="Visuals" uid="uid://training_label"]
 position = Vector2(295, 556)
@@ -210,7 +210,7 @@ horizontal_alignment = 1
 font_size = 14
 font_color = Color(1, 1, 0.8, 0.9)
 
-; Directional cue from NPC toward boss/arena (plain ASCII arrow)
+; Directional cue from npc toward boss/arena (plain ASCII arrow)
 [node name="DirectionLabel2" type="Label" parent="Visuals" uid="uid://direction_label2"]
 position = Vector2(1120, 590)
 text = "BASIC PATH: ARENA [->]"
@@ -230,74 +230,60 @@ font_color = Color(1, 0.85, 0, 0.45)
 modulate = Color(1, 1, 1, 0.55)
 
 ; Dashed grapple path: a series of small colored dots along the route
-; From Platform2 (right edge) -> GrappleMarker2 -> GrappleMarker1 -> past Gate
+; Updated to trace the new staircase (P1 -> P2 -> Grapple path -> P3)
 [node name="RouteDot" type="ColorRect" parent="Visuals/RouteVisuals" uid="uid://route_dot"]
-offset_left = 820.0
-offset_top = 370.0
-offset_right = 828.0
-offset_bottom = 378.0
+offset_left = 660.0
+offset_top = 574.0
+offset_right = 668.0
+offset_bottom = 582.0
 color = Color(1, 0.85, 0, 0.7)
 
 [node name="RouteDot2" type="ColorRect" parent="Visuals/RouteVisuals" uid="uid://route_dot2"]
-offset_left = 850.0
-offset_top = 346.0
-offset_right = 858.0
-offset_bottom = 354.0
+offset_left = 756.0
+offset_top = 462.0
+offset_right = 764.0
+offset_bottom = 470.0
 color = Color(1, 0.85, 0, 0.7)
 
 [node name="RouteDot3" type="ColorRect" parent="Visuals/RouteVisuals" uid="uid://route_dot3"]
-offset_left = 910.0
-offset_top = 310.0
-offset_right = 918.0
-offset_bottom = 318.0
+offset_left = 856.0
+offset_top = 350.0
+offset_right = 864.0
+offset_bottom = 358.0
 color = Color(1, 0.85, 0, 0.7)
 
 [node name="RouteDot4" type="ColorRect" parent="Visuals/RouteVisuals" uid="uid://route_dot4"]
-offset_left = 986.0
-offset_top = 270.0
-offset_right = 994.0
-offset_bottom = 278.0
+offset_left = 954.0
+offset_top = 298.0
+offset_right = 962.0
+offset_bottom = 306.0
 color = Color(1, 0.85, 0, 0.7)
 
 [node name="RouteDot5" type="ColorRect" parent="Visuals/RouteVisuals" uid="uid://route_dot5"]
-offset_left = 1050.0
-offset_top = 236.0
-offset_right = 1058.0
-offset_bottom = 244.0
+offset_left = 1020.0
+offset_top = 310.0
+offset_right = 1028.0
+offset_bottom = 318.0
 color = Color(1, 0.85, 0, 0.7)
 
 ; Path direction labels using Unicode characters
 [node name="LabelArrow1" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_arrow1"]
-position = Vector2(825, 310)
-text = "->"
+position = Vector2(830, 520)
+text = ">>>"
 horizontal_alignment = 1
 font_size = 24
 font_color = Color(1, 0.85, 0, 0.8)
 
 [node name="LabelArrow2" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_arrow2"]
-position = Vector2(945, 310)
-text = "->"
+position = Vector2(900, 420)
+text = ">>>"
 horizontal_alignment = 1
 font_size = 24
 font_color = Color(1, 0.85, 0, 0.8)
 
 [node name="LabelArrow3" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_arrow3"]
-position = Vector2(850, 295)
-text = "^"
-horizontal_alignment = 1
-font_size = 24
-font_color = Color(1, 0.85, 0, 0.8)
-
-[node name="LabelArrow4" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_arrow4"]
-position = Vector2(1050, 215)
-text = "^"
-horizontal_alignment = 1
-font_size = 24
-font_color = Color(1, 0.85, 0, 0.8)
-
-[node name="LabelArrow5" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_arrow5"]
-position = Vector2(1115, 215)
-text = "->"
+position = Vector2(1020, 290)
+text = ">>>"
 horizontal_alignment = 1
 font_size = 24
 font_color = Color(1, 0.85, 0, 0.8)
@@ -363,7 +349,7 @@ font_size = 14
 position = Vector2(1010, 340)
 
 [node name="GrappleMarker1" parent="." uid="uid://gp1" instance=ExtResource("4gp")]
-position = Vector2(1050, 240)
+position = Vector2(1050, 340)
 scale = Vector2(1, 1)
 
 [node name="GrappleMarker2" parent="." uid="uid://gp2" instance=ExtResource("4gp")]
