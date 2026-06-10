@@ -34,7 +34,10 @@ func take_damage(amount: float, knockback: Vector2 = Vector2.ZERO) -> bool:
 	if amount < 0:
 		amount = 0
 	current_hp = max(current_hp - amount, 0.0)
-	knockback_force = knockback.normalized() * 300.0
+	if knockback == Vector2.ZERO:
+		knockback_force = Vector2.ZERO
+	else:
+		knockback_force = (Vector2(knockback.normalized().x, 0.0) + Vector2(0.0, -0.45)).normalized() * 300.0
 	health_changed.emit(current_hp, max_health)
 	if current_hp <= 0.0:
 		died.emit()
