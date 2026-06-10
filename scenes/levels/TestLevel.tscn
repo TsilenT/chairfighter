@@ -304,7 +304,7 @@ font_size = 10
 font_color = Color(1, 0.85, 0, 0.7)
 
 [node name="LabelGrapple2" type="Label" parent="Visuals/RouteVisuals" uid="uid://label_grapple2"]
-position = Vector2(1050, 300)
+position = Vector2(850, 278)
 text = "ARMCHAIR GRAPPLE 1"
 horizontal_alignment = 1
 font_size = 10
