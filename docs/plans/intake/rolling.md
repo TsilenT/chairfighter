@@ -2,3 +2,4 @@
 - 2026-06-08 Sihl improve-tutorial-prompts IAKE-A..IAKE-FR — Clear tutorial commands, readable NPC support, and visible next-objective cues. Spec: docs/plans/intake/2026-06-08-improve-tutorial-prompts.md.
 - 2026-06-08 Sihl tutorial-ui-readability JBWO-A..JBWO-FR — Remove missing button glyphs and clean up tutorial label layout. Spec: docs/plans/intake/2026-06-08-tutorial-ui-readability.md.
 - 2026-06-08 Sihl grapple-too-early SCB3-A..SCB3-FR — Stop pre-unlock grapple prompts and clarify the Basic Chair path before Armchair. Spec: docs/plans/intake/2026-06-08-grapple-too-early.md.
+- 2026-06-10 stevets game-feel-cleanup 53YL-A..53YL-FR — fix bait platform geometry (reachability test), camera follow + screenshake + attack anim, knockback arc, with integration gate before final deploy. Spec: docs/plans/intake/2026-06-10-game-feel-cleanup.md. First chain under the upgraded breakdown rules (quantitative AC, loop slicing, IG gates, parent-body context).
