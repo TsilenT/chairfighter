@@ -1,0 +1,269 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://src/zones/StorageCloset.gd" id="1_zone"]
+[ext_resource type="Script" path="res://src/game/ZoneTheme.gd" id="2_theme"]
+[ext_resource type="Script" path="res://src/world/Platform.gd" id="3_platform"]
+[ext_resource type="Script" path="res://src/world/Door.gd" id="4_door"]
+[ext_resource type="Script" path="res://src/world/Checkpoint.gd" id="5_checkpoint"]
+[ext_resource type="Script" path="res://src/world/SpeedGate.gd" id="6_speedgate"]
+[ext_resource type="Script" path="res://src/world/MovingPlatform.gd" id="7_moving"]
+[ext_resource type="Script" path="res://src/world/Spikes.gd" id="8_spikes"]
+[ext_resource type="Script" path="res://src/enemies/Footstool.gd" id="9_footstool"]
+[ext_resource type="Script" path="res://src/enemies/CoatRack.gd" id="10_coatrack"]
+[ext_resource type="Script" path="res://src/enemies/LampWisp.gd" id="11_wisp"]
+[ext_resource type="PackedScene" path="res://scenes/bosses/SteelFolder.tscn" id="12_folder"]
+
+[sub_resource type="Resource" id="theme_storage"]
+script = ExtResource("2_theme")
+bg_top = Color(0.13, 0.15, 0.18, 1)
+bg_bottom = Color(0.055, 0.065, 0.08, 1)
+platform_base = Color(0.29, 0.33, 0.38, 1)
+platform_top = Color(0.5, 0.55, 0.6, 1)
+platform_outline = Color(0.055, 0.065, 0.075, 1)
+accent = Color(0.96, 0.78, 0.12, 1)
+parallax_far = Color(0.16, 0.18, 0.21, 1)
+parallax_near = Color(0.21, 0.24, 0.28, 1)
+
+[node name="StorageCloset" type="Node2D"]
+script = ExtResource("1_zone")
+zone_display_name = "The Storage Closet"
+camera_limits = Rect2(-160, -248, 3760, 1048)
+theme_res = SubResource("theme_storage")
+
+[node name="SpawnPoints" type="Node2D" parent="."]
+
+[node name="Default" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(140, 400)
+
+[node name="MidCheckpoint" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(1830, 400)
+
+[node name="PreBoss" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(2470, 400)
+
+[node name="Geometry" type="Node2D" parent="."]
+
+[node name="Floor" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(3720, 96)
+position = Vector2(-120, 400)
+
+[node name="TunnelCeiling" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(420, 56)
+position = Vector2(680, 304)
+decor = true
+
+[node name="CrateBottom" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(140, 48)
+position = Vector2(870, 256)
+
+[node name="CrateMiddle" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(110, 48)
+position = Vector2(900, 208)
+
+[node name="CrateTop" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(80, 48)
+position = Vector2(930, 160)
+
+[node name="LeftBoundary" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(40, 648)
+position = Vector2(-120, -248)
+decor = true
+
+[node name="ArenaLeftUpperWall" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(32, 520)
+position = Vector2(2448, -248)
+decor = true
+
+[node name="ArenaRightWall" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(32, 648)
+position = Vector2(3568, -248)
+decor = true
+
+[node name="Route" type="Node2D" parent="."]
+
+[node name="RouteMain" type="Node2D" parent="Route"]
+
+[node name="M0" type="Marker2D" parent="Route/RouteMain"]
+position = Vector2(140, 400)
+metadata/mode = "start"
+metadata/form = "basic"
+
+[node name="M1" type="Marker2D" parent="Route/RouteMain"]
+position = Vector2(650, 400)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="M2" type="Marker2D" parent="Route/RouteMain"]
+position = Vector2(1120, 400)
+metadata/mode = "dash_tunnel"
+metadata/form = "office"
+
+[node name="M3" type="Marker2D" parent="Route/RouteMain"]
+position = Vector2(1730, 400)
+metadata/mode = "speed_gate"
+metadata/form = "office"
+
+[node name="M4" type="Marker2D" parent="Route/RouteMain"]
+position = Vector2(2090, 400)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="M5" type="Marker2D" parent="Route/RouteMain"]
+position = Vector2(2260, 400)
+metadata/mode = "jump"
+metadata/form = "basic"
+
+[node name="M6" type="Marker2D" parent="Route/RouteMain"]
+position = Vector2(2470, 400)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="M7" type="Marker2D" parent="Route/RouteMain"]
+position = Vector2(3160, 400)
+metadata/mode = "fight"
+metadata/form = "basic"
+
+[node name="RouteBossExit" type="Node2D" parent="Route"]
+
+[node name="M0" type="Marker2D" parent="Route/RouteBossExit"]
+position = Vector2(3160, 400)
+metadata/mode = "start"
+metadata/form = "basic"
+
+[node name="M1" type="Marker2D" parent="Route/RouteBossExit"]
+position = Vector2(3480, 400)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="M2" type="Marker2D" parent="Route/RouteBossExit"]
+position = Vector2(3480, 400)
+metadata/mode = "door"
+metadata/form = "basic"
+
+[node name="Doors" type="Node2D" parent="."]
+
+[node name="WorkshopEntry" type="Area2D" parent="Doors"]
+script = ExtResource("4_door")
+position = Vector2(20, 345)
+target_zone_path = "res://scenes/zones/Workshop.tscn"
+target_spawn = "FromStorage"
+label_text = "The Workshop"
+
+[node name="WorkshopShortcut" type="Area2D" parent="Doors"]
+script = ExtResource("4_door")
+position = Vector2(3480, 345)
+target_zone_path = "res://scenes/zones/Workshop.tscn"
+target_spawn = "FromStorage"
+required_flag = "boss_folder_defeated"
+label_text = "The Workshop"
+
+[node name="Hazards" type="Node2D" parent="."]
+
+[node name="StorageMidGate" type="StaticBody2D" parent="Hazards"]
+script = ExtResource("6_speedgate")
+position = Vector2(1680, 290)
+size = Vector2(40, 110)
+break_flag = "gate_storage_mid_broken"
+
+[node name="CrusherA" type="AnimatableBody2D" parent="Hazards"]
+script = ExtResource("7_moving")
+position = Vector2(1960, 190)
+size = Vector2(160, 24)
+travel = Vector2(0, 120)
+period = 2.6
+phase = 0.0
+
+[node name="CrusherB" type="AnimatableBody2D" parent="Hazards"]
+script = ExtResource("7_moving")
+position = Vector2(2260, 310)
+size = Vector2(160, 24)
+travel = Vector2(0, -120)
+period = 2.8
+phase = 1.4
+
+[node name="CrusherSpikes" type="Node2D" parent="Hazards"]
+script = ExtResource("8_spikes")
+position = Vector2(2120, 376)
+size = Vector2(140, 24)
+
+[node name="StartCheckpoint" type="Area2D" parent="Hazards"]
+script = ExtResource("5_checkpoint")
+position = Vector2(140, 400)
+spawn_name = "Default"
+
+[node name="MidZoneCheckpoint" type="Area2D" parent="Hazards"]
+script = ExtResource("5_checkpoint")
+position = Vector2(1830, 400)
+spawn_name = "MidCheckpoint"
+
+[node name="BossDoorCheckpoint" type="Area2D" parent="Hazards"]
+script = ExtResource("5_checkpoint")
+position = Vector2(2470, 400)
+spawn_name = "PreBoss"
+
+[node name="Enemies" type="Node2D" parent="."]
+
+[node name="TunnelFootstool" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("9_footstool")
+position = Vector2(1160, 400)
+skin_color = Color(0.42, 0.46, 0.52, 1)
+
+[node name="GateFootstool" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("9_footstool")
+position = Vector2(1450, 400)
+skin_color = Color(0.52, 0.49, 0.34, 1)
+
+[node name="CrusherFootstool" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("9_footstool")
+position = Vector2(1900, 400)
+skin_color = Color(0.37, 0.42, 0.48, 1)
+
+[node name="ArchiveCoatRack" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("10_coatrack")
+position = Vector2(1780, 400)
+skin_color = Color(0.48, 0.52, 0.56, 1)
+
+[node name="CompactorWisp" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("11_wisp")
+position = Vector2(2190, 260)
+skin_color = Color(0.93, 0.75, 0.16, 1)
+
+[node name="Boss" type="Node2D" parent="."]
+
+[node name="SteelFolder" parent="Boss" instance=ExtResource("12_folder")]
+position = Vector2(3160, 400)
+arena_rect = Rect2(2448, -248, 1152, 648)
+
+[node name="Props" type="Node2D" parent="."]
+
+[node name="TunnelSign" type="Label" parent="Props"]
+position = Vector2(390, 245)
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.96, 0.78, 0.12, 0.9)
+text = "AUTHORIZED CHAIRS\nKEEP A LOW PROFILE  >>"
+
+[node name="GateSign" type="Label" parent="Props"]
+position = Vector2(1370, 245)
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.96, 0.78, 0.12, 0.9)
+text = "ARCHIVE BULKHEAD\nDASH TO BREAK SEAL  >>"
+
+[node name="CrusherSign" type="Label" parent="Props"]
+position = Vector2(1970, 105)
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.86, 0.88, 0.9, 0.85)
+text = "COMPACTOR AISLE\nWATCH THE TIMING"
+
+[node name="BossSign" type="Label" parent="Props"]
+position = Vector2(2495, 245)
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.96, 0.78, 0.12, 0.9)
+text = "STEEL FOLDER\nFINAL FILING"

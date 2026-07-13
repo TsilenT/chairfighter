@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="FormDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/player/FormDef.gd" id="1_formdef"]
+
+[resource]
+script = ExtResource("1_formdef")
+id = &"folding"
+display_name = "Folding Chair"
+run_speed = 320.0
+accel = 2700.0
+decel = 3200.0
+air_control = 0.65
+jump_height = 140.0
+time_to_apex = 0.38
+fall_gravity_mult = 1.6
+attack_damage = 1.5
+attack_range = 44.0
+attack_cooldown = 0.18
+collider_height = 56.0
+body_color = Color(0.75, 0.78, 0.82, 1)
+unlock_blurb = "Tap SPECIAL to fold flat for vents. Jump while folded to SPRING!"

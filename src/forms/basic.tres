@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="FormDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/player/FormDef.gd" id="1_formdef"]
+
+[resource]
+script = ExtResource("1_formdef")
+id = &"basic"
+display_name = "Basic Chair"
+run_speed = 340.0
+accel = 2600.0
+decel = 3000.0
+air_control = 0.65
+jump_height = 150.0
+time_to_apex = 0.38
+fall_gravity_mult = 1.6
+attack_damage = 2.0
+attack_range = 52.0
+attack_cooldown = 0.3
+collider_height = 56.0
+body_color = Color(0.62, 0.42, 0.24, 1)
+unlock_blurb = "Four legs. One seat. Zero fear."

@@ -1,0 +1,21 @@
+[
+  {"op":"wait","secs":1.0},
+  {"op":"tap","action":"ui_accept"},
+  {"op":"wait_zone","zone":"The Workshop"},
+  {"op":"wait","secs":0.5},
+  {"op":"cheat_setup","forms":[],"zone":"res://scenes/zones/Lounge.tscn","spawn":"Default","zone_name":"The Lounge"},
+  {"op":"walk_until_x","x":700,"tol":12,"timeout":20},
+  {"op":"press","action":"move_right"},
+  {"op":"jump","hold":0.42},
+  {"op":"walk_until_x","x":900,"tol":14,"timeout":20},
+  {"op":"wait_on_floor","timeout":10},
+  {"op":"walk_until_x","x":1580,"tol":14,"timeout":30},
+  {"op":"wait_on_floor","timeout":10},
+  {"op":"walk_until_x","x":1700,"tol":14,"timeout":20},
+  {"op":"wait_on_floor","timeout":10},
+  {"op":"walk_until_x","x":2500,"tol":14,"timeout":30},
+  {"op":"wait_on_floor","timeout":10},
+  {"op":"walk_until_x","x":2900,"tol":14,"timeout":25},
+  {"op":"auto_fight","boss":"recliner","flag":"boss_recliner_defeated","hop_interval":0.7},
+  {"op":"assert_flag","flag":"boss_recliner_defeated"}
+]

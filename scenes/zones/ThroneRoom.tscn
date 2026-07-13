@@ -1,0 +1,261 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://src/zones/ThroneRoom.gd" id="1_zone"]
+[ext_resource type="Script" path="res://src/game/ZoneTheme.gd" id="2_theme"]
+[ext_resource type="Script" path="res://src/world/Platform.gd" id="3_platform"]
+[ext_resource type="Script" path="res://src/world/GrappleAnchor.gd" id="4_anchor"]
+[ext_resource type="Script" path="res://src/world/Door.gd" id="5_door"]
+[ext_resource type="Script" path="res://src/world/Checkpoint.gd" id="6_checkpoint"]
+[ext_resource type="Script" path="res://src/world/SpeedGate.gd" id="7_speedgate"]
+[ext_resource type="Script" path="res://src/enemies/Footstool.gd" id="8_footstool"]
+[ext_resource type="Script" path="res://src/enemies/LampWisp.gd" id="9_wisp"]
+[ext_resource type="PackedScene" path="res://scenes/bosses/UpholsteredKing.tscn" id="10_king"]
+
+[sub_resource type="Resource" id="theme_throne"]
+script = ExtResource("2_theme")
+bg_top = Color(0.105, 0.035, 0.18, 1)
+bg_bottom = Color(0.035, 0.012, 0.075, 1)
+platform_base = Color(0.3, 0.12, 0.46, 1)
+platform_top = Color(0.49, 0.24, 0.65, 1)
+platform_outline = Color(0.08, 0.025, 0.14, 1)
+accent = Color(0.96, 0.76, 0.22, 1)
+parallax_far = Color(0.16, 0.06, 0.26, 1)
+parallax_near = Color(0.24, 0.09, 0.35, 1)
+
+[node name="ThroneRoom" type="Node2D"]
+script = ExtResource("1_zone")
+zone_display_name = "The Throne Room"
+camera_limits = Rect2(-200, -850, 4400, 1450)
+theme_res = SubResource("theme_throne")
+
+[node name="SpawnPoints" type="Node2D" parent="."]
+
+[node name="Default" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(150, 400)
+
+[node name="PreBoss" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(3070, 0)
+
+[node name="Geometry" type="Node2D" parent="."]
+
+[node name="EntryFloor" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(750, 96)
+position = Vector2(-100, 400)
+
+[node name="GrappleIsland" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(200, 36)
+position = Vector2(880, 400)
+
+[node name="FarLanding" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(180, 40)
+position = Vector2(1320, 400)
+
+[node name="ApproachFloor" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(1100, 96)
+position = Vector2(1500, 400)
+
+[node name="SpringLedgeOne" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(180, 32)
+position = Vector2(2630, 200)
+
+[node name="SpringLedgeTwo" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(200, 32)
+position = Vector2(2860, 0)
+
+[node name="ArenaFloor" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(1100, 96)
+position = Vector2(3000, 0)
+
+[node name="EntryLeftWall" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(40, 746)
+position = Vector2(-140, -250)
+decor = true
+
+[node name="VentCrown" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(420, 593)
+position = Vector2(2040, -220)
+decor = true
+
+[node name="ShaftPlinth" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(40, 368)
+position = Vector2(2810, 32)
+decor = true
+
+[node name="ArenaCeiling" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(1310, 40)
+position = Vector2(2850, -740)
+decor = true
+
+[node name="ArenaLeftColumn" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(50, 500)
+position = Vector2(2850, -700)
+decor = true
+
+[node name="ArenaRightColumn" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(60, 796)
+position = Vector2(4100, -700)
+decor = true
+
+[node name="Route" type="Node2D" parent="."]
+
+[node name="RouteGauntlet" type="Node2D" parent="Route"]
+
+[node name="M0" type="Marker2D" parent="Route/RouteGauntlet"]
+position = Vector2(150, 400)
+metadata/mode = "start"
+metadata/form = "basic"
+
+[node name="M1" type="Marker2D" parent="Route/RouteGauntlet"]
+position = Vector2(630, 400)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="M2" type="Marker2D" parent="Route/RouteGauntlet"]
+position = Vector2(930, 400)
+metadata/mode = "grapple"
+metadata/form = "armchair"
+
+[node name="M3" type="Marker2D" parent="Route/RouteGauntlet"]
+position = Vector2(1030, 400)
+metadata/mode = "walk"
+metadata/form = "armchair"
+
+[node name="M4" type="Marker2D" parent="Route/RouteGauntlet"]
+position = Vector2(1340, 400)
+metadata/mode = "grapple"
+metadata/form = "armchair"
+
+[node name="M5" type="Marker2D" parent="Route/RouteGauntlet"]
+position = Vector2(1910, 400)
+metadata/mode = "speed_gate"
+metadata/form = "office"
+
+[node name="M6" type="Marker2D" parent="Route/RouteGauntlet"]
+position = Vector2(2010, 400)
+metadata/mode = "walk"
+metadata/form = "office"
+
+[node name="M7" type="Marker2D" parent="Route/RouteGauntlet"]
+position = Vector2(2490, 400)
+metadata/mode = "vent"
+metadata/form = "folding"
+
+[node name="M8" type="Marker2D" parent="Route/RouteGauntlet"]
+position = Vector2(2550, 400)
+metadata/mode = "walk"
+metadata/form = "folding"
+
+[node name="M9" type="Marker2D" parent="Route/RouteGauntlet"]
+position = Vector2(2670, 200)
+metadata/mode = "spring"
+metadata/form = "folding"
+
+[node name="M10" type="Marker2D" parent="Route/RouteGauntlet"]
+position = Vector2(2750, 200)
+metadata/mode = "walk"
+metadata/form = "folding"
+
+[node name="M11" type="Marker2D" parent="Route/RouteGauntlet"]
+position = Vector2(2880, 0)
+metadata/mode = "spring"
+metadata/form = "folding"
+
+[node name="M12" type="Marker2D" parent="Route/RouteGauntlet"]
+position = Vector2(3070, 0)
+metadata/mode = "walk"
+metadata/form = "armchair"
+
+[node name="M13" type="Marker2D" parent="Route/RouteGauntlet"]
+position = Vector2(3620, 0)
+metadata/mode = "fight"
+metadata/form = "armchair"
+
+[node name="Doors" type="Node2D" parent="."]
+
+[node name="WorkshopDoor" type="Area2D" parent="Doors"]
+script = ExtResource("5_door")
+position = Vector2(50, 345)
+target_zone_path = "res://scenes/zones/Workshop.tscn"
+target_spawn = "FromThrone"
+label_text = "The Workshop"
+
+[node name="Hazards" type="Node2D" parent="."]
+
+[node name="ThroneSpeedGate" type="StaticBody2D" parent="Hazards"]
+script = ExtResource("7_speedgate")
+position = Vector2(1870, 260)
+size = Vector2(40, 140)
+break_flag = "gate_throne_broken"
+
+[node name="EntryCheckpoint" type="Area2D" parent="Hazards"]
+script = ExtResource("6_checkpoint")
+position = Vector2(170, 400)
+spawn_name = "Default"
+
+[node name="PreBossCheckpoint" type="Area2D" parent="Hazards"]
+script = ExtResource("6_checkpoint")
+position = Vector2(3070, 0)
+spawn_name = "PreBoss"
+
+[node name="Enemies" type="Node2D" parent="."]
+
+[node name="FootstoolSquire" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("8_footstool")
+position = Vector2(350, 400)
+skin_color = Color(0.48, 0.19, 0.62, 1)
+
+[node name="FootstoolHerald" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("8_footstool")
+position = Vector2(1430, 400)
+skin_color = Color(0.58, 0.25, 0.68, 1)
+
+[node name="LampWispWest" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("9_wisp")
+position = Vector2(1510, 105)
+skin_color = Color(0.87, 0.62, 0.2, 1)
+
+[node name="LampWispEast" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("9_wisp")
+position = Vector2(2570, 105)
+skin_color = Color(0.92, 0.7, 0.24, 1)
+
+[node name="Boss" type="Node2D" parent="."]
+
+[node name="UpholsteredKing" parent="Boss" instance=ExtResource("10_king")]
+position = Vector2(3620, 0)
+arena_rect = Rect2(2850, -700, 1250, 700)
+
+[node name="Props" type="Node2D" parent="."]
+
+[node name="GrappleAnchorWest" type="Node2D" parent="Props"]
+script = ExtResource("4_anchor")
+position = Vector2(830, 210)
+
+[node name="GrappleAnchorEast" type="Node2D" parent="Props"]
+script = ExtResource("4_anchor")
+position = Vector2(1180, 200)
+
+[node name="RoyalDecree" type="Label" parent="Props"]
+position = Vector2(210, 250)
+theme_override_font_sizes/font_size = 19
+theme_override_colors/font_color = Color(0.96, 0.76, 0.22, 0.9)
+text = "ALL CHAIRS SHALL KNEEL"
+
+[node name="AudienceSign" type="Label" parent="Props"]
+position = Vector2(3090, -165)
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.96, 0.76, 0.22, 0.86)
+text = "THE FINAL SITTING"

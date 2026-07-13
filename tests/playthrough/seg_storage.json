@@ -1,0 +1,21 @@
+[
+  {"op":"wait","secs":1.0},
+  {"op":"tap","action":"ui_accept"},
+  {"op":"wait_zone","zone":"The Workshop"},
+  {"op":"cheat_setup","forms":["armchair","office"],"form":"office","zone":"res://scenes/zones/StorageCloset.tscn","spawn":"Default","zone_name":"The Storage Closet"},
+  {"op":"walk_until_x","x":620,"tol":10,"timeout":20},
+  {"op":"dash"},
+  {"op":"walk_until_x","x":1150,"tol":12,"timeout":20,"no_hop":true},
+  {"op":"walk_until_x","x":1440,"tol":10,"timeout":20},
+  {"op":"dash"},
+  {"op":"walk_until_x","x":1830,"tol":12,"timeout":20},
+  {"op":"walk_until_x","x":2050,"tol":10,"timeout":20},
+  {"op":"press","action":"move_right"},
+  {"op":"jump","hold":0.42},
+  {"op":"wait","secs":0.55},
+  {"op":"release","action":"move_right"},
+  {"op":"walk_until_x","x":2470,"tol":12,"timeout":20},
+  {"op":"walk_until_x","x":2780,"tol":12,"timeout":20},
+  {"op":"auto_fight","boss":"folder","flag":"boss_folder_defeated","timeout":420},
+  {"op":"assert_flag","flag":"boss_folder_defeated"}
+]

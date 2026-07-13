@@ -1,9 +1,0 @@
-[gd_scene load_steps=2 format=3]
-
-[ext_resource type="Script" path="res://scripts/world/AbilityGate.gd" id="1agr"]
-
-[node name="AbilityGate" type="Area2D"]
-script = ExtResource("1agr")
-required_form = "Armchair"
-gate_label = "Requires Armchair"
-consume_on_unlock = false
