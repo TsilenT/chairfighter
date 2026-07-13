@@ -53,9 +53,15 @@ func _ready() -> void:
 	_steps = parsed
 	active = true
 	# MovieWriter capture must run at natural speed; headless runs fast.
+	# CRITICAL: time_scale alone scales the physics DELTA (bigger per-tick
+	# displacement → sensor skips, arrive-window tunneling). Raising the
+	# tick rate by the same factor keeps delta at exactly 1/60 — the sim is
+	# tick-identical to real play, just 6× wall speed.
 	if DisplayServer.get_name() == "headless" and not OS.has_feature("movie"):
 		time_scale_base = HEADLESS_TIME_SCALE
 		Engine.time_scale = time_scale_base
+		Engine.physics_ticks_per_second = int(60 * HEADLESS_TIME_SCALE)
+		Engine.max_physics_steps_per_frame = int(8 * HEADLESS_TIME_SCALE)
 	Events.zone_loaded.connect(func(zone_name: String) -> void: _current_zone = zone_name)
 	Events.game_won.connect(func() -> void: _won = true)
 	Events.player_health_changed.connect(_on_player_health)
@@ -63,9 +69,10 @@ func _ready() -> void:
 
 
 func _on_player_health(current: int, _maximum: int) -> void:
-	if current < _player_hp and _s.has("retreat_until"):
-		_s["retreat_until"] = _elapsed + 0.7
-		# Hop as we disengage — clears most ground-level patterns.
+	if current < _player_hp and _s.has("next_hop"):
+		# Hop on hit — clears most ground-level patterns without giving up
+		# position. (No retreating: with full-heal checkpoints and bosses
+		# retaining damage, trading aggressively converges fastest.)
 		Input.action_press("jump")
 		_s["hop_release"] = _elapsed + 0.18
 	_player_hp = current
@@ -198,9 +205,9 @@ func _fail(reason: String) -> void:
 	_release_all()
 	var p := _player()
 	if p != null:
-		reason += " [player at %s, vel %s, floor=%s, zone='%s', form=%s]" % [
-			p.global_position.round(), p.velocity.round(), p.is_on_floor(),
-			_current_zone, GameState.current_form]
+		reason += " [player id=%d at %s, vel %s, floor=%s, zone='%s', form=%s]" % [
+			p.get_instance_id(), p.global_position.round(), p.velocity.round(),
+			p.is_on_floor(), _current_zone, GameState.current_form]
 	push_error("DEMO FAIL: " + reason)
 	print("DEMO FAIL: " + reason)
 	active = false
@@ -326,8 +333,7 @@ func _run_auto_fight(step: Dictionary) -> void:
 		_release_all()
 		_s["retreat_until"] = 0.0
 		return
-	if not _s.has("retreat_until"):
-		_s["retreat_until"] = 0.0
+	if not _s.has("next_hop"):
 		_s["next_attack"] = 0.0
 		_s["next_hop"] = 0.6
 		_s["engage"] = 48.0
@@ -354,13 +360,7 @@ func _run_auto_fight(step: Dictionary) -> void:
 		return  # nothing to walk toward yet; timeout guards us
 	var dx := move_to - p.global_position.x
 	var engaged := boss != null and absf(dx) <= float(_s["engage"])
-	if _elapsed < float(_s["retreat_until"]) and boss != null:
-		# Back off briefly after taking a hit.
-		var away := "move_left" if dx > 0.0 else "move_right"
-		var toward := "move_right" if dx > 0.0 else "move_left"
-		Input.action_release(toward)
-		Input.action_press(away)
-	elif engaged:
+	if engaged:
 		for a in MOVE_ACTIONS:
 			Input.action_release(a)
 	else:
@@ -380,6 +380,14 @@ func _run_auto_fight(step: Dictionary) -> void:
 	if _s.has("attack_down_at") and _elapsed - float(_s["attack_down_at"]) > TAP_TIME:
 		Input.action_release("attack")
 		_s.erase("attack_down_at")
+	# Anticipatory dodge: boss closing in fast at ground level ⇒ full hop NOW.
+	if boss != null and boss is CharacterBody2D and not _s.has("hop_release"):
+		var bvel: Vector2 = (boss as CharacterBody2D).velocity
+		var closing := bvel.x * signf(p.global_position.x - boss.global_position.x)
+		if closing > 380.0 and absf(dx) < 360.0 and absf(boss.global_position.y - p.global_position.y) < 80.0:
+			Input.action_press("jump")
+			_s["hop_release"] = _elapsed + 0.32
+			_s["next_hop"] = _elapsed + 0.6
 	# Periodic short hop to slip ground-level patterns.
 	if engaged and _elapsed >= float(_s["next_hop"]):
 		Input.action_press("jump")

@@ -115,10 +115,10 @@ func _on_player_died() -> void:
 	if defeated or not active:
 		return
 	# Reset stance/position, but keep most damage dealt (casual difficulty):
-	# dying at 1 HP shouldn't erase the whole attempt. Boss recovers 30%.
+	# dying at 1 HP shouldn't erase the whole attempt. Boss recovers 15%.
 	active = false
 	_run_token += 1
-	health.current = minf(health.current + health.max_health * 0.3, health.max_health)
+	health.current = minf(health.current + health.max_health * 0.15, health.max_health)
 	health.changed.emit(health.current, health.max_health)
 	global_position = _spawn_pos
 	velocity = Vector2.ZERO

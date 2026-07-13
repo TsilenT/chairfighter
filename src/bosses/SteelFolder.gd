@@ -76,7 +76,7 @@ func _low_slide() -> void:
 	var target := right_edge if slide_dir > 0.0 else left_edge
 	var passes := 2 if phase >= 2 else 1
 	for pass_index in passes:
-		await move_to_x(target, 560.0, 3.0)
+		await move_to_x(target, 500.0, 3.0)
 		if not active or defeated:
 			break
 		velocity.x = 0.0

@@ -11,6 +11,8 @@ extends StaticBody2D
 		queue_redraw()
 ## Decorative platforms are ignored by the geometry validator.
 @export var decor := false
+## One-way: passable from below (jump/grapple through), solid on top.
+@export var one_way := false
 
 var _theme: ZoneTheme
 var _shape_node: CollisionShape2D
@@ -40,6 +42,7 @@ func _rebuild() -> void:
 	var rect: RectangleShape2D = _shape_node.shape
 	rect.size = size
 	_shape_node.position = size / 2.0
+	_shape_node.one_way_collision = one_way
 
 
 func _resolve_theme() -> void:

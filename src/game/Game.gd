@@ -21,6 +21,7 @@ var _hud: Node = null
 var _pause_menu: Node = null
 var _transitioning := false
 var _pending_zone: Array = []   # queued [zone_path, spawn] during a transition
+var _zone_load_count := 0       # generation counter for death/door races
 
 
 func _ready() -> void:
@@ -65,6 +66,8 @@ func _on_zone_change_requested(zone_path: String, spawn_name: String) -> void:
 
 func _load_zone(zone_path: String, spawn_name: String) -> void:
 	_transitioning = true
+	_zone_load_count += 1
+	print("[Game] zone load #%d: %s @ %s" % [_zone_load_count, zone_path.get_file(), spawn_name])
 	get_tree().paused = false
 	await _fade_to(1.0, 0.25)
 	if _current_zone != null:
@@ -88,11 +91,17 @@ func _load_zone(zone_path: String, spawn_name: String) -> void:
 	_player.global_position = spawn
 	if _player.has_method("on_spawned"):
 		_player.on_spawned()
+	# Fresh zone, fresh chair (casual difficulty): arriving anywhere heals.
+	if _player.has_method("heal_full"):
+		_player.heal_full()
 	if _current_zone.has_method("apply_camera_limits") and _player.has_method("get_camera_rig"):
 		_current_zone.apply_camera_limits(_player.get_camera_rig())
 	var zone_name := String(_current_zone.name)
 	if "zone_display_name" in _current_zone and not String(_current_zone.zone_display_name).is_empty():
 		zone_name = _current_zone.zone_display_name
+	# Arriving in a zone re-arms the checkpoint to its entry spawn — dying
+	# should never teleport the player back across the map to an old zone.
+	GameState.set_checkpoint(zone_path, spawn_name)
 	Events.zone_loaded.emit(zone_name)
 	await _fade_to(0.0, 0.25)
 	_transitioning = false
@@ -117,10 +126,26 @@ func _find_spawn(spawn_name: String) -> Vector2:
 
 
 func _on_player_died() -> void:
+	var generation := _zone_load_count
+	print("[Game] player died (gen %d)" % generation)
 	await get_tree().create_timer(1.4, false, true).timeout
+	# If ANY zone load happened since the death (a doorway raced the death
+	# timer), the door wins: revive in place at the new zone's spawn rather
+	# than yanking the player back to the old checkpoint.
+	if _zone_load_count == generation and not _transitioning:
+		if _current_zone != null and _current_zone.scene_file_path == GameState.checkpoint_zone:
+			# Soft respawn: same zone — reposition without reloading, so boss
+			# damage retention, broken gates, and cleared enemies persist.
+			await _fade_to(1.0, 0.2)
+			_player.global_position = _find_spawn(GameState.checkpoint_spawn)
+			if _player.has_method("on_spawned"):
+				_player.on_spawned()
+			await _fade_to(0.0, 0.2)
+		else:
+			await _load_zone(GameState.checkpoint_zone, GameState.checkpoint_spawn)
+	# Revive only once safely placed (never alive inside the killzone).
 	if _player != null and _player.has_method("revive"):
 		_player.revive()
-	await _load_zone(GameState.checkpoint_zone, GameState.checkpoint_spawn)
 	Events.player_respawned.emit()
 
 
