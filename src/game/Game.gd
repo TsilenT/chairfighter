@@ -22,6 +22,7 @@ var _pause_menu: Node = null
 var _transitioning := false
 var _pending_zone: Array = []   # queued [zone_path, spawn] during a transition
 var _zone_load_count := 0       # generation counter for death/door races
+var _ending := false            # terminal: victory sequence has begun
 
 
 func _ready() -> void:
@@ -57,6 +58,8 @@ func _start_new_game() -> void:
 
 
 func _on_zone_change_requested(zone_path: String, spawn_name: String) -> void:
+	if _ending:
+		return
 	if _transitioning:
 		# Queue instead of dropping — a request during a fade must still land.
 		_pending_zone = [zone_path, spawn_name]
@@ -66,6 +69,18 @@ func _on_zone_change_requested(zone_path: String, spawn_name: String) -> void:
 
 func _load_zone(zone_path: String, spawn_name: String) -> void:
 	_transitioning = true
+	await _load_zone_inner(zone_path, spawn_name)
+	# Drain any request queued mid-transition, regardless of who initiated
+	# the transition. _transitioning stays true while draining so no third
+	# load can slip in between (double-load race).
+	while not _pending_zone.is_empty() and not _ending:
+		var next: Array = _pending_zone
+		_pending_zone = []
+		await _load_zone_inner(next[0], next[1])
+	_transitioning = false
+
+
+func _load_zone_inner(zone_path: String, spawn_name: String) -> void:
 	_zone_load_count += 1
 	print("[Game] zone load #%d: %s @ %s" % [_zone_load_count, zone_path.get_file(), spawn_name])
 	get_tree().paused = false
@@ -80,7 +95,6 @@ func _load_zone(zone_path: String, spawn_name: String) -> void:
 	var packed: PackedScene = load(zone_path)
 	if packed == null:
 		push_error("[Game] Cannot load zone %s" % zone_path)
-		_transitioning = false
 		return
 	_current_zone = packed.instantiate()
 	_zone_holder.add_child(_current_zone)
@@ -104,13 +118,6 @@ func _load_zone(zone_path: String, spawn_name: String) -> void:
 	GameState.set_checkpoint(zone_path, spawn_name)
 	Events.zone_loaded.emit(zone_name)
 	await _fade_to(0.0, 0.25)
-	_transitioning = false
-	# Drain any request queued mid-transition, regardless of who initiated
-	# the transition (signal handler, new game, respawn).
-	if not _pending_zone.is_empty():
-		var next: Array = _pending_zone
-		_pending_zone = []
-		_load_zone.call_deferred(next[0], next[1])
 
 
 func _find_spawn(spawn_name: String) -> Vector2:
@@ -129,6 +136,8 @@ func _on_player_died() -> void:
 	var generation := _zone_load_count
 	print("[Game] player died (gen %d)" % generation)
 	await get_tree().create_timer(1.4, false, true).timeout
+	if _ending:
+		return  # died alongside the final boss: the victory wins
 	# If ANY zone load happened since the death (a doorway raced the death
 	# timer), the door wins: revive in place at the new zone's spawn rather
 	# than yanking the player back to the old checkpoint.
@@ -150,6 +159,13 @@ func _on_player_died() -> void:
 
 
 func _on_game_won() -> void:
+	# Terminal state: no further zone changes, respawns, or pausing.
+	_ending = true
+	_pending_zone = []
+	if _pause_menu != null:
+		_pause_menu.queue_free()
+		_pause_menu = null
+	get_tree().paused = false
 	await _fade_to(1.0, 1.2)
 	if _hud != null:
 		_hud.queue_free()
@@ -164,7 +180,7 @@ func _on_game_won() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("pause") and _title == null and not _transitioning:
+	if event.is_action_pressed("pause") and _title == null and not _transitioning and not _ending:
 		_toggle_pause()
 
 

@@ -32,11 +32,15 @@ var use_gravity := true
 
 var _spawn_pos := Vector2.ZERO
 var _hurt_flash := 0.0
-var _pattern_loop_running := false
 var _run_token := 0  # invalidates in-flight pattern coroutines on reset
+var _loop_id := 0    # each trigger starts a fresh loop; stale loops die
 
 
 func _ready() -> void:
+	# A boss beaten in a previous visit stays beaten.
+	if GameState.has_flag("boss_%s_defeated" % boss_id):
+		queue_free()
+		return
 	add_to_group("boss")
 	collision_layer = 4
 	collision_mask = 1
@@ -195,26 +199,26 @@ func _on_died() -> void:
 # ── pattern engine ──
 
 func _start_pattern_loop() -> void:
-	if _pattern_loop_running:
-		return
-	_pattern_loop_running = true
-	_pattern_loop.call_deferred()
+	# Always start a fresh loop; any stale loop notices the id change at its
+	# next check and unwinds (a brief overlap is harmless — the stale loop's
+	# helpers are already dead via _run_token).
+	_loop_id += 1
+	_pattern_loop.call_deferred(_loop_id)
 
 
-func _pattern_loop() -> void:
+func _pattern_loop(my_loop: int) -> void:
 	var token := _run_token
-	while active and not defeated and token == _run_token:
+	while active and not defeated and token == _run_token and my_loop == _loop_id:
 		var patterns := _patterns()
 		if patterns.is_empty():
 			push_warning("[%s] no patterns" % boss_id)
 			break
 		var pattern: Callable = patterns[randi() % patterns.size()]
 		await pattern.call()
-		if token != _run_token:
+		if token != _run_token or my_loop != _loop_id:
 			break
 		await wait(0.5 if phase == 2 else 0.8)
-	_pattern_loop_running = false
-	# If the fight restarts later (player died), the trigger re-arms the loop.
+	# If the fight restarts later (player died), the trigger starts a new loop.
 
 
 ## Subclass hook: list of async pattern Callables.
@@ -259,12 +263,15 @@ func telegraph(duration: float) -> void:
 	await wait(duration)
 
 
-## Physics-time wait that dies with the current run (reset-safe).
+## Physics-time wait that dies with the current run (reset-safe) and does
+## not advance while the game is paused (physics_frame still fires then).
 func wait(seconds: float) -> void:
 	var token := _run_token
 	var left := seconds
-	while left > 0.0 and token == _run_token and not defeated:
+	while left > 0.0 and token == _run_token and not defeated and active:
 		await get_tree().physics_frame
+		if not can_process():
+			continue  # paused: hold time still
 		left -= get_physics_process_delta_time()
 
 
@@ -272,12 +279,14 @@ func wait(seconds: float) -> void:
 func move_to_x(x: float, speed: float, timeout := 4.0) -> void:
 	var token := _run_token
 	var left := timeout
-	while token == _run_token and not defeated and left > 0.0:
+	while token == _run_token and not defeated and active and left > 0.0:
 		var dx := x - global_position.x
 		if absf(dx) < 12.0:
 			break
 		velocity.x = signf(dx) * speed
 		await get_tree().physics_frame
+		if not can_process():
+			continue
 		left -= get_physics_process_delta_time()
 	velocity.x = 0.0
 
@@ -287,6 +296,8 @@ func hop(vel: Vector2) -> void:
 
 
 func spawn_projectile(from: Vector2, vel: Vector2, proj_color := Color(0.85, 0.6, 0.3), proj_radius := 10.0) -> void:
+	if not active or defeated:
+		return  # stale pattern unwinding after a reset must not spawn hazards
 	var proj := Projectile.new()
 	proj.velocity = vel
 	proj.color = proj_color

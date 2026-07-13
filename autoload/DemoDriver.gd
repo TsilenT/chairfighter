@@ -144,7 +144,8 @@ func _physics_process(delta: float) -> void:
 				_fail("assert_form: %s, expected %s" % [GameState.current_form, step.get("form", "")])
 		"wait_on_floor":
 			var p := _player()
-			if p != null and p.is_on_floor():
+			if p != null and p.is_on_floor() \
+					and (not p.has_method("is_alive") or p.is_alive()):
 				_done()
 		"wait_won":
 			if _won:
@@ -240,6 +241,8 @@ func _run_walk_until_x(step: Dictionary) -> void:
 	if absf(dx) <= tol:
 		for a in MOVE_ACTIONS:
 			Input.action_release(a)
+		if _s.get("hop_pressed", false):
+			Input.action_release("jump")  # never leak a held hop across steps
 		_done()
 		return
 	var want := "move_right" if dx > 0.0 else "move_left"

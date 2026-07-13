@@ -111,11 +111,22 @@ func _apply_form() -> void:
 		return
 	if folded and id != &"folding":
 		_set_folded(false)
+		if folded:
+			# No headroom to unfold (unlock fired inside a vent): refuse the
+			# swap rather than strand a non-folding form at 20px tall.
+			GameState.set_form(&"folding")
+			return
 	_hitbox.damage = form.attack_damage
 	var shape: RectangleShape2D = (_hitbox.get_child(0) as CollisionShape2D).shape
 	shape.size = Vector2(form.attack_range, 36.0)
 	_visual.set_form(form)
-	_set_collider_height(FOLD_HEIGHT if folded else STAND_HEIGHT)
+	# Never grow the collider into a ceiling (e.g. transforming right after a
+	# dash ended inside a tunnel) — _restore_collider_when_clear() grows it
+	# once there is headroom.
+	var want_h := FOLD_HEIGHT if folded else STAND_HEIGHT
+	var current_h := (_collider.shape as RectangleShape2D).size.y
+	if want_h <= current_h or _headroom_clear(want_h):
+		_set_collider_height(want_h)
 	Events.sfx_requested.emit(&"transform")
 
 
@@ -210,7 +221,9 @@ func _tick_timers(delta: float) -> void:
 func _handle_transform_input() -> void:
 	# Only transform while in normal control; mid-dash/grapple swaps would
 	# leave the state machine running a verb the new form doesn't own.
-	if state != State.MOVE or _transform_cooldown > 0.0:
+	# Folded chairs must unfold first (otherwise a non-folding form could be
+	# stuck 20px tall forever inside a vent).
+	if state != State.MOVE or folded or _transform_cooldown > 0.0:
 		return
 	if Input.is_action_just_pressed("transform_next"):
 		GameState.cycle_form(1)
@@ -446,6 +459,7 @@ func _on_damaged(_amount: float, knockback: Vector2) -> void:
 		_release_grapple(false)
 	if state == State.DASH:
 		state = State.MOVE
+		_dash_cooldown = DASH_COOLDOWN
 	state = State.HURT
 	_hurt_left = 0.25
 	velocity = knockback
