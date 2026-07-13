@@ -1,0 +1,71 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://src/zones/Workshop.gd" id="1_zone"]
+[ext_resource type="Script" path="res://src/game/ZoneTheme.gd" id="2_theme"]
+[ext_resource type="Script" path="res://src/world/Platform.gd" id="3_platform"]
+[ext_resource type="Script" path="res://src/world/GrappleAnchor.gd" id="4_anchor"]
+[ext_resource type="Script" path="res://src/world/Door.gd" id="5_door"]
+[ext_resource type="Script" path="res://src/world/Checkpoint.gd" id="6_checkpoint"]
+
+[sub_resource type="Resource" id="theme_workshop"]
+script = ExtResource("2_theme")
+bg_top = Color(0.18, 0.13, 0.09, 1)
+bg_bottom = Color(0.1, 0.075, 0.055, 1)
+platform_base = Color(0.42, 0.3, 0.2, 1)
+platform_top = Color(0.6, 0.45, 0.28, 1)
+platform_outline = Color(0.16, 0.1, 0.07, 1)
+accent = Color(0.95, 0.82, 0.45, 1)
+parallax_far = Color(0.2, 0.15, 0.11, 1)
+parallax_near = Color(0.26, 0.19, 0.14, 1)
+
+[node name="Workshop" type="Node2D"]
+script = ExtResource("1_zone")
+zone_display_name = "The Workshop"
+camera_limits = Rect2(-100, -900, 3200, 1400)
+theme_res = SubResource("theme_workshop")
+
+[node name="SpawnPoints" type="Node2D" parent="."]
+
+[node name="Default" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(200, 380)
+
+[node name="Geometry" type="Node2D" parent="."]
+
+[node name="Floor" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(2800, 96)
+position = Vector2(-100, 400)
+
+[node name="Step1" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(200, 32)
+position = Vector2(700, 310)
+
+[node name="Step2" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(200, 32)
+position = Vector2(1000, 220)
+
+[node name="Route" type="Node2D" parent="."]
+
+[node name="Doors" type="Node2D" parent="."]
+
+[node name="LoungeDoor" type="Area2D" parent="Doors"]
+script = ExtResource("5_door")
+position = Vector2(2500, 345)
+target_zone_path = "res://scenes/zones/Workshop.tscn"
+target_spawn = "Default"
+label_text = "The Lounge →"
+
+[node name="Props" type="Node2D" parent="."]
+
+[node name="TestAnchor" type="Node2D" parent="Props"]
+script = ExtResource("4_anchor")
+position = Vector2(1300, 100)
+
+[node name="Hazards" type="Node2D" parent="."]
+
+[node name="StartCheckpoint" type="Area2D" parent="Hazards"]
+script = ExtResource("6_checkpoint")
+position = Vector2(200, 400)
+spawn_name = "Default"

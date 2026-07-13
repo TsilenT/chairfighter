@@ -1,0 +1,28 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://src/player/Player.gd" id="1_player"]
+[ext_resource type="Script" path="res://src/player/PlayerVisual.gd" id="2_visual"]
+[ext_resource type="Script" path="res://src/fx/CameraRig.gd" id="3_camera"]
+
+[sub_resource type="RectangleShape2D" id="shape_body"]
+size = Vector2(44, 56)
+
+[node name="Player" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_player")
+
+[node name="Collider" type="CollisionShape2D" parent="."]
+position = Vector2(0, -28)
+shape = SubResource("shape_body")
+
+[node name="Visual" type="Node2D" parent="."]
+script = ExtResource("2_visual")
+
+[node name="GrappleRope" type="Line2D" parent="."]
+visible = false
+width = 4.0
+default_color = Color(0.92, 0.72, 0.25, 0.9)
+
+[node name="CameraRig" type="Camera2D" parent="."]
+script = ExtResource("3_camera")

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="FormDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/player/FormDef.gd" id="1_formdef"]
+
+[resource]
+script = ExtResource("1_formdef")
+id = &"office"
+display_name = "Office Chair"
+run_speed = 380.0
+accel = 2200.0
+decel = 2400.0
+air_control = 0.7
+jump_height = 130.0
+time_to_apex = 0.36
+fall_gravity_mult = 1.6
+attack_damage = 1.5
+attack_range = 48.0
+attack_cooldown = 0.25
+collider_height = 56.0
+body_color = Color(0.22, 0.28, 0.34, 1)
+unlock_blurb = "Ergonomic. Aerodynamic. Press SPECIAL to dash through speed gates and low tunnels!"
