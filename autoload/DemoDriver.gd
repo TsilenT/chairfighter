@@ -171,7 +171,13 @@ func _advance() -> void:
 	_s = {}
 	if _idx >= _steps.size():
 		_release_all()
-		if _won:
+		# Full runs must actually win; zone segments just need all steps green.
+		var requires_win := false
+		for s in _steps:
+			if String(s.get("op", "")) == "wait_won":
+				requires_win = true
+				break
+		if _won or not requires_win:
 			print("DEMO PASS")
 			get_tree().quit(0)
 		else:
