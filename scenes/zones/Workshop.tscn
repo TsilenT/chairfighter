@@ -98,8 +98,8 @@ decor = true
 
 [node name="PitReturnLedge" type="StaticBody2D" parent="Geometry"]
 script = ExtResource("3_platform")
-size = Vector2(80, 24)
-position = Vector2(2930, 490)
+size = Vector2(50, 24)
+position = Vector2(2960, 490)
 
 [node name="Route" type="Node2D" parent="."]
 
@@ -142,26 +142,21 @@ metadata/form = "office"
 [node name="RouteThrone" type="Node2D" parent="Route"]
 
 [node name="M0" type="Marker2D" parent="Route/RouteThrone"]
-position = Vector2(2960, 400)
+position = Vector2(2870, 400)
 metadata/mode = "start"
 metadata/form = "folding"
 
 [node name="M1" type="Marker2D" parent="Route/RouteThrone"]
-position = Vector2(2970, 490)
+position = Vector2(2930, 700)
 metadata/mode = "drop"
 metadata/form = "folding"
 
 [node name="M2" type="Marker2D" parent="Route/RouteThrone"]
-position = Vector2(2970, 700)
-metadata/mode = "drop"
-metadata/form = "folding"
-
-[node name="M3" type="Marker2D" parent="Route/RouteThrone"]
 position = Vector2(2300, 700)
 metadata/mode = "vent"
 metadata/form = "folding"
 
-[node name="M4" type="Marker2D" parent="Route/RouteThrone"]
+[node name="M3" type="Marker2D" parent="Route/RouteThrone"]
 position = Vector2(2010, 700)
 metadata/mode = "walk"
 metadata/form = "folding"
@@ -169,17 +164,17 @@ metadata/form = "folding"
 [node name="RouteBasementReturn" type="Node2D" parent="Route"]
 
 [node name="M0" type="Marker2D" parent="Route/RouteBasementReturn"]
-position = Vector2(2960, 700)
+position = Vector2(2935, 700)
 metadata/mode = "start"
 metadata/form = "folding"
 
 [node name="M1" type="Marker2D" parent="Route/RouteBasementReturn"]
-position = Vector2(2970, 490)
+position = Vector2(2975, 490)
 metadata/mode = "spring"
 metadata/form = "folding"
 
 [node name="M2" type="Marker2D" parent="Route/RouteBasementReturn"]
-position = Vector2(2870, 400)
+position = Vector2(2880, 400)
 metadata/mode = "jump"
 metadata/form = "folding"
 
