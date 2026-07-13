@@ -122,14 +122,14 @@ func _draw_folded(base: Color) -> void:
 func _draw_basic(base: Color) -> void:
 	var dark := base.darkened(0.35)
 	# Legs.
-	draw_rect(Rect2(-18, -14, 6, 14), dark)
-	draw_rect(Rect2(12, -14, 6, 14), dark)
-	# Seat + backrest.
-	_rounded(Rect2(-22, -22, 44, 10), base, 4.0)
-	_rounded(Rect2(-24, -56, 10, 38), base.lightened(0.18), 4.0)
+	draw_rect(Rect2(-19, -14, 7, 14), dark)
+	draw_rect(Rect2(12, -14, 7, 14), dark)
+	# Seat + backrest (chunky enough to read at distance).
+	_rounded(Rect2(-22, -24, 44, 12), base, 4.0)
+	_rounded(Rect2(-26, -56, 14, 36), base.lightened(0.18), 5.0)
 	# Cross rail (it's a sturdy chair).
 	draw_rect(Rect2(-15, -8, 30, 4), dark)
-	_eyes(Vector2(-14, -48))
+	_eyes(Vector2(-16, -48))
 
 
 func _draw_armchair(base: Color) -> void:

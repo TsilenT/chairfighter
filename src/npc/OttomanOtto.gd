@@ -65,21 +65,34 @@ func _process(delta: float) -> void:
 
 
 func _draw() -> void:
-	var plush := Color(0.55, 0.4, 0.55)
+	var plush := Color(0.58, 0.42, 0.58)
 	var outline := Color(0.15, 0.1, 0.08)
 	var squish := 1.0 + 0.03 * sin(_bob)
-	# Round ottoman body.
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, squish))
-	draw_circle(Vector2(0, -30), 34.0, plush)
-	draw_circle(Vector2(0, -30), 34.0, outline, false, 3.0)
-	draw_rect(Rect2(-34, -30, 68, 30), plush)
-	draw_rect(Rect2(-34, -2, 68, 2), outline)
+	# Stubby wooden feet.
+	draw_rect(Rect2(-24, -8, 8, 8), Color(0.35, 0.26, 0.18))
+	draw_rect(Rect2(16, -8, 8, 8), Color(0.35, 0.26, 0.18))
+	# Pouf body: rounded cushion with a skirt seam.
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = plush
+	sb.set_corner_radius_all(18)
+	sb.border_color = outline
+	sb.set_border_width_all(3)
+	sb.draw(get_canvas_item(), Rect2(-32, -54, 64, 46))
+	draw_line(Vector2(-30, -26), Vector2(30, -26), plush.darkened(0.25), 2.5)
+	# Cushion top highlight.
+	var top := StyleBoxFlat.new()
+	top.bg_color = plush.lightened(0.15)
+	top.set_corner_radius_all(14)
+	top.draw(get_canvas_item(), Rect2(-27, -52, 54, 12))
 	# Button tufts.
-	draw_circle(Vector2(-12, -38), 3.0, plush.darkened(0.3))
-	draw_circle(Vector2(12, -38), 3.0, plush.darkened(0.3))
-	# Kind eyes.
-	draw_circle(Vector2(-10, -52), 5.0, Color.WHITE)
-	draw_circle(Vector2(10, -52), 5.0, Color.WHITE)
-	draw_circle(Vector2(-9, -51), 2.3, outline)
-	draw_circle(Vector2(11, -51), 2.3, outline)
+	draw_circle(Vector2(-12, -36), 3.0, plush.darkened(0.35))
+	draw_circle(Vector2(12, -36), 3.0, plush.darkened(0.35))
+	# Kind eyes with brows.
+	draw_circle(Vector2(-10, -45), 5.0, Color.WHITE)
+	draw_circle(Vector2(10, -45), 5.0, Color.WHITE)
+	draw_circle(Vector2(-9, -44), 2.3, outline)
+	draw_circle(Vector2(11, -44), 2.3, outline)
+	draw_arc(Vector2(-10, -47), 6.0, PI + 0.4, TAU - 0.4, 8, outline, 2.0)
+	draw_arc(Vector2(10, -47), 6.0, PI + 0.4, TAU - 0.4, 8, outline, 2.0)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
