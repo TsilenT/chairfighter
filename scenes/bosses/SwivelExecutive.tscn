@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/bosses/SwivelExecutive.gd" id="1_swivel"]
+
+[sub_resource type="RectangleShape2D" id="trigger_shape"]
+size = Vector2(420, 420)
+
+[node name="SwivelExecutive" type="CharacterBody2D"]
+script = ExtResource("1_swivel")
+
+[node name="TriggerZone" type="Area2D" parent="."]
+
+[node name="Shape" type="CollisionShape2D" parent="TriggerZone"]
+position = Vector2(-360, -170)
+shape = SubResource("trigger_shape")

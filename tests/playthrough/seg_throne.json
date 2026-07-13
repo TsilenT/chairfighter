@@ -1,0 +1,49 @@
+[
+  {"op":"wait","secs":1.0},
+  {"op":"tap","action":"ui_accept"},
+  {"op":"wait_zone","zone":"The Workshop"},
+  {"op":"wait","secs":0.5},
+  {"op":"cheat_setup","forms":["armchair","office","folding"],"form":"basic","zone":"res://scenes/zones/ThroneRoom.tscn","spawn":"Default","zone_name":"The Throne Room"},
+
+  {"op":"transform_to","form":"armchair"},
+  {"op":"walk_until_x","x":630,"tol":8,"timeout":20},
+  {"op":"grapple","attach_by":1.0,"timeout":15},
+  {"op":"walk_until_x","x":1030,"tol":8,"timeout":20},
+  {"op":"wait_on_floor","timeout":12},
+  {"op":"grapple","attach_by":1.0,"timeout":15},
+  {"op":"walk_until_x","x":1400,"tol":8,"timeout":20},
+  {"op":"wait_on_floor","timeout":12},
+
+  {"op":"transform_to","form":"office"},
+  {"op":"walk_until_x","x":1640,"tol":8,"timeout":20},
+  {"op":"dash"},
+  {"op":"wait","secs":0.45},
+  {"op":"assert_flag","flag":"gate_throne_broken"},
+  {"op":"walk_until_x","x":2010,"tol":8,"timeout":20},
+
+  {"op":"transform_to","form":"folding"},
+  {"op":"special_tap"},
+  {"op":"walk_until_x","x":2490,"tol":6,"timeout":25,"no_hop":true},
+  {"op":"special_tap"},
+  {"op":"walk_until_x","x":2550,"tol":8,"timeout":15},
+
+  {"op":"special_tap"},
+  {"op":"press","action":"move_right"},
+  {"op":"jump","hold":0.42},
+  {"op":"release","action":"move_right"},
+  {"op":"wait_on_floor","timeout":12},
+  {"op":"walk_until_x","x":2750,"tol":8,"timeout":15},
+
+  {"op":"special_tap"},
+  {"op":"press","action":"move_right"},
+  {"op":"jump","hold":0.42},
+  {"op":"release","action":"move_right"},
+  {"op":"wait_on_floor","timeout":12},
+
+  {"op":"transform_to","form":"armchair"},
+  {"op":"walk_until_x","x":3070,"tol":8,"timeout":20},
+  {"op":"wait","secs":0.4},
+  {"op":"auto_fight","boss":"king","flag":"boss_king_defeated","timeout":600},
+  {"op":"assert_flag","flag":"boss_king_defeated"},
+  {"op":"wait_won"}
+]

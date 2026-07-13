@@ -1,0 +1,276 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://src/zones/Lounge.gd" id="1_zone"]
+[ext_resource type="Script" path="res://src/game/ZoneTheme.gd" id="2_theme"]
+[ext_resource type="Script" path="res://src/world/Platform.gd" id="3_platform"]
+[ext_resource type="Script" path="res://src/world/Door.gd" id="4_door"]
+[ext_resource type="Script" path="res://src/world/Checkpoint.gd" id="5_checkpoint"]
+[ext_resource type="Script" path="res://src/world/Spikes.gd" id="6_spikes"]
+[ext_resource type="Script" path="res://src/world/GrappleAnchor.gd" id="7_anchor"]
+[ext_resource type="Script" path="res://src/enemies/Footstool.gd" id="8_footstool"]
+[ext_resource type="Script" path="res://src/enemies/LampWisp.gd" id="9_lampwisp"]
+[ext_resource type="Script" path="res://src/enemies/CoatRack.gd" id="10_coatrack"]
+[ext_resource type="PackedScene" path="res://scenes/bosses/ReclinerBaron.tscn" id="11_baron"]
+
+[sub_resource type="Resource" id="theme_lounge"]
+script = ExtResource("2_theme")
+bg_top = Color(0.22, 0.055, 0.07, 1)
+bg_bottom = Color(0.075, 0.018, 0.026, 1)
+platform_base = Color(0.4, 0.075, 0.12, 1)
+platform_top = Color(0.64, 0.17, 0.22, 1)
+platform_outline = Color(0.12, 0.02, 0.03, 1)
+accent = Color(0.94, 0.72, 0.26, 1)
+parallax_far = Color(0.25, 0.065, 0.09, 1)
+parallax_near = Color(0.34, 0.09, 0.13, 1)
+
+[node name="Lounge" type="Node2D"]
+script = ExtResource("1_zone")
+zone_display_name = "The Lounge"
+camera_limits = Rect2(-200, -280, 4080, 1120)
+theme_res = SubResource("theme_lounge")
+
+[node name="SpawnPoints" type="Node2D" parent="."]
+
+[node name="Default" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(120, 400)
+
+[node name="MidLounge" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(1760, 400)
+
+[node name="PreBoss" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(2520, 400)
+
+[node name="Geometry" type="Node2D" parent="."]
+
+[node name="EntryFloor" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(840, 96)
+position = Vector2(-100, 400)
+
+[node name="PitBed" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(120, 72)
+position = Vector2(740, 472)
+
+[node name="HallFloor" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(340, 96)
+position = Vector2(860, 400)
+
+[node name="PlushStepLow" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(260, 32)
+position = Vector2(1160, 336)
+
+[node name="PlushStepHigh" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(260, 32)
+position = Vector2(1380, 272)
+
+[node name="ApproachFloor" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(1000, 96)
+position = Vector2(1600, 400)
+
+[node name="ArenaFloor" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(1000, 96)
+position = Vector2(2600, 400)
+
+[node name="PocketSeat" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(260, 24)
+position = Vector2(1760, 304)
+decor = true
+
+[node name="PocketCanopy" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(340, 24)
+position = Vector2(1720, 212)
+decor = true
+
+[node name="ArenaCeiling" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(1080, 40)
+position = Vector2(2600, -180)
+decor = true
+
+[node name="ArenaLeftWall" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(80, 440)
+position = Vector2(2600, -140)
+decor = true
+
+[node name="ArenaRightWall" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(80, 636)
+position = Vector2(3600, -140)
+decor = true
+
+[node name="Route" type="Node2D" parent="."]
+
+[node name="RouteBoss" type="Node2D" parent="Route"]
+
+[node name="M0" type="Marker2D" parent="Route/RouteBoss"]
+position = Vector2(120, 400)
+metadata/mode = "start"
+metadata/form = "basic"
+
+[node name="M1" type="Marker2D" parent="Route/RouteBoss"]
+position = Vector2(720, 400)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="M2" type="Marker2D" parent="Route/RouteBoss"]
+position = Vector2(875, 400)
+metadata/mode = "jump"
+metadata/form = "basic"
+
+[node name="M3" type="Marker2D" parent="Route/RouteBoss"]
+position = Vector2(1120, 400)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="M4" type="Marker2D" parent="Route/RouteBoss"]
+position = Vector2(1200, 336)
+metadata/mode = "jump"
+metadata/form = "basic"
+
+[node name="M5" type="Marker2D" parent="Route/RouteBoss"]
+position = Vector2(1350, 336)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="M6" type="Marker2D" parent="Route/RouteBoss"]
+position = Vector2(1400, 272)
+metadata/mode = "jump"
+metadata/form = "basic"
+
+[node name="M7" type="Marker2D" parent="Route/RouteBoss"]
+position = Vector2(1580, 272)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="M8" type="Marker2D" parent="Route/RouteBoss"]
+position = Vector2(1650, 400)
+metadata/mode = "jump"
+metadata/form = "basic"
+
+[node name="M9" type="Marker2D" parent="Route/RouteBoss"]
+position = Vector2(2520, 400)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="M10" type="Marker2D" parent="Route/RouteBoss"]
+position = Vector2(2900, 400)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="M11" type="Marker2D" parent="Route/RouteBoss"]
+position = Vector2(3260, 400)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="Doors" type="Node2D" parent="."]
+
+[node name="WorkshopEntry" type="Area2D" parent="Doors"]
+script = ExtResource("4_door")
+position = Vector2(20, 345)
+target_zone_path = "res://scenes/zones/Workshop.tscn"
+target_spawn = "FromLounge"
+label_text = "The Workshop"
+
+[node name="WorkshopShortcut" type="Area2D" parent="Doors"]
+script = ExtResource("4_door")
+position = Vector2(3500, 345)
+target_zone_path = "res://scenes/zones/Workshop.tscn"
+target_spawn = "FromLounge"
+required_flag = "boss_recliner_defeated"
+label_text = "Shortcut: The Workshop"
+
+[node name="Hazards" type="Node2D" parent="."]
+
+[node name="EntryCheckpoint" type="Area2D" parent="Hazards"]
+script = ExtResource("5_checkpoint")
+position = Vector2(120, 400)
+spawn_name = "Default"
+
+[node name="MidCheckpoint" type="Area2D" parent="Hazards"]
+script = ExtResource("5_checkpoint")
+position = Vector2(1760, 400)
+spawn_name = "MidLounge"
+
+[node name="PreBossCheckpoint" type="Area2D" parent="Hazards"]
+script = ExtResource("5_checkpoint")
+position = Vector2(2520, 400)
+spawn_name = "PreBoss"
+
+[node name="LowPitSpikes" type="Node2D" parent="Hazards"]
+script = ExtResource("6_spikes")
+position = Vector2(748, 448)
+size = Vector2(104, 24)
+
+[node name="Enemies" type="Node2D" parent="."]
+
+[node name="EntryFootstool" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("8_footstool")
+position = Vector2(560, 400)
+skin_color = Color(0.52, 0.18, 0.2, 1)
+
+[node name="StepFootstool" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("8_footstool")
+position = Vector2(1510, 272)
+skin_color = Color(0.68, 0.32, 0.2, 1)
+
+[node name="HallFootstool" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("8_footstool")
+position = Vector2(2180, 400)
+skin_color = Color(0.38, 0.12, 0.25, 1)
+
+[node name="PitLampWisp" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("9_lampwisp")
+position = Vector2(1010, 165)
+skin_color = Color(0.88, 0.55, 0.2, 1)
+
+[node name="PocketLampWisp" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("9_lampwisp")
+position = Vector2(1900, 150)
+skin_color = Color(0.96, 0.68, 0.28, 1)
+
+[node name="CoatRackLobber" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("10_coatrack")
+position = Vector2(2410, 400)
+skin_color = Color(0.34, 0.19, 0.11, 1)
+
+[node name="Boss" type="Node2D" parent="."]
+
+[node name="ReclinerBaron" parent="Boss" instance=ExtResource("11_baron")]
+position = Vector2(3260, 400)
+arena_rect = Rect2(2480, -168, 1152, 648)
+contact_damage = 0.5
+
+[node name="Props" type="Node2D" parent="."]
+
+[node name="ArenaAnchorLeft" type="Node2D" parent="Props"]
+script = ExtResource("7_anchor")
+position = Vector2(2820, -100)
+
+[node name="ArenaAnchorCenter" type="Node2D" parent="Props"]
+script = ExtResource("7_anchor")
+position = Vector2(3140, -115)
+
+[node name="ArenaAnchorRight" type="Node2D" parent="Props"]
+script = ExtResource("7_anchor")
+position = Vector2(3440, -90)
+
+[node name="PocketSign" type="Label" parent="Props"]
+position = Vector2(1790, 246)
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.94, 0.72, 0.26, 0.86)
+text = "NAP ALCOVE — MEMBERS ONLY"
+
+[node name="ArenaPlaque" type="Label" parent="Props"]
+position = Vector2(2700, 330)
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.94, 0.72, 0.26, 0.9)
+text = "THE BARON RECEIVES NO WALK-INS"

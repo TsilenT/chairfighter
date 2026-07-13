@@ -20,6 +20,7 @@ var _title: Node = null
 var _hud: Node = null
 var _pause_menu: Node = null
 var _transitioning := false
+var _pending_zone: Array = []   # queued [zone_path, spawn] during a transition
 
 
 func _ready() -> void:
@@ -56,6 +57,8 @@ func _start_new_game() -> void:
 
 func _on_zone_change_requested(zone_path: String, spawn_name: String) -> void:
 	if _transitioning:
+		# Queue instead of dropping — a request during a fade must still land.
+		_pending_zone = [zone_path, spawn_name]
 		return
 	await _load_zone(zone_path, spawn_name)
 
@@ -93,6 +96,12 @@ func _load_zone(zone_path: String, spawn_name: String) -> void:
 	Events.zone_loaded.emit(zone_name)
 	await _fade_to(0.0, 0.25)
 	_transitioning = false
+	# Drain any request queued mid-transition, regardless of who initiated
+	# the transition (signal handler, new game, respawn).
+	if not _pending_zone.is_empty():
+		var next: Array = _pending_zone
+		_pending_zone = []
+		_load_zone.call_deferred(next[0], next[1])
 
 
 func _find_spawn(spawn_name: String) -> Vector2:

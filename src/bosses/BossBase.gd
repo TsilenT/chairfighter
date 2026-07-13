@@ -114,13 +114,15 @@ func _on_trigger(body: Node2D) -> void:
 func _on_player_died() -> void:
 	if defeated or not active:
 		return
-	# Full reset: heal, home, idle, reopen arena.
+	# Reset stance/position, but keep most damage dealt (casual difficulty):
+	# dying at 1 HP shouldn't erase the whole attempt. Boss recovers 30%.
 	active = false
 	_run_token += 1
-	health.reset_full()
+	health.current = minf(health.current + health.max_health * 0.3, health.max_health)
+	health.changed.emit(health.current, health.max_health)
 	global_position = _spawn_pos
 	velocity = Vector2.ZERO
-	phase = 1
+	phase = 1 if health.current > health.max_health * 0.5 else 2
 	_lock_camera(false)
 	_set_blocker(false)
 

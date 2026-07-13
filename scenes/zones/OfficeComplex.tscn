@@ -1,0 +1,327 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://src/zones/OfficeComplex.gd" id="1_zone"]
+[ext_resource type="Script" path="res://src/game/ZoneTheme.gd" id="2_theme"]
+[ext_resource type="Script" path="res://src/world/Platform.gd" id="3_platform"]
+[ext_resource type="Script" path="res://src/world/GrappleAnchor.gd" id="4_anchor"]
+[ext_resource type="Script" path="res://src/world/Door.gd" id="5_door"]
+[ext_resource type="Script" path="res://src/world/Checkpoint.gd" id="6_checkpoint"]
+[ext_resource type="Script" path="res://src/world/MovingPlatform.gd" id="7_moving"]
+[ext_resource type="Script" path="res://src/enemies/Footstool.gd" id="8_footstool"]
+[ext_resource type="Script" path="res://src/enemies/CoatRack.gd" id="9_coatrack"]
+[ext_resource type="Script" path="res://src/enemies/LampWisp.gd" id="10_lampwisp"]
+[ext_resource type="PackedScene" path="res://scenes/bosses/SwivelExecutive.tscn" id="11_boss"]
+
+[sub_resource type="Resource" id="theme_office"]
+script = ExtResource("2_theme")
+bg_top = Color(0.105, 0.16, 0.2, 1)
+bg_bottom = Color(0.055, 0.085, 0.115, 1)
+platform_base = Color(0.27, 0.35, 0.39, 1)
+platform_top = Color(0.39, 0.52, 0.55, 1)
+platform_outline = Color(0.055, 0.09, 0.105, 1)
+accent = Color(0.18, 0.82, 0.76, 1)
+parallax_far = Color(0.12, 0.2, 0.24, 1)
+parallax_near = Color(0.17, 0.27, 0.3, 1)
+
+[node name="OfficeComplex" type="Node2D"]
+script = ExtResource("1_zone")
+zone_display_name = "The Office Complex"
+camera_limits = Rect2(-200, -400, 4300, 1300)
+theme_res = SubResource("theme_office")
+
+[node name="SpawnPoints" type="Node2D" parent="."]
+
+[node name="Default" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(140, 400)
+
+[node name="Mid" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(1040, 400)
+
+[node name="PreBoss" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(2550, 400)
+
+[node name="Geometry" type="Node2D" parent="."]
+
+[node name="EntryFloorWest" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(450, 96)
+position = Vector2(-100, 400)
+
+[node name="EntryFloorTakeoff" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(300, 96)
+position = Vector2(350, 400)
+
+[node name="CubicleFloorLanding" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(330, 96)
+position = Vector2(920, 400)
+
+[node name="CubicleFloorWest" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(500, 96)
+position = Vector2(1250, 400)
+
+[node name="CubicleFloorEast" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(430, 96)
+position = Vector2(1750, 400)
+
+[node name="PreBossLanding" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(250, 96)
+position = Vector2(2450, 400)
+
+[node name="ArenaFloor" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(1152, 96)
+position = Vector2(2700, 400)
+
+[node name="LeftBoundary" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(80, 800)
+position = Vector2(-180, -304)
+decor = true
+
+[node name="CubicleWallA" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(36, 80)
+position = Vector2(1248, 320)
+decor = true
+
+[node name="CubicleWallB" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(36, 80)
+position = Vector2(1550, 320)
+decor = true
+
+[node name="CubicleWallC" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(36, 80)
+position = Vector2(1850, 320)
+decor = true
+
+[node name="CubicleHeaderA" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(220, 24)
+position = Vector2(1300, 190)
+decor = true
+
+[node name="CubicleHeaderB" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(220, 24)
+position = Vector2(1610, 170)
+decor = true
+
+[node name="ArenaLeftUpperWall" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(40, 510)
+position = Vector2(2660, -248)
+decor = true
+
+[node name="ArenaRightWall" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(48, 744)
+position = Vector2(3852, -248)
+decor = true
+
+[node name="Route" type="Node2D" parent="."]
+
+[node name="MainRoute" type="Node2D" parent="Route"]
+
+[node name="M0" type="Marker2D" parent="Route/MainRoute"]
+position = Vector2(140, 400)
+metadata/mode = "start"
+metadata/form = "basic"
+
+[node name="M1" type="Marker2D" parent="Route/MainRoute"]
+position = Vector2(620, 400)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="M2" type="Marker2D" parent="Route/MainRoute"]
+position = Vector2(980, 400)
+metadata/mode = "grapple"
+metadata/form = "armchair"
+
+[node name="M3" type="Marker2D" parent="Route/MainRoute"]
+position = Vector2(1200, 400)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="M4" type="Marker2D" parent="Route/MainRoute"]
+position = Vector2(1330, 400)
+metadata/mode = "jump"
+metadata/form = "basic"
+
+[node name="M5" type="Marker2D" parent="Route/MainRoute"]
+position = Vector2(1500, 400)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="M6" type="Marker2D" parent="Route/MainRoute"]
+position = Vector2(1640, 400)
+metadata/mode = "jump"
+metadata/form = "basic"
+
+[node name="M7" type="Marker2D" parent="Route/MainRoute"]
+position = Vector2(1800, 400)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="M8" type="Marker2D" parent="Route/MainRoute"]
+position = Vector2(1940, 400)
+metadata/mode = "jump"
+metadata/form = "basic"
+
+[node name="M9" type="Marker2D" parent="Route/MainRoute"]
+position = Vector2(2140, 400)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="M10" type="Marker2D" parent="Route/MainRoute"]
+position = Vector2(2480, 400)
+metadata/mode = "grapple"
+metadata/form = "armchair"
+
+[node name="M11" type="Marker2D" parent="Route/MainRoute"]
+position = Vector2(2640, 400)
+metadata/mode = "walk"
+metadata/form = "armchair"
+
+[node name="M12" type="Marker2D" parent="Route/MainRoute"]
+position = Vector2(3100, 400)
+metadata/mode = "fight"
+metadata/form = "armchair"
+
+[node name="ShortcutRoute" type="Node2D" parent="Route"]
+
+[node name="M0" type="Marker2D" parent="Route/ShortcutRoute"]
+position = Vector2(3380, 400)
+metadata/mode = "start"
+metadata/form = "armchair"
+
+[node name="M1" type="Marker2D" parent="Route/ShortcutRoute"]
+position = Vector2(3740, 400)
+metadata/mode = "door"
+metadata/form = "armchair"
+
+[node name="Doors" type="Node2D" parent="."]
+
+[node name="WorkshopEntry" type="Area2D" parent="Doors"]
+script = ExtResource("5_door")
+position = Vector2(20, 345)
+target_zone_path = "res://scenes/zones/Workshop.tscn"
+target_spawn = "FromOffice"
+label_text = "The Workshop"
+
+[node name="WorkshopShortcut" type="Area2D" parent="Doors"]
+script = ExtResource("5_door")
+position = Vector2(3740, 345)
+target_zone_path = "res://scenes/zones/Workshop.tscn"
+target_spawn = "FromOffice"
+required_flag = "boss_swivel_defeated"
+label_text = "Workshop Express"
+
+[node name="Hazards" type="Node2D" parent="."]
+
+[node name="EntryCheckpoint" type="Area2D" parent="Hazards"]
+script = ExtResource("6_checkpoint")
+position = Vector2(160, 400)
+spawn_name = "Default"
+
+[node name="MidCheckpoint" type="Area2D" parent="Hazards"]
+script = ExtResource("6_checkpoint")
+position = Vector2(1040, 400)
+spawn_name = "Mid"
+
+[node name="PreBossCheckpoint" type="Area2D" parent="Hazards"]
+script = ExtResource("6_checkpoint")
+position = Vector2(2550, 400)
+spawn_name = "PreBoss"
+
+[node name="RecordsLift" type="AnimatableBody2D" parent="Hazards"]
+script = ExtResource("7_moving")
+position = Vector2(2000, 260)
+size = Vector2(120, 24)
+travel = Vector2(0, -140)
+period = 3.2
+phase = 0.8
+
+[node name="Enemies" type="Node2D" parent="."]
+
+[node name="FootstoolWest" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("8_footstool")
+position = Vector2(1360, 400)
+skin_color = Color(0.26, 0.58, 0.57, 1)
+
+[node name="FootstoolEast" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("8_footstool")
+position = Vector2(1620, 400)
+skin_color = Color(0.32, 0.48, 0.55, 1)
+
+[node name="CoatRackWest" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("9_coatrack")
+position = Vector2(1450, 400)
+skin_color = Color(0.31, 0.43, 0.46, 1)
+lob_range = 390.0
+lob_interval = 2.8
+
+[node name="CoatRackEast" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("9_coatrack")
+position = Vector2(1740, 400)
+skin_color = Color(0.31, 0.43, 0.46, 1)
+lob_range = 390.0
+lob_interval = 2.8
+
+[node name="LampWispWest" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("10_lampwisp")
+position = Vector2(1380, 270)
+skin_color = Color(0.3, 0.78, 0.72, 1)
+swoop_range = 190.0
+
+[node name="LampWispEast" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("10_lampwisp")
+position = Vector2(1730, 250)
+skin_color = Color(0.34, 0.7, 0.7, 1)
+swoop_range = 190.0
+
+[node name="Boss" type="Node2D" parent="."]
+
+[node name="SwivelExecutive" parent="Boss" instance=ExtResource("11_boss")]
+position = Vector2(3370, 400)
+arena_rect = Rect2(2700, -248, 1152, 648)
+
+[node name="Props" type="Node2D" parent="."]
+
+[node name="GrappleAnchorWest" type="Node2D" parent="Props"]
+script = ExtResource("4_anchor")
+position = Vector2(815, 190)
+
+[node name="GrappleAnchorEast" type="Node2D" parent="Props"]
+script = ExtResource("4_anchor")
+position = Vector2(2335, 190)
+
+[node name="SignGrappleWest" type="Label" parent="Props"]
+position = Vector2(430, 210)
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.48, 0.9, 0.86, 0.9)
+text = "ARMCHAIR ACCESS — face the hook, hold K"
+
+[node name="SignCubicles" type="Label" parent="Props"]
+position = Vector2(1160, 105)
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.58, 0.82, 0.82, 0.85)
+text = "OPEN-PLAN PRODUCTIVITY LABYRINTH"
+
+[node name="SignLift" type="Label" parent="Props"]
+position = Vector2(1950, 75)
+theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.4, 0.78, 0.76, 0.8)
+text = "RECORDS LIFT\n(out to lunch)"
+
+[node name="SignBoss" type="Label" parent="Props"]
+position = Vector2(2780, 180)
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.35, 0.88, 0.82, 0.9)
+text = "EXECUTIVE SUITE — APPOINTMENT MANDATORY"

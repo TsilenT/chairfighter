@@ -12,7 +12,7 @@ var _swing := false
 func _ready() -> void:
 	boss_id = &"recliner"
 	display_name = "The Recliner Baron"
-	max_health = 40.0
+	max_health = 34.0  # first boss, casual on-ramp
 	unlock_form_id = &"armchair"
 	body_half_width = 66.0
 	body_height = 128.0

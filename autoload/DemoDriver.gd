@@ -64,7 +64,10 @@ func _ready() -> void:
 
 func _on_player_health(current: int, _maximum: int) -> void:
 	if current < _player_hp and _s.has("retreat_until"):
-		_s["retreat_until"] = _elapsed + 0.5
+		_s["retreat_until"] = _elapsed + 0.7
+		# Hop as we disengage — clears most ground-level patterns.
+		Input.action_press("jump")
+		_s["hop_release"] = _elapsed + 0.18
 	_player_hp = current
 
 
@@ -337,6 +340,16 @@ func _run_auto_fight(step: Dictionary) -> void:
 		move_to = boss.global_position.x
 	elif _s.has("arena_x"):
 		move_to = float(_s["arena_x"])
+	if _elapsed >= float(_s.get("next_log", 0.0)):
+		_s["next_log"] = _elapsed + 5.0
+		var hp := "?"
+		var bactive := "?"
+		if boss != null and "health" in boss and boss.health != null:
+			hp = "%.0f/%.0f" % [boss.health.current, boss.health.max_health]
+			bactive = str(boss.active)
+		print("DEMO FIGHT t=%.0fs boss=%s hp=%s active=%s player=%s php=%d" % [
+			_elapsed, boss.global_position.round() if boss != null else "none",
+			hp, bactive, p.global_position.round(), _player_hp])
 	if move_to == INF:
 		return  # nothing to walk toward yet; timeout guards us
 	var dx := move_to - p.global_position.x
@@ -350,16 +363,20 @@ func _run_auto_fight(step: Dictionary) -> void:
 	elif engaged:
 		for a in MOVE_ACTIONS:
 			Input.action_release(a)
-		if _elapsed >= float(_s["next_attack"]):
-			Input.action_press("attack")
-			_s["attack_down_at"] = _elapsed
-			_s["next_attack"] = _elapsed + 0.36
 	else:
 		var want := "move_right" if dx > 0.0 else "move_left"
 		var other := "move_left" if dx > 0.0 else "move_right"
 		Input.action_release(other)
 		Input.action_press(want)
 		_stuck_hop(p, false)
+	# Opportunistic swings: fast bosses (slides, charges, ricochets) mostly
+	# pass THROUGH the policy's reach — attack on cooldown whenever close,
+	# regardless of movement state.
+	if boss != null and absf(dx) <= float(_s["engage"]) * 1.6 \
+			and _elapsed >= float(_s["next_attack"]):
+		Input.action_press("attack")
+		_s["attack_down_at"] = _elapsed
+		_s["next_attack"] = _elapsed + 0.36
 	if _s.has("attack_down_at") and _elapsed - float(_s["attack_down_at"]) > TAP_TIME:
 		Input.action_release("attack")
 		_s.erase("attack_down_at")

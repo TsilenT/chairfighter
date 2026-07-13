@@ -76,7 +76,7 @@ func _ready() -> void:
 func _build_components() -> void:
 	_health = Health.new()
 	_health.max_health = MAX_HEARTS
-	_health.invuln_time = 1.0
+	_health.invuln_time = 1.25
 	_health.changed.connect(func(cur: float, maximum: float) -> void:
 		Events.player_health_changed.emit(int(cur), int(maximum)))
 	_health.damaged.connect(_on_damaged)
