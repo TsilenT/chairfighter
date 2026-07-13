@@ -12,12 +12,11 @@ var _pulse := 0.0
 func _process(delta: float) -> void:
 	_pulse += delta * 2.2
 	_prompt.modulate.a = 0.55 + 0.45 * sin(_pulse)
-
-
-func _unhandled_input(event: InputEvent) -> void:
+	# Poll action STATE (not events) so both real presses and the demo
+	# driver's synthetic Input.action_press start the game.
 	if _started:
 		return
-	if event.is_action_pressed("ui_accept") or event.is_action_pressed("jump"):
+	if Input.is_action_just_pressed("ui_accept") or Input.is_action_just_pressed("jump"):
 		_started = true
 		Events.sfx_requested.emit(&"ui_start")
 		start_requested.emit()

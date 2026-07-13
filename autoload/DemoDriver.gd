@@ -193,6 +193,11 @@ func _done() -> void:
 
 func _fail(reason: String) -> void:
 	_release_all()
+	var p := _player()
+	if p != null:
+		reason += " [player at %s, vel %s, floor=%s, zone='%s', form=%s]" % [
+			p.global_position.round(), p.velocity.round(), p.is_on_floor(),
+			_current_zone, GameState.current_form]
 	push_error("DEMO FAIL: " + reason)
 	print("DEMO FAIL: " + reason)
 	active = false
@@ -235,25 +240,27 @@ func _run_walk_until_x(step: Dictionary) -> void:
 
 
 ## Auto-hop when walking into a small ledge: pressing a direction but not
-## moving for a while ⇒ tap jump. Keeps walk ops robust across zones.
+## actually MOVING (position delta, not velocity — move_and_slide can leave
+## velocity nonzero while pinned against a wall) ⇒ hold a jump.
 func _stuck_hop(p: CharacterBody2D, disabled: bool) -> void:
 	if disabled:
 		return
-	if absf(p.velocity.x) > 12.0 or not p.is_on_floor():
+	var x := p.global_position.x
+	var moved := absf(x - float(_s.get("stuck_x", x))) > 2.0
+	if moved or not _s.has("stuck_x"):
+		_s["stuck_x"] = x
 		_s["stuck_since"] = _elapsed
-		if _s.get("hop_pressed", false):
+	if _s.get("hop_pressed", false):
+		if _elapsed - float(_s.get("hop_at", 0.0)) > 0.35:
 			Input.action_release("jump")
 			_s["hop_pressed"] = false
+			_s["stuck_x"] = x
+			_s["stuck_since"] = _elapsed
 		return
-	if _elapsed - float(_s.get("stuck_since", 0.0)) > 0.35:
-		if not _s.get("hop_pressed", false):
-			Input.action_press("jump")
-			_s["hop_pressed"] = true
-			_s["hop_at"] = _elapsed
-	if _s.get("hop_pressed", false) and _elapsed - float(_s.get("hop_at", 0.0)) > 0.3:
-		Input.action_release("jump")
-		_s["hop_pressed"] = false
-		_s["stuck_since"] = _elapsed
+	if p.is_on_floor() and _elapsed - float(_s.get("stuck_since", 0.0)) > 0.3:
+		Input.action_press("jump")
+		_s["hop_pressed"] = true
+		_s["hop_at"] = _elapsed
 
 
 func _run_grapple(step: Dictionary) -> void:

@@ -29,6 +29,11 @@ Binding contract for every zone-builder agent. Read the exemplars FIRST:
 - `Platform.gd`: origin TOP-LEFT, `size` export. Walls = platforms with
   `decor = true` (skips reachability check). Non-decor platforms MUST be
   reachable (validator hunts bait geometry).
+- **Headroom rule:** the standing player is 56px tall. Any platform floating
+  above a walking path needs ≥70px clearance beneath it, otherwise make it a
+  solid box sitting on the ground (climbable step). A floating slab with
+  26-64px underneath silently walls off the corridor — the #1 way zones fail
+  their playthrough segment.
 - `Door.gd`: origin CENTER of a 72×110 doorway → floor at y=400 ⇒ door y=345.
 - Falling below `camera_limits` bottom +150 kills the player (kill floor is
   automatic; pits are fine but put a checkpoint reasonably close).

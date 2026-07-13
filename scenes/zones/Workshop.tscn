@@ -54,12 +54,12 @@ position = Vector2(-100, 400)
 
 [node name="Step1" type="StaticBody2D" parent="Geometry"]
 script = ExtResource("3_platform")
-size = Vector2(180, 32)
+size = Vector2(180, 80)
 position = Vector2(760, 320)
 
 [node name="Step2" type="StaticBody2D" parent="Geometry"]
 script = ExtResource("3_platform")
-size = Vector2(180, 32)
+size = Vector2(180, 160)
 position = Vector2(1020, 240)
 
 [node name="OfficePlatform" type="StaticBody2D" parent="Geometry"]
