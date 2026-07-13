@@ -22,7 +22,13 @@ func _ready() -> void:
 
 
 func _on_body_entered(body: Node2D) -> void:
-	if _lit or not body.is_in_group("player"):
+	if not body.is_in_group("player"):
+		return
+	# Checkpoints are also the healing valve (casual difficulty): every touch
+	# restores full health, even when already active.
+	if body.has_method("heal_full"):
+		body.heal_full()
+	if _lit:
 		return
 	var zone := _find_zone()
 	if zone == null or zone.scene_file_path.is_empty():

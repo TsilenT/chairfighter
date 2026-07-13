@@ -22,6 +22,12 @@ func _ready() -> void:
 	shape.shape = rect
 	shape.position = size / 2.0
 	add_child(shape)
+	# A wall broken in a previous visit stays broken (flag-keyed).
+	if not break_flag.is_empty() and GameState.has_flag(break_flag):
+		_broken = true
+		shape.set_deferred("disabled", true)
+		queue_redraw()
+		return
 
 	var sensor := Area2D.new()
 	sensor.collision_layer = 32

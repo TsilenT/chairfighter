@@ -139,6 +139,10 @@ func revive() -> void:
 	state = State.MOVE
 
 
+func heal_full() -> void:
+	_health.reset_full()
+
+
 func is_alive() -> bool:
 	return state != State.DEAD
 
