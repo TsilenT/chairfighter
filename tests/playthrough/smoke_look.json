@@ -1,0 +1,16 @@
+[
+	{"op": "wait", "secs": 1.2},
+	{"op": "tap", "action": "ui_accept"},
+	{"op": "wait_zone", "zone": "The Workshop"},
+	{"op": "wait", "secs": 0.6},
+	{"op": "screenshot", "name": "workshop_spawn"},
+	{"op": "walk_until_x", "x": 900, "timeout": 20},
+	{"op": "jump"},
+	{"op": "wait_on_floor"},
+	{"op": "wait", "secs": 0.4},
+	{"op": "screenshot", "name": "workshop_steps"},
+	{"op": "walk_until_x", "x": 1500, "timeout": 20},
+	{"op": "tap", "action": "attack"},
+	{"op": "wait", "secs": 0.25},
+	{"op": "screenshot", "name": "workshop_combat"}
+]

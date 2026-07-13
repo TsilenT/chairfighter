@@ -56,11 +56,32 @@ func _draw() -> void:
 	if _theme == null:
 		_theme = ZoneTheme.new()
 	var r := Rect2(Vector2.ZERO, size)
-	# Body with soft corner illusion via inset strips.
-	draw_rect(r, _theme.platform_base)
-	# Top surface strip.
-	draw_rect(Rect2(0, 0, size.x, minf(10.0, size.y * 0.4)), _theme.platform_top)
-	# Inner shadow at the bottom.
-	draw_rect(Rect2(0, size.y - 5, size.x, 5), _theme.platform_outline.lightened(0.08))
-	# Outline.
-	draw_rect(r, _theme.platform_outline, false, 3.0)
+	var radius := clampf(minf(size.x, size.y) * 0.25, 3.0, 10.0)
+	# Rounded slab body with border, via StyleBoxFlat (cheap, crisp).
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = _theme.platform_base
+	sb.set_corner_radius_all(int(radius))
+	sb.border_color = _theme.platform_outline
+	sb.set_border_width_all(3)
+	sb.draw(get_canvas_item(), r)
+	# Top surface strip (the "walkable" read).
+	var strip_h := minf(10.0, size.y * 0.4)
+	var top := StyleBoxFlat.new()
+	top.bg_color = _theme.platform_top
+	top.corner_radius_top_left = int(radius)
+	top.corner_radius_top_right = int(radius)
+	top.draw(get_canvas_item(), Rect2(2, 2, size.x - 4, strip_h))
+	# Soft inner shadow along the bottom.
+	if size.y > 24.0:
+		var shadow := StyleBoxFlat.new()
+		shadow.bg_color = Color(0, 0, 0, 0.18)
+		shadow.corner_radius_bottom_left = int(radius)
+		shadow.corner_radius_bottom_right = int(radius)
+		shadow.draw(get_canvas_item(), Rect2(2, size.y - 7, size.x - 4, 5))
+	# Sparse surface detail dots (upholstery tacks / wood pegs).
+	if size.x >= 96.0 and size.y >= 20.0:
+		var step := 72.0
+		var x := step * 0.6
+		while x < size.x - 20.0:
+			draw_circle(Vector2(x, strip_h + 7.0), 2.2, _theme.platform_top.darkened(0.25))
+			x += step

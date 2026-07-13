@@ -91,6 +91,7 @@ func _on_damaged(_amount: float, knockback: Vector2) -> void:
 func _on_died() -> void:
 	_dead = true
 	Events.sfx_requested.emit(&"enemy_down")
+	Particles.poof(get_parent(), global_position + Vector2(0, -body_size.y / 2.0), skin_color)
 	# Squash-out death: shrink and vanish.
 	var tween := create_tween()
 	tween.tween_property(self, "scale", Vector2(1.4, 0.1), 0.18)

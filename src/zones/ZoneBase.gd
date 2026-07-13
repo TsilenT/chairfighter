@@ -14,6 +14,8 @@ func _ready() -> void:
 	if theme_res == null:
 		theme_res = ZoneTheme.new()
 	_setup_background()
+	_setup_parallax()
+	_setup_vignette()
 
 
 func apply_camera_limits(rig: CameraRig) -> void:
@@ -46,4 +48,45 @@ func _setup_background() -> void:
 	var rect := TextureRect.new()
 	rect.texture = tex
 	rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	layer.add_child(rect)
+
+
+## Two silhouette "furniture skyline" layers, deterministic per zone name.
+func _setup_parallax() -> void:
+	var bg := ParallaxBackground.new()
+	bg.layer = -9
+	add_child(bg)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(zone_display_name)
+	var floor_y := camera_limits.position.y + camera_limits.size.y * 0.62
+	for config in [[0.22, theme_res.parallax_far, 1.35], [0.45, theme_res.parallax_near, 1.0]]:
+		var layer := ParallaxLayer.new()
+		layer.motion_scale = Vector2(config[0], clampf(config[0] + 0.35, 0.0, 1.0))
+		bg.add_child(layer)
+		var strip := Node2D.new()
+		strip.set_script(load("res://src/fx/SilhouetteStrip.gd"))
+		strip.setup(rng, camera_limits, floor_y, config[1], config[2])
+		layer.add_child(strip)
+
+
+## Soft radial vignette above gameplay, below the game UI layers.
+func _setup_vignette() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 5
+	add_child(layer)
+	var rect := ColorRect.new()
+	rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var mat := ShaderMaterial.new()
+	var shader := Shader.new()
+	shader.code = """
+shader_type canvas_item;
+void fragment() {
+	vec2 d = UV - vec2(0.5);
+	float v = smoothstep(0.38, 0.95, length(d * vec2(1.15, 1.0)));
+	COLOR = vec4(0.02, 0.01, 0.02, v * 0.34);
+}
+"""
+	mat.shader = shader
+	rect.material = mat
 	layer.add_child(rect)

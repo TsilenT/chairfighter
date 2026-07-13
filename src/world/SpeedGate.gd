@@ -72,6 +72,7 @@ func _try_break(p: Node2D) -> void:
 		GameState.set_flag(break_flag)
 	Events.sfx_requested.emit(&"break")
 	Events.screenshake_requested.emit(4.0, 0.2)
+	Particles.shards(get_parent(), global_position + size / 2.0, Color(0.8, 0.68, 0.3))
 	# Leave rubble stubs, drop collision.
 	for child in get_children():
 		if child is CollisionShape2D:

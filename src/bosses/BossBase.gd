@@ -174,6 +174,7 @@ func _on_died() -> void:
 	Events.sfx_requested.emit(&"boss_down")
 	Events.hitstop_requested.emit(0.35)
 	Events.screenshake_requested.emit(8.0, 0.5)
+	Particles.confetti(get_parent(), global_position + Vector2(0, -body_height / 2.0))
 	_lock_camera(false)
 	_set_blocker(false)
 	if unlock_form_id != &"":
@@ -209,7 +210,7 @@ func _pattern_loop() -> void:
 		await pattern.call()
 		if token != _run_token:
 			break
-		await _idle(0.5 if phase == 2 else 0.8)
+		await wait(0.5 if phase == 2 else 0.8)
 	_pattern_loop_running = false
 	# If the fight restarts later (player died), the trigger re-arms the loop.
 

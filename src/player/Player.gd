@@ -475,6 +475,7 @@ func _post_move(delta: float) -> void:
 		_visual.play_land(intensity)
 		if _fall_peak_speed > 300.0:
 			Events.sfx_requested.emit(&"land")
+			Particles.dust(get_parent(), global_position, intensity)
 		_fall_peak_speed = 0.0
 	if velocity.y > _fall_peak_speed:
 		_fall_peak_speed = velocity.y
