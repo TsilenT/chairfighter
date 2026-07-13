@@ -143,6 +143,11 @@ func heal_full() -> void:
 	_health.reset_full()
 
 
+## Kill floors and other instant-death hazards.
+func kill() -> void:
+	_health.kill()
+
+
 func is_alive() -> bool:
 	return state != State.DEAD
 

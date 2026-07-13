@@ -48,6 +48,15 @@ func damage(amount: float, knockback: Vector2 = Vector2.ZERO) -> bool:
 	return true
 
 
+## Unconditional death (kill floors); ignores invulnerability.
+func kill() -> void:
+	if not is_alive():
+		return
+	current = 0.0
+	changed.emit(current, max_health)
+	died.emit()
+
+
 func heal(amount: float) -> void:
 	if not is_alive():
 		return

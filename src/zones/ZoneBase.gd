@@ -20,6 +20,17 @@ func apply_camera_limits(rig: CameraRig) -> void:
 	rig.set_zone_limits(camera_limits)
 
 
+func _physics_process(_delta: float) -> void:
+	# Kill floor: falling below the camera bounds is death (respawn at
+	# checkpoint). Zones never need bottomless-pit special-casing.
+	var p := get_tree().get_first_node_in_group("player")
+	if p == null or not is_ancestor_of(p):
+		return
+	if (p as Node2D).global_position.y > camera_limits.end.y + 150.0 \
+			and p.has_method("is_alive") and p.is_alive() and p.has_method("kill"):
+		p.kill()
+
+
 func _setup_background() -> void:
 	# Full-screen gradient behind everything, in canvas space.
 	var layer := CanvasLayer.new()

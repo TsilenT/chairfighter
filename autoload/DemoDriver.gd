@@ -141,6 +141,8 @@ func _physics_process(delta: float) -> void:
 				_done()
 		"auto_fight":
 			_run_auto_fight(step)
+		"cheat_setup":
+			_run_cheat_setup(step)
 		"screenshot":
 			_run_screenshot(step)
 		_:
@@ -368,6 +370,28 @@ func _find_boss(step: Dictionary) -> Node2D:
 		if "boss_id" in node and String(node.boss_id) == want_id:
 			return node
 	return null
+
+
+## Test-only shortcut for zone-segment scripts: grant forms and warp to a
+## zone. NEVER used by full_run.json — the full playthrough earns everything
+## through real play. Requires the game to be started (tap ui_accept first).
+func _run_cheat_setup(step: Dictionary) -> void:
+	if not _s.has("requested"):
+		_s["requested"] = true
+		for f in step.get("forms", []):
+			GameState.unlock_form(StringName(String(f)))
+		if step.has("form"):
+			GameState.set_form(StringName(String(step.get("form"))))
+		if step.has("zone"):
+			GameState.set_checkpoint(String(step.get("zone")), String(step.get("spawn", "Default")))
+			Events.zone_change_requested.emit(String(step.get("zone")), String(step.get("spawn", "Default")))
+		return
+	var want_zone := String(step.get("zone_name", ""))
+	if not want_zone.is_empty() and _current_zone != want_zone:
+		return
+	var p := _player()
+	if p != null and p.is_on_floor():
+		_done()
 
 
 func _run_screenshot(step: Dictionary) -> void:
