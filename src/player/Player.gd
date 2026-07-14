@@ -32,6 +32,11 @@ const FOLD_HEIGHT := 20.0
 const FOLD_SPEED := 140.0
 const SPRING_HEIGHT := 230.0
 
+const ROCK_CHARGE_MIN := 0.5
+const ROCK_LAUNCH_HEIGHT := 260.0
+const ROCK_CHARGE_SPEED := 60.0
+const SLAM_FALL_SPEED := 900.0
+
 const MAX_HEARTS := 5.0
 
 var state: int = State.MOVE
@@ -43,6 +48,8 @@ var _coyote := 0.0
 var _jump_buffer := 0.0
 var _jump_cut_done := true
 var _spring_active := false
+var _rock_charge := 0.0
+var _launched := false
 var _dash_left := 0.0
 var _dash_cooldown := 0.0
 var _attack_cooldown := 0.0
@@ -54,6 +61,7 @@ var _grapple_target: Node2D = null
 
 var _health: Health
 var _hitbox: Hitbox
+var _slam_hitbox: Hitbox
 var _hurtbox: Hurtbox
 
 @onready var _collider: CollisionShape2D = $Collider
@@ -100,6 +108,19 @@ func _build_components() -> void:
 	hit_shape.shape = RectangleShape2D.new()
 	_hitbox.add_child(hit_shape)
 	add_child(_hitbox)
+
+	# Rocking-slam shockwave: wide, low, at the feet.
+	_slam_hitbox = Hitbox.new()
+	_slam_hitbox.faction = &"player"
+	_slam_hitbox.damage = 2.0
+	_slam_hitbox.knockback_strength = 420.0
+	var slam_shape := CollisionShape2D.new()
+	var slam_rect := RectangleShape2D.new()
+	slam_rect.size = Vector2(170.0, 26.0)
+	slam_shape.shape = slam_rect
+	slam_shape.position = Vector2(0, -10)
+	_slam_hitbox.add_child(slam_shape)
+	add_child(_slam_hitbox)
 
 
 func _apply_form() -> void:
@@ -236,6 +257,8 @@ func _handle_transform_input() -> void:
 func _process_move(delta: float) -> void:
 	var dir := Input.get_axis("move_left", "move_right")
 	var speed := FOLD_SPEED if folded else form.run_speed
+	if _rock_charge > 0.0:
+		speed = ROCK_CHARGE_SPEED  # planted while rocking up a charge
 	var accel := form.accel if is_on_floor() else form.accel * form.air_control
 	if dir != 0.0:
 		if signf(dir) != signf(velocity.x) and velocity.x != 0.0:
@@ -314,6 +337,38 @@ func _handle_special() -> void:
 		&"folding":
 			if Input.is_action_just_pressed("special"):
 				_set_folded(not folded)
+		&"rocking":
+			_handle_rock_charge()
+
+
+## Rocking Chair: hold special on the ground to rock up momentum; release a
+## full charge to launch high (260px — above every jump and the spring).
+## The release edge is detected from our own charge state, NOT
+## is_action_just_released — synthetic input can miss the stamp boundary.
+func _handle_rock_charge() -> void:
+	var holding := Input.is_action_pressed("special")
+	if holding:
+		if not is_on_floor():
+			return  # hold the charge frozen mid-air; resume on landing
+		if _rock_charge == 0.0:
+			Events.sfx_requested.emit(&"telegraph")
+		_rock_charge += get_physics_process_delta_time()
+		_visual.set_charge(minf(_rock_charge / ROCK_CHARGE_MIN, 1.0))
+		return
+	if _rock_charge == 0.0:
+		return
+	# Release edge: we were charging last tick and the button is up now.
+	var charged := _rock_charge >= ROCK_CHARGE_MIN
+	_rock_charge = 0.0
+	_visual.set_charge(0.0)
+	if charged and is_on_floor():
+		velocity.y = -sqrt(2.0 * form.rise_gravity() * ROCK_LAUNCH_HEIGHT)
+		velocity.x += facing * 200.0
+		_jump_cut_done = true
+		_spring_active = true  # rise under rise-gravity, full commitment
+		_launched = true
+		_visual.play_jump()
+		Events.sfx_requested.emit(&"spring")
 
 
 # ── dash ──
@@ -450,6 +505,26 @@ func _restore_collider_when_clear() -> void:
 	_set_collider_height(want_h)
 
 
+func _ground_slam() -> void:
+	_slam_hitbox.activate(0.15)
+	Events.hitstop_requested.emit(0.05)
+	Events.screenshake_requested.emit(6.0, 0.3)
+	Events.sfx_requested.emit(&"boss_hit")
+	Particles.dust(get_parent(), global_position, 1.2)
+	# Shatter any cracked floor under (or just below) the feet.
+	var space := get_world_2d().direct_space_state
+	var query := PhysicsShapeQueryParameters2D.new()
+	var box := RectangleShape2D.new()
+	box.size = Vector2(BODY_WIDTH + 40.0, 40.0)
+	query.shape = box
+	query.transform = Transform2D(0.0, global_position + Vector2(0, 14.0))
+	query.collision_mask = 1
+	for hit in space.intersect_shape(query, 8):
+		var collider: Object = hit.get("collider")
+		if collider != null and collider.has_method("crack_break"):
+			collider.crack_break()
+
+
 # ── damage ──
 
 func _on_hit_received(hitbox: Hitbox) -> void:
@@ -492,6 +567,11 @@ func _post_move(delta: float) -> void:
 		if _fall_peak_speed > 300.0:
 			Events.sfx_requested.emit(&"land")
 			Particles.dust(get_parent(), global_position, intensity)
+		# Rocking slam: a launched (or very heavy) landing shocks the ground
+		# and shatters cracked floors underfoot.
+		if form.id == &"rocking" and (_launched or _fall_peak_speed > SLAM_FALL_SPEED):
+			_ground_slam()
+		_launched = false
 		_fall_peak_speed = 0.0
 	if velocity.y > _fall_peak_speed:
 		_fall_peak_speed = velocity.y

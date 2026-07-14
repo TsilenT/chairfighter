@@ -17,6 +17,7 @@ const ZONES: Array[String] = [
 	"res://scenes/zones/OfficeComplex.tscn",
 	"res://scenes/zones/StorageCloset.tscn",
 	"res://scenes/zones/ThroneRoom.tscn",
+	"res://scenes/zones/Parlor.tscn",
 ]
 
 # Envelopes (px). Jump numbers leave margin under the metric maxima.
@@ -28,8 +29,10 @@ const GRAPPLE_ANCHOR_MAX := 360.0
 const GRAPPLE_LANDING_MAX := 280.0
 const SPRING_UP_MAX := 210.0
 const SPRING_DX_MAX := 130.0
+const LAUNCH_UP_MAX := 240.0   # rocking charge-launch (capability 260)
+const LAUNCH_DX_MAX := 220.0
 const RUN_DX_MAX := 900.0
-const REACH_UP_FULL := 210.0   # best vertical with all unlocks (spring)
+const REACH_UP_FULL := 240.0   # best vertical with all unlocks (launch)
 const REACH_GAP_FULL := 240.0  # generous horizontal reach envelope
 
 
@@ -144,9 +147,32 @@ func _validate_route(zone: Node2D, route_name: String, markers: Array) -> Array[
 					fails.append("%s: spring ascends %.0fpx (max %.0f)" % [leg, up, SPRING_UP_MAX])
 				if dx > SPRING_DX_MAX:
 					fails.append("%s: spring spans %.0fpx (max %.0f)" % [leg, dx, SPRING_DX_MAX])
+			"launch":
+				if form_id != &"rocking":
+					fails.append("%s: launch leg must declare form=rocking" % leg)
+				if up > LAUNCH_UP_MAX:
+					fails.append("%s: launch ascends %.0fpx (max %.0f)" % [leg, up, LAUNCH_UP_MAX])
+				if dx > LAUNCH_DX_MAX:
+					fails.append("%s: launch spans %.0fpx (max %.0f)" % [leg, dx, LAUNCH_DX_MAX])
+			"smash":
+				if form_id != &"rocking":
+					fails.append("%s: smash leg must declare form=rocking" % leg)
+				if up > 0.0:
+					fails.append("%s: smash must descend (ascends %.0fpx)" % [leg, up])
+				if _nearest_cracked_floor(zone, cur.global_position) > 120.0:
+					fails.append("%s: no cracked floor within 120px of the smash marker" % leg)
 			_:
 				fails.append("%s: unknown mode '%s'" % [leg, mode])
 	return fails
+
+
+func _nearest_cracked_floor(zone: Node2D, from: Vector2) -> float:
+	var best := INF
+	for node in zone.get_tree().get_nodes_in_group("cracked_floors"):
+		if node is Node2D and zone.is_ancestor_of(node):
+			var rect: Rect2 = node.top_rect() if node.has_method("top_rect") else Rect2((node as Node2D).global_position, Vector2(64, 16))
+			best = minf(best, from.distance_to(rect.get_center()))
+	return best
 
 
 func _nearest_anchor(zone: Node2D, from: Vector2) -> Node2D:

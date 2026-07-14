@@ -45,6 +45,9 @@ position = Vector2(130, 400)
 [node name="FromThrone" type="Marker2D" parent="SpawnPoints"]
 position = Vector2(2060, 700)
 
+[node name="FromParlor" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(1580, 400)
+
 [node name="Geometry" type="Node2D" parent="."]
 
 [node name="Floor" type="StaticBody2D" parent="Geometry"]
@@ -213,6 +216,14 @@ position = Vector2(1980, 645)
 target_zone_path = "res://scenes/zones/ThroneRoom.tscn"
 target_spawn = "Default"
 label_text = "The Throne Room"
+
+[node name="ParlorDoor" type="Area2D" parent="Doors"]
+script = ExtResource("5_door")
+position = Vector2(1650, 345)
+target_zone_path = "res://scenes/zones/Parlor.tscn"
+target_spawn = "Default"
+required_flag = "boss_folder_defeated"
+label_text = "The Parlor (optional)"
 
 [node name="Hazards" type="Node2D" parent="."]
 

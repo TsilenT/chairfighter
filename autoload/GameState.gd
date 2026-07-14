@@ -3,7 +3,7 @@ extends Node
 ## unlocked forms, active form, story flags, and the respawn checkpoint.
 ## Mutations emit through the Events bus; consumers never poll each other.
 
-const FORM_ORDER: Array[StringName] = [&"basic", &"armchair", &"office", &"folding"]
+const FORM_ORDER: Array[StringName] = [&"basic", &"armchair", &"office", &"folding", &"rocking"]
 
 const START_ZONE := "res://scenes/zones/Workshop.tscn"
 const START_SPAWN := "Default"

@@ -15,7 +15,7 @@ func run(tree: SceneTree) -> Array:
 	var fails: Array[String] = []
 	var gs := tree.root.get_node("/root/GameState")
 	gs.new_game()
-	for id in [&"armchair", &"office", &"folding"]:
+	for id in [&"armchair", &"office", &"folding", &"rocking"]:
 		gs.unlock_form(id)
 
 	_sandbox = Node2D.new()
@@ -86,6 +86,24 @@ func run(tree: SceneTree) -> Array:
 	await tree.physics_frame
 	if player.folded:
 		fails.append("folding: spring jump should unfold")
+
+	# Rocking: charge-launch height.
+	gs.set_form(&"rocking")
+	await _settle(tree, player)
+	var y0: float = player.global_position.y
+	Input.action_press("special")
+	for _i in 45:  # 0.75s charge (min is 0.5)
+		await tree.physics_frame
+	Input.action_release("special")
+	var min_y := y0
+	for _i in 90:
+		await tree.physics_frame
+		min_y = minf(min_y, player.global_position.y)
+		if player.is_on_floor() and player.global_position.y > min_y + 50.0:
+			break
+	var launch := y0 - min_y
+	if absf(launch - 260.0) > 260.0 * EPS_JUMP:
+		fails.append("rocking: charge launch %.1f, expected 260 ±5%%" % launch)
 
 	player.queue_free()
 	_sandbox.queue_free()

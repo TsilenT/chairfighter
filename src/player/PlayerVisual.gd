@@ -14,6 +14,8 @@ var _attack_flash := 0.0
 var _blink_left := 0.0
 var _hurt_flash := 0.0
 var _dash_lean := 0.0
+var _charge := 0.0
+var _charge_phase := 0.0
 
 const OUTLINE := Color(0.16, 0.1, 0.07)
 
@@ -50,6 +52,11 @@ func play_hurt() -> void:
 	_hurt_flash = 1.0
 
 
+## Rocking charge 0..1: drives an accelerating rock oscillation.
+func set_charge(amount: float) -> void:
+	_charge = amount
+
+
 func update_motion(velocity: Vector2, on_floor: bool, delta: float) -> void:
 	if on_floor and absf(velocity.x) > 20.0:
 		_walk_phase += delta * absf(velocity.x) * 0.05
@@ -64,6 +71,9 @@ func update_motion(velocity: Vector2, on_floor: bool, delta: float) -> void:
 	_blink_left -= delta
 	if _blink_left < -3.0:
 		_blink_left = 0.12
+	if _charge > 0.0:
+		_charge_phase += delta * (6.0 + 10.0 * _charge)
+		_rock = sin(_charge_phase) * (0.12 + 0.22 * _charge)
 	scale = Vector2(_squash.x * _facing, _squash.y)
 	rotation = (_rock + _dash_lean * _facing) * _facing
 	queue_redraw()
@@ -85,6 +95,8 @@ func _draw() -> void:
 				_draw_office(base)
 			&"folding":
 				_draw_folding(base)
+			&"rocking":
+				_draw_rocking(base)
 			_:
 				_draw_basic(base)
 	if _attack_flash > 0.0:
@@ -162,6 +174,24 @@ func _draw_office(base: Color) -> void:
 	_rounded(Rect2(-24, -58, 11, 30), base.lightened(0.15), 6.0)
 	_rounded(Rect2(-25, -64, 13, 8), teal, 4.0)  # headrest accent
 	_eyes(Vector2(-15, -50))
+
+
+func _draw_rocking(base: Color) -> void:
+	var dark := base.darkened(0.3)
+	# Curved rockers.
+	draw_arc(Vector2(0, -8), 24.0, 0.35, PI - 0.35, 14, dark, 5.0)
+	# Seat + tall spindled back.
+	_rounded(Rect2(-20, -26, 40, 10), base, 4.0)
+	_rounded(Rect2(-24, -60, 11, 40), base.lightened(0.12), 5.0)
+	for i in 3:
+		draw_line(Vector2(-13 + i * 9, -52), Vector2(-13 + i * 9, -26), dark, 2.5)
+	# Cozy blanket corner.
+	_rounded(Rect2(2, -34, 16, 9), Color(0.62, 0.3, 0.3), 4.0, false)
+	# Charge glow when rocking up.
+	if _charge > 0.0:
+		var glow := Color(1.0, 0.8, 0.35, 0.25 + 0.35 * _charge)
+		draw_circle(Vector2(0, -28), 30.0 + 8.0 * _charge, glow)
+	_eyes(Vector2(-16, -52))
 
 
 func _draw_folding(base: Color) -> void:

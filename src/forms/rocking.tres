@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="FormDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/player/FormDef.gd" id="1_formdef"]
+
+[resource]
+script = ExtResource("1_formdef")
+id = &"rocking"
+display_name = "Rocking Chair"
+run_speed = 300.0
+accel = 2200.0
+decel = 2600.0
+air_control = 0.6
+jump_height = 135.0
+time_to_apex = 0.38
+fall_gravity_mult = 1.6
+attack_damage = 2.5
+attack_range = 56.0
+attack_cooldown = 0.4
+collider_height = 56.0
+body_color = Color(0.38, 0.24, 0.16, 1)
+unlock_blurb = "Hold K (pad B) to rock up a charge — release to LAUNCH! Crush cracked floors from above."

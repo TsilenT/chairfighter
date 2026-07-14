@@ -49,6 +49,8 @@ Binding contract for every zone-builder agent. Read the exemplars FIRST:
 | dash_tunnel / speed_gate (form=office) | flat; span ≤ 900px; runway ≥ 400px flat before gate |
 | vent (form=folding) | flat; passage height 26–28px (folded player is 20px) |
 | spring (form=folding) | ascend ≤ 210px, span ≤ 130px |
+| launch (form=rocking) | ascend ≤ 240px, span ≤ 220px (hold K on ground ≥0.5s, release) |
+| smash (form=rocking) | descend only; a CrackedFloor (src/world/CrackedFloor.gd) within 120px of the marker |
 
 Gating margins: anything meant to be UNreachable without an unlock must exceed
 capability clearly (≥60px vertical beyond a 150px jump ⇒ ≥210px ledges; use
@@ -98,9 +100,12 @@ Dash tunnels are 40px tall (dash collider 32). Vents 26–28px (folded 20).
 
 ## Progression flags & forms (fixed vocabulary)
 
-Forms: `basic`, `armchair`, `office`, `folding`.
+Forms: `basic`, `armchair`, `office`, `folding`, `rocking`.
 Boss flags (auto from boss_id): `boss_recliner_defeated`, `boss_swivel_defeated`,
-`boss_folder_defeated`, `boss_king_defeated`.
+`boss_folder_defeated`, `boss_king_defeated`, `boss_granny_defeated`.
+World objects also include `src/world/CrackedFloor.gd` (origin TOP-LEFT, `size`,
+optional `break_flag`; shatters under a rocking slam landing — the player's
+launch/high-fall landing calls `crack_break()`).
 Zone scene paths: `res://scenes/zones/{Workshop,Lounge,OfficeComplex,StorageCloset,ThroneRoom}.tscn`.
 Workshop return spawns (use as your exit-door target_spawn):
 `FromLounge`, `FromOffice`, `FromStorage`, `FromThrone`.
