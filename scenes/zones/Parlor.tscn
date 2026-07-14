@@ -1,0 +1,428 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://src/zones/Parlor.gd" id="1_zone"]
+[ext_resource type="Script" path="res://src/game/ZoneTheme.gd" id="2_theme"]
+[ext_resource type="Script" path="res://src/world/Platform.gd" id="3_platform"]
+[ext_resource type="Script" path="res://src/world/Door.gd" id="4_door"]
+[ext_resource type="Script" path="res://src/world/Checkpoint.gd" id="5_checkpoint"]
+[ext_resource type="Script" path="res://src/world/MovingPlatform.gd" id="6_moving"]
+[ext_resource type="Script" path="res://src/world/Spikes.gd" id="7_spikes"]
+[ext_resource type="Script" path="res://src/world/CrackedFloor.gd" id="8_cracked"]
+[ext_resource type="Script" path="res://src/enemies/Footstool.gd" id="9_footstool"]
+[ext_resource type="Script" path="res://src/enemies/LampWisp.gd" id="10_wisp"]
+[ext_resource type="Script" path="res://src/enemies/CoatRack.gd" id="11_coatrack"]
+[ext_resource type="PackedScene" path="res://scenes/bosses/GrannyTremor.tscn" id="12_granny"]
+
+[sub_resource type="Resource" id="theme_parlor"]
+script = ExtResource("2_theme")
+bg_top = Color(0.29, 0.145, 0.21, 1)
+bg_bottom = Color(0.105, 0.055, 0.075, 1)
+platform_base = Color(0.255, 0.135, 0.09, 1)
+platform_top = Color(0.43, 0.245, 0.16, 1)
+platform_outline = Color(0.085, 0.04, 0.03, 1)
+accent = Color(0.82, 0.64, 0.28, 1)
+parallax_far = Color(0.24, 0.115, 0.17, 1)
+parallax_near = Color(0.34, 0.17, 0.235, 1)
+
+[node name="Parlor" type="Node2D"]
+script = ExtResource("1_zone")
+zone_display_name = "The Parlor"
+camera_limits = Rect2(-200, -248, 3892, 998)
+theme_res = SubResource("theme_parlor")
+
+[node name="SpawnPoints" type="Node2D" parent="."]
+
+[node name="Default" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(140, 400)
+
+[node name="PreBoss" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(2250, 400)
+
+[node name="FromShortcut" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(3400, 400)
+
+[node name="Geometry" type="Node2D" parent="."]
+
+[node name="EntryFloor" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(720, 96)
+position = Vector2(-100, 400)
+
+[node name="EntryPitBed" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(100, 64)
+position = Vector2(620, 488)
+
+[node name="ClockHallFloor" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(330, 96)
+position = Vector2(720, 400)
+
+[node name="FurnitureLow" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(210, 64)
+position = Vector2(1050, 336)
+
+[node name="FurnitureHigh" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(210, 128)
+position = Vector2(1260, 272)
+
+[node name="FurnitureDrop" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(190, 72)
+position = Vector2(1470, 328)
+
+[node name="FurniturePitBed" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(110, 64)
+position = Vector2(1660, 500)
+
+[node name="ApproachWest" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(110, 96)
+position = Vector2(1770, 400)
+
+[node name="ApproachEastOneWay" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(300, 24)
+position = Vector2(2040, 400)
+one_way = true
+
+[node name="ArenaFloor" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(1152, 96)
+position = Vector2(2340, 400)
+
+[node name="PocketFloor" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(520, 80)
+position = Vector2(1780, 650)
+
+[node name="PocketReturnShelf" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(170, 24)
+position = Vector2(2070, 520)
+one_way = true
+
+[node name="LeftBoundary" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(40, 744)
+position = Vector2(-140, -248)
+decor = true
+
+[node name="PocketLeftWall" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(40, 306)
+position = Vector2(1740, 424)
+decor = true
+
+[node name="PocketRightWall" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(40, 306)
+position = Vector2(2300, 424)
+decor = true
+
+[node name="ArenaLeftUpperWall" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(40, 520)
+position = Vector2(2300, -248)
+decor = true
+
+[node name="ArenaCeiling" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(1152, 40)
+position = Vector2(2340, -248)
+decor = true
+
+[node name="ArenaRightWall" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(48, 744)
+position = Vector2(3492, -248)
+decor = true
+
+[node name="GrandfatherClockWest" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(92, 240)
+position = Vector2(360, 50)
+decor = true
+
+[node name="GrandfatherClockEast" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(92, 230)
+position = Vector2(2140, 40)
+decor = true
+
+[node name="ForbiddenDoily" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(160, 24)
+position = Vector2(1820, 552)
+decor = true
+one_way = true
+
+[node name="Route" type="Node2D" parent="."]
+
+[node name="RouteBoss" type="Node2D" parent="Route"]
+
+[node name="M0" type="Marker2D" parent="Route/RouteBoss"]
+position = Vector2(140, 400)
+metadata/mode = "start"
+metadata/form = "basic"
+
+[node name="M1" type="Marker2D" parent="Route/RouteBoss"]
+position = Vector2(600, 400)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="M2" type="Marker2D" parent="Route/RouteBoss"]
+position = Vector2(740, 400)
+metadata/mode = "jump"
+metadata/form = "basic"
+
+[node name="M3" type="Marker2D" parent="Route/RouteBoss"]
+position = Vector2(1020, 400)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="M4" type="Marker2D" parent="Route/RouteBoss"]
+position = Vector2(1100, 336)
+metadata/mode = "jump"
+metadata/form = "basic"
+
+[node name="M5" type="Marker2D" parent="Route/RouteBoss"]
+position = Vector2(1240, 336)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="M6" type="Marker2D" parent="Route/RouteBoss"]
+position = Vector2(1300, 272)
+metadata/mode = "jump"
+metadata/form = "basic"
+
+[node name="M7" type="Marker2D" parent="Route/RouteBoss"]
+position = Vector2(1450, 272)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="M8" type="Marker2D" parent="Route/RouteBoss"]
+position = Vector2(1520, 328)
+metadata/mode = "drop"
+metadata/form = "basic"
+
+[node name="M9" type="Marker2D" parent="Route/RouteBoss"]
+position = Vector2(1630, 328)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="M10" type="Marker2D" parent="Route/RouteBoss"]
+position = Vector2(1790, 400)
+metadata/mode = "jump"
+metadata/form = "basic"
+
+[node name="M11" type="Marker2D" parent="Route/RouteBoss"]
+position = Vector2(2250, 400)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="M12" type="Marker2D" parent="Route/RouteBoss"]
+position = Vector2(2700, 400)
+metadata/mode = "fight"
+metadata/form = "basic"
+
+[node name="RouteBonus" type="Node2D" parent="Route"]
+
+[node name="B0" type="Marker2D" parent="Route/RouteBonus"]
+position = Vector2(1960, 160)
+metadata/mode = "start"
+metadata/form = "rocking"
+
+[node name="B1" type="Marker2D" parent="Route/RouteBonus"]
+position = Vector2(1960, 400)
+metadata/mode = "smash"
+metadata/form = "rocking"
+
+[node name="B2" type="Marker2D" parent="Route/RouteBonus"]
+position = Vector2(1960, 650)
+metadata/mode = "drop"
+metadata/form = "rocking"
+
+[node name="B3" type="Marker2D" parent="Route/RouteBonus"]
+position = Vector2(2130, 520)
+metadata/mode = "launch"
+metadata/form = "rocking"
+
+[node name="B4" type="Marker2D" parent="Route/RouteBonus"]
+position = Vector2(2210, 400)
+metadata/mode = "launch"
+metadata/form = "rocking"
+
+[node name="RouteShortcut" type="Node2D" parent="Route"]
+
+[node name="S0" type="Marker2D" parent="Route/RouteShortcut"]
+position = Vector2(3000, 400)
+metadata/mode = "start"
+metadata/form = "basic"
+
+[node name="S1" type="Marker2D" parent="Route/RouteShortcut"]
+position = Vector2(3400, 400)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="S2" type="Marker2D" parent="Route/RouteShortcut"]
+position = Vector2(3400, 400)
+metadata/mode = "door"
+metadata/form = "basic"
+
+[node name="Doors" type="Node2D" parent="."]
+
+[node name="WorkshopEntry" type="Area2D" parent="Doors"]
+script = ExtResource("4_door")
+position = Vector2(20, 345)
+target_zone_path = "res://scenes/zones/Workshop.tscn"
+target_spawn = "FromParlor"
+label_text = "The Workshop"
+
+[node name="WorkshopShortcut" type="Area2D" parent="Doors"]
+script = ExtResource("4_door")
+position = Vector2(3400, 345)
+target_zone_path = "res://scenes/zones/Workshop.tscn"
+target_spawn = "FromParlor"
+required_flag = "boss_granny_defeated"
+label_text = "Shortcut: The Workshop"
+
+[node name="Hazards" type="Node2D" parent="."]
+
+[node name="EntryCheckpoint" type="Area2D" parent="Hazards"]
+script = ExtResource("5_checkpoint")
+position = Vector2(140, 400)
+spawn_name = "Default"
+
+[node name="PreBossCheckpoint" type="Area2D" parent="Hazards"]
+script = ExtResource("5_checkpoint")
+position = Vector2(2250, 400)
+spawn_name = "PreBoss"
+
+[node name="EntryPitSpikes" type="Node2D" parent="Hazards"]
+script = ExtResource("7_spikes")
+position = Vector2(628, 464)
+size = Vector2(84, 24)
+
+[node name="FurniturePitSpikes" type="Node2D" parent="Hazards"]
+script = ExtResource("7_spikes")
+position = Vector2(1668, 476)
+size = Vector2(94, 24)
+
+[node name="PendulumWest" type="AnimatableBody2D" parent="Hazards"]
+script = ExtResource("6_moving")
+position = Vector2(770, 225)
+size = Vector2(120, 24)
+travel = Vector2(170, 0)
+period = 2.8
+phase = 0.0
+
+[node name="SpikedBob" type="Node2D" parent="Hazards/PendulumWest"]
+script = ExtResource("7_spikes")
+position = Vector2(0, -24)
+size = Vector2(120, 24)
+
+[node name="PendulumEast" type="AnimatableBody2D" parent="Hazards"]
+script = ExtResource("6_moving")
+position = Vector2(1540, 190)
+size = Vector2(120, 24)
+travel = Vector2(160, 0)
+period = 2.8
+phase = 1.4
+
+[node name="SpikedBob" type="Node2D" parent="Hazards/PendulumEast"]
+script = ExtResource("7_spikes")
+position = Vector2(0, -24)
+size = Vector2(120, 24)
+
+[node name="BonusCrackedFloor" type="StaticBody2D" parent="Hazards"]
+script = ExtResource("8_cracked")
+position = Vector2(1880, 400)
+size = Vector2(160, 24)
+break_flag = "parlor_bonus_cracked"
+
+[node name="ForeshadowCrackedFloor" type="StaticBody2D" parent="Hazards"]
+script = ExtResource("8_cracked")
+position = Vector2(1110, 80)
+size = Vector2(140, 24)
+
+[node name="Enemies" type="Node2D" parent="."]
+
+[node name="ClockFootstool" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("9_footstool")
+position = Vector2(870, 400)
+skin_color = Color(0.52, 0.27, 0.34, 1)
+
+[node name="SetteeFootstool" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("9_footstool")
+position = Vector2(1550, 328)
+skin_color = Color(0.44, 0.22, 0.29, 1)
+
+[node name="ClockLampWisp" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("10_wisp")
+position = Vector2(1160, 145)
+skin_color = Color(0.9, 0.67, 0.32, 1)
+swoop_range = 190.0
+
+[node name="DoilyLampWisp" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("10_wisp")
+position = Vector2(1700, 120)
+skin_color = Color(0.84, 0.52, 0.38, 1)
+swoop_range = 185.0
+
+[node name="HallCoatRack" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("11_coatrack")
+position = Vector2(1430, 272)
+skin_color = Color(0.31, 0.17, 0.105, 1)
+lob_range = 430.0
+lob_interval = 2.7
+
+[node name="Boss" type="Node2D" parent="."]
+
+[node name="GrannyTremor" parent="Boss" instance=ExtResource("12_granny")]
+position = Vector2(3000, 400)
+arena_rect = Rect2(2340, -248, 1152, 648)
+contact_damage = 1.0
+
+[node name="Props" type="Node2D" parent="."]
+
+[node name="ClockFaceWest" type="Label" parent="Props"]
+position = Vector2(374, 72)
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.82, 0.64, 0.28, 0.9)
+text = "XII\n  ◉\n VI"
+horizontal_alignment = 1
+
+[node name="ClockFaceEast" type="Label" parent="Props"]
+position = Vector2(2154, 62)
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.82, 0.64, 0.28, 0.9)
+text = "XII\n  ◉\n VI"
+horizontal_alignment = 1
+
+[node name="PendulumPlaque" type="Label" parent="Props"]
+position = Vector2(735, 105)
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.88, 0.69, 0.34, 0.9)
+text = "MIND THE BEAT — TICK, TOCK, HOP"
+
+[node name="CreakyHint" type="Label" parent="Props"]
+position = Vector2(1780, 310)
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.88, 0.69, 0.34, 0.88)
+text = "creaky boards...\ntoo sturdy to stomp — for now"
+
+[node name="TreatRoomGag" type="Label" parent="Props"]
+position = Vector2(1800, 594)
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.91, 0.71, 0.39, 0.92)
+text = "GRANNY'S EMERGENCY BISCUIT\n(one per seismic event)"
+
+[node name="ArenaPlaque" type="Label" parent="Props"]
+position = Vector2(2440, 322)
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.86, 0.65, 0.31, 0.9)
+text = "QUIET, DEAR — GRANNY IS COUNTING STITCHES"
