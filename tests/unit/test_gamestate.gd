@@ -69,7 +69,8 @@ func run(tree: SceneTree) -> Array:
 	gs.set_flag("boss_recliner_defeated")
 	gs.set_checkpoint("res://scenes/zones/Lounge.tscn", "PreBoss")
 	gs.save_game()
-	gs.unlocked_forms = [&"basic"]
+	gs.unlocked_forms.clear()
+	gs.unlocked_forms.append(&"basic")
 	gs.flags = {}
 	gs.checkpoint_zone = gs.START_ZONE
 	if not gs.load_game():
