@@ -57,6 +57,8 @@ func _ready() -> void:
 			return
 	_steps = parsed
 	active = true
+	# Deterministic runs: never continue a leftover save.
+	GameState.clear_save.call_deferred()
 	# MovieWriter capture must run at natural speed; headless runs fast.
 	# CRITICAL: time_scale alone scales the physics DELTA (bigger per-tick
 	# displacement → sensor skips, arrive-window tunneling). Raising the

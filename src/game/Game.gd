@@ -45,11 +45,12 @@ func _show_title() -> void:
 	_fade_to(0.0, 0.6)
 
 
-func _start_new_game() -> void:
+func _start_new_game(continue_save := false) -> void:
 	if _title != null:
 		_title.queue_free()
 		_title = null
-	GameState.new_game()
+	if not (continue_save and GameState.load_game()):
+		GameState.new_game()
 	_hud = load(HUD_SCENE).instantiate()
 	_ui_layer.add_child(_hud)
 	var banner: Node = load(UNLOCK_SCENE).instantiate()

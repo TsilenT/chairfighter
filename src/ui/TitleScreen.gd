@@ -1,12 +1,18 @@
 extends Control
-## Title screen. Emits start_requested on jump/ui_accept.
+## Title screen. ui_accept/jump continues a save when one exists (or starts
+## fresh); R always starts a new game.
 
-signal start_requested
+signal start_requested(continue_save: bool)
 
 @onready var _prompt: Label = $Center/Prompt
 
 var _started := false
 var _pulse := 0.0
+
+
+func _ready() -> void:
+	if GameState.has_save():
+		_prompt.text = "SPACE (pad A) — continue        R — new game"
 
 
 func _process(delta: float) -> void:
@@ -19,4 +25,8 @@ func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("ui_accept") or Input.is_action_just_pressed("jump"):
 		_started = true
 		Events.sfx_requested.emit(&"ui_start")
-		start_requested.emit()
+		start_requested.emit(GameState.has_save())
+	elif Input.is_action_just_pressed("restart"):
+		_started = true
+		Events.sfx_requested.emit(&"ui_start")
+		start_requested.emit(false)

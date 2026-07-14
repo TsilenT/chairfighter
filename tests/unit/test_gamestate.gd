@@ -54,4 +54,28 @@ func run(tree: SceneTree) -> Array:
 	gs.new_game()
 	if gs.has_flag("boss_recliner_defeated") or gs.unlocked_forms.size() != 1:
 		fails.append("new_game should clear flags and unlocks")
+
+	# Save / load round-trip.
+	gs.unlock_form(&"armchair")
+	gs.set_flag("boss_recliner_defeated")
+	gs.set_checkpoint("res://scenes/zones/Lounge.tscn", "PreBoss")
+	gs.save_game()
+	if not gs.has_save():
+		fails.append("save_game should create the save file")
+	gs.new_game()  # wipes state AND the save file
+	if gs.has_save():
+		fails.append("new_game should clear the save")
+	gs.unlock_form(&"armchair")
+	gs.set_flag("boss_recliner_defeated")
+	gs.set_checkpoint("res://scenes/zones/Lounge.tscn", "PreBoss")
+	gs.save_game()
+	gs.unlocked_forms = [&"basic"]
+	gs.flags = {}
+	gs.checkpoint_zone = gs.START_ZONE
+	if not gs.load_game():
+		fails.append("load_game should succeed with a save present")
+	if not gs.is_unlocked(&"armchair") or not gs.has_flag("boss_recliner_defeated") \
+			or gs.checkpoint_spawn != "PreBoss":
+		fails.append("load_game should restore unlocks, flags, and checkpoint")
+	gs.new_game()
 	return fails
