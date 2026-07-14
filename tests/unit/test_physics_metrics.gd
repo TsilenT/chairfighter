@@ -105,6 +105,26 @@ func run(tree: SceneTree) -> Array:
 	if absf(launch - 260.0) > 260.0 * EPS_JUMP:
 		fails.append("rocking: charge launch %.1f, expected 260 ±5%%" % launch)
 
+	# Regression: transforming away mid-charge must not lock the new form's
+	# speed to the rock-charge crawl nor carry a pending launch.
+	gs.set_form(&"rocking")
+	await _settle(tree, player)
+	Input.action_press("special")
+	for _i in 20:  # ~0.33s of charge
+		await tree.physics_frame
+	gs.set_form(&"armchair")  # transform mid-charge
+	Input.action_release("special")
+	await tree.physics_frame
+	Input.action_press("move_right")
+	for _i in 45:
+		await tree.physics_frame
+	var armchair_speed: float = player.velocity.x
+	Input.action_release("move_right")
+	if armchair_speed < 250.0:  # armchair runs 300; crawl-lock would be ~60
+		fails.append("rocking: transform mid-charge locked speed to %.1f (leaked charge)" % armchair_speed)
+	if player.velocity.y < -100.0:
+		fails.append("rocking: transform mid-charge fired a phantom launch")
+
 	player.queue_free()
 	_sandbox.queue_free()
 	await tree.physics_frame

@@ -8,6 +8,7 @@ const FORM_ORDER: Array[StringName] = [&"basic", &"armchair", &"office", &"foldi
 const START_ZONE := "res://scenes/zones/Workshop.tscn"
 const START_SPAWN := "Default"
 const SAVE_PATH := "user://chairfighter_save.json"
+const DEMO_SAVE_PATH := "user://chairfighter_demo_save.json"
 
 var unlocked_forms: Array[StringName] = [&"basic"]
 var current_form: StringName = &"basic"
@@ -15,13 +16,29 @@ var flags: Dictionary = {}
 var checkpoint_zone: String = START_ZONE
 var checkpoint_spawn: String = START_SPAWN
 
+## Set once the game is won; blocks any further persistence so a checkpoint
+## fired during the ending fade can't resurrect a phantom "Continue".
+var _finished := false
+
 
 func _ready() -> void:
 	# Autosave on every meaningful progression beat.
 	Events.form_unlocked.connect(func(_id: StringName) -> void: save_game())
+	Events.form_changed.connect(func(_id: StringName) -> void: save_game())
 	Events.boss_defeated.connect(func(_id: StringName) -> void: save_game())
 	Events.checkpoint_activated.connect(func(_z: String, _s: String) -> void: save_game())
-	Events.game_won.connect(func() -> void: clear_save())
+	Events.game_won.connect(func() -> void:
+		_finished = true
+		clear_save())
+
+
+## Route saves to a throwaway path during demo/capture runs so a playthrough
+## never reads or destroys the real player save.
+func _save_path() -> String:
+	var dd := get_node_or_null("/root/DemoDriver")
+	if dd != null and dd.active:
+		return DEMO_SAVE_PATH
+	return SAVE_PATH
 
 
 func new_game() -> void:
@@ -30,14 +47,19 @@ func new_game() -> void:
 	flags = {}
 	checkpoint_zone = START_ZONE
 	checkpoint_spawn = START_SPAWN
-	clear_save()
+	_finished = false
+	# Do NOT clear the save here: an accidental "new game" that quits before
+	# the first checkpoint should leave the old save intact. The Workshop's
+	# entry checkpoint autosaves fresh on arrival, overwriting it naturally.
 
 
 func has_save() -> bool:
-	return FileAccess.file_exists(SAVE_PATH)
+	return FileAccess.file_exists(_save_path())
 
 
 func save_game() -> void:
+	if _finished:
+		return
 	var data := {
 		"version": 1,
 		"unlocked_forms": unlocked_forms.map(func(f: StringName) -> String: return String(f)),
@@ -46,7 +68,7 @@ func save_game() -> void:
 		"checkpoint_zone": checkpoint_zone,
 		"checkpoint_spawn": checkpoint_spawn,
 	}
-	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	var f := FileAccess.open(_save_path(), FileAccess.WRITE)
 	if f == null:
 		push_error("[GameState] Cannot write save: %s" % FileAccess.get_open_error())
 		return
@@ -57,7 +79,8 @@ func save_game() -> void:
 func load_game() -> bool:
 	if not has_save():
 		return false
-	var f := FileAccess.open(SAVE_PATH, FileAccess.READ)
+	_finished = false
+	var f := FileAccess.open(_save_path(), FileAccess.READ)
 	if f == null:
 		return false
 	var data: Variant = JSON.parse_string(f.get_as_text())
@@ -85,7 +108,7 @@ func load_game() -> bool:
 
 func clear_save() -> void:
 	if has_save():
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_PATH))
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(_save_path()))
 
 
 func unlock_form(id: StringName) -> void:
@@ -95,8 +118,10 @@ func unlock_form(id: StringName) -> void:
 		push_error("[GameState] Unknown form: %s" % id)
 		return
 	unlocked_forms.append(id)
-	Events.form_unlocked.emit(id)
+	# Switch BEFORE announcing so the form_unlocked autosave snapshots the
+	# new active form, not the one the player is leaving.
 	set_form(id)
+	Events.form_unlocked.emit(id)
 
 
 func is_unlocked(id: StringName) -> bool:
@@ -128,6 +153,9 @@ func set_flag(key: String) -> void:
 	if flags.get(key, false):
 		return
 	flags[key] = true
+	# Persist immediately: broken gates / shattered floors are durable world
+	# state and may not be followed by any other autosave beat.
+	save_game()
 
 
 func has_flag(key: String) -> bool:

@@ -56,19 +56,20 @@ func run(tree: SceneTree) -> Array:
 		fails.append("new_game should clear flags and unlocks")
 
 	# Save / load round-trip.
-	gs.unlock_form(&"armchair")
-	gs.set_flag("boss_recliner_defeated")
+	gs.clear_save()
+	gs.unlock_form(&"armchair")  # autosaves; also switches form first
+	if gs.current_form != &"armchair":
+		fails.append("unlock_form should switch before announcing")
+	gs.set_flag("boss_recliner_defeated")  # set_flag autosaves durable state
 	gs.set_checkpoint("res://scenes/zones/Lounge.tscn", "PreBoss")
-	gs.save_game()
 	if not gs.has_save():
-		fails.append("save_game should create the save file")
-	gs.new_game()  # wipes state AND the save file
-	if gs.has_save():
-		fails.append("new_game should clear the save")
-	gs.unlock_form(&"armchair")
-	gs.set_flag("boss_recliner_defeated")
-	gs.set_checkpoint("res://scenes/zones/Lounge.tscn", "PreBoss")
-	gs.save_game()
+		fails.append("progression events should have autosaved")
+	# new_game does NOT clear the save (accidental-new-game safety); it is
+	# overwritten by the first checkpoint autosave, or explicitly cleared.
+	gs.new_game()
+	if not gs.has_save():
+		fails.append("new_game should leave the existing save intact")
+	# Restore from disk into wiped memory.
 	gs.unlocked_forms.clear()
 	gs.unlocked_forms.append(&"basic")
 	gs.flags = {}
@@ -78,5 +79,10 @@ func run(tree: SceneTree) -> Array:
 	if not gs.is_unlocked(&"armchair") or not gs.has_flag("boss_recliner_defeated") \
 			or gs.checkpoint_spawn != "PreBoss":
 		fails.append("load_game should restore unlocks, flags, and checkpoint")
+	# Explicit clear works.
+	gs.clear_save()
+	if gs.has_save():
+		fails.append("clear_save should remove the save file")
 	gs.new_game()
+	gs.clear_save()
 	return fails

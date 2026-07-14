@@ -348,6 +348,7 @@ break_flag = "parlor_bonus_cracked"
 script = ExtResource("8_cracked")
 position = Vector2(1110, 80)
 size = Vector2(140, 24)
+break_flag = "parlor_foreshadow_cracked"
 
 [node name="Enemies" type="Node2D" parent="."]
 

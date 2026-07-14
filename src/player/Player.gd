@@ -137,6 +137,11 @@ func _apply_form() -> void:
 			# swap rather than strand a non-folding form at 20px tall.
 			GameState.set_form(&"folding")
 			return
+	# Leaving the rocking form mid-charge must not carry the charge (which
+	# would lock the new form's speed and fire a phantom launch on return).
+	if _rock_charge != 0.0:
+		_rock_charge = 0.0
+		_visual.set_charge(0.0)
 	_hitbox.damage = form.attack_damage
 	var shape: RectangleShape2D = (_hitbox.get_child(0) as CollisionShape2D).shape
 	shape.size = Vector2(form.attack_range, 36.0)
@@ -163,7 +168,19 @@ func on_spawned() -> void:
 	state = State.MOVE
 	_release_grapple(false)
 	_set_folded(false)
+	_reset_transient_motion()
 	_camera.reset_smoothing()
+
+
+## Clear all one-shot motion flags so nothing leaks across respawn/zone load.
+func _reset_transient_motion() -> void:
+	_launched = false
+	_spring_active = false
+	_rock_charge = 0.0
+	_fall_peak_speed = 0.0
+	_was_on_floor = false
+	if _visual != null:
+		_visual.set_charge(0.0)
 
 
 func revive() -> void:
@@ -257,7 +274,7 @@ func _handle_transform_input() -> void:
 func _process_move(delta: float) -> void:
 	var dir := Input.get_axis("move_left", "move_right")
 	var speed := FOLD_SPEED if folded else form.run_speed
-	if _rock_charge > 0.0:
+	if _rock_charge > 0.0 and form.id == &"rocking":
 		speed = ROCK_CHARGE_SPEED  # planted while rocking up a charge
 	var accel := form.accel if is_on_floor() else form.accel * form.air_control
 	if dir != 0.0:
@@ -367,6 +384,10 @@ func _handle_rock_charge() -> void:
 		_jump_cut_done = true
 		_spring_active = true  # rise under rise-gravity, full commitment
 		_launched = true
+		# Consume buffer/coyote so a jump pressed just after release can't
+		# overwrite the launch with a normal 135px hop.
+		_jump_buffer = 0.0
+		_coyote = 0.0
 		_visual.play_jump()
 		Events.sfx_requested.emit(&"spring")
 
