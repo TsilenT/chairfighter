@@ -35,6 +35,9 @@ func _ready() -> void:
 	Events.game_won.connect(_on_game_won)
 	_fade.color = Color(0.07, 0.05, 0.04, 1.0)
 	_fade.modulate.a = 1.0
+	if DisplayServer.is_touchscreen_available():
+		var touch: Node = load("res://src/ui/TouchControls.gd").new()
+		add_child(touch)
 	_show_title()
 
 
