@@ -51,5 +51,5 @@ custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 theme_override_colors/font_color = Color(0.95, 0.95, 0.9, 1)
-text = "Press JUMP to sit down"
+text = "Press SPACE (pad A) to sit down"
 horizontal_alignment = 1

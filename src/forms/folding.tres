@@ -18,4 +18,4 @@ attack_range = 44.0
 attack_cooldown = 0.18
 collider_height = 56.0
 body_color = Color(0.75, 0.78, 0.82, 1)
-unlock_blurb = "Tap SPECIAL to fold flat for vents. Jump while folded to SPRING!"
+unlock_blurb = "Tap K (pad B) to fold flat for vents. Jump while folded to SPRING!"

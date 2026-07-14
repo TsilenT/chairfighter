@@ -50,6 +50,11 @@ func _ready() -> void:
 		push_error("DEMO FAIL: step script is not a JSON array: %s" % path)
 		get_tree().quit(1)
 		return
+	for i in (parsed as Array).size():
+		if not (parsed[i] is Dictionary):
+			push_error("DEMO FAIL: step %d is not an object: %s" % [i, str(parsed[i])])
+			get_tree().quit(1)
+			return
 	_steps = parsed
 	active = true
 	# MovieWriter capture must run at natural speed; headless runs fast.
@@ -70,11 +75,10 @@ func _ready() -> void:
 
 func _on_player_health(current: int, _maximum: int) -> void:
 	if current < _player_hp and _s.has("next_hop"):
-		# Hop on hit — clears most ground-level patterns without giving up
-		# position. (No retreating: with full-heal checkpoints and bosses
-		# retaining damage, trading aggressively converges fastest.)
-		Input.action_press("jump")
-		_s["hop_release"] = _elapsed + 0.18
+		# Queue a hop — the hurt-state stun (0.25s) outlives both the jump
+		# buffer and an immediate press, so the hop fires once control
+		# returns (see _run_auto_fight).
+		_s["pending_hop_at"] = _elapsed + 0.3
 	_player_hp = current
 
 
@@ -383,6 +387,12 @@ func _run_auto_fight(step: Dictionary) -> void:
 	if _s.has("attack_down_at") and _elapsed - float(_s["attack_down_at"]) > TAP_TIME:
 		Input.action_release("attack")
 		_s.erase("attack_down_at")
+	# Deferred hop-on-hit: fire once the hurt stun has released control.
+	if _s.has("pending_hop_at") and _elapsed >= float(_s["pending_hop_at"]):
+		_s.erase("pending_hop_at")
+		if not _s.has("hop_release") and p.is_on_floor():
+			Input.action_press("jump")
+			_s["hop_release"] = _elapsed + 0.18
 	# Anticipatory dodge: boss closing in fast at ground level ⇒ full hop NOW.
 	if boss != null and boss is CharacterBody2D and not _s.has("hop_release"):
 		var bvel: Vector2 = (boss as CharacterBody2D).velocity
@@ -417,6 +427,15 @@ func _find_boss(step: Dictionary) -> Node2D:
 ## zone. NEVER used by full_run.json — the full playthrough earns everything
 ## through real play. Requires the game to be started (tap ui_accept first).
 func _run_cheat_setup(step: Dictionary) -> void:
+	# Already in the target zone (same-zone setup): grant forms and finish.
+	if not _s.has("requested") and String(step.get("zone_name", "")) == _current_zone \
+			and _player() != null:
+		for f in step.get("forms", []):
+			GameState.unlock_form(StringName(String(f)))
+		if step.has("form"):
+			GameState.set_form(StringName(String(step.get("form"))))
+		_done()
+		return
 	if not _s.has("requested"):
 		_s["requested"] = true
 		for f in step.get("forms", []):

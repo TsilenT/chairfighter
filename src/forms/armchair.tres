@@ -18,4 +18,4 @@ attack_range = 76.0
 attack_cooldown = 0.35
 collider_height = 56.0
 body_color = Color(0.72, 0.18, 0.2, 1)
-unlock_blurb = "Plush arms, long reach. Hold SPECIAL to grapple hook points!"
+unlock_blurb = "Plush arms, long reach. Hold K (pad B) to grapple gold hooks!"

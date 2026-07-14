@@ -41,6 +41,7 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(0.8, 0.75, 0.7, 1)
 text = "ESC / Start — resume
-Q & E — switch chair form
-J — attack · K — chair power"
+Q & E (bumpers) — switch chair form
+J (pad X) — attack · K (pad B) — chair power
+W / up — enter doors"
 horizontal_alignment = 1

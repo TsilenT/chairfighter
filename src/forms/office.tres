@@ -18,4 +18,4 @@ attack_range = 48.0
 attack_cooldown = 0.25
 collider_height = 56.0
 body_color = Color(0.22, 0.28, 0.34, 1)
-unlock_blurb = "Ergonomic. Aerodynamic. Press SPECIAL to dash through speed gates and low tunnels!"
+unlock_blurb = "Ergonomic. Aerodynamic. Tap K (pad B) to dash through cracked walls and low tunnels!"

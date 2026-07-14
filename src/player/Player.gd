@@ -279,6 +279,8 @@ func _apply_gravity(delta: float) -> void:
 
 func _spring_jump() -> void:
 	_set_folded(false)
+	if folded:
+		return  # no headroom to unfold (inside a vent): no launch, keep crawling
 	# Fixed-height launch derived the same way as normal jumps.
 	velocity.y = -sqrt(2.0 * form.rise_gravity() * SPRING_HEIGHT)
 	_jump_cut_done = true  # springs are full-commitment

@@ -152,6 +152,11 @@ func _on_player_died() -> void:
 			await _fade_to(0.0, 0.2)
 		else:
 			await _load_zone(GameState.checkpoint_zone, GameState.checkpoint_spawn)
+	else:
+		# A door transition raced the death timer and won: wait for it to
+		# finish placing the player before reviving (never revive mid-load).
+		while _transitioning:
+			await get_tree().process_frame
 	# Revive only once safely placed (never alive inside the killzone).
 	if _player != null and _player.has_method("revive"):
 		_player.revive()

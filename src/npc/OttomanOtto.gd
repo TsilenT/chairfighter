@@ -5,7 +5,7 @@ extends Node2D
 
 const LINES := {
 	0: "Oh! A basic chair, out HERE? The Lounge is thataway. Mind the footstools — they bite shins.",
-	1: "You BEAT the Baron?! Try holding K near those golden hooks. I'd do it myself but... no arms.",
+	1: "You BEAT the Baron?! Try holding K (pad B) near those golden hooks. I'd do it myself but... no arms.",
 	2: "Wheels! Fancy. I hear the Storage Closet wall cracks if you hit it at speed. Not that I've tried. No wheels.",
 	3: "You can FOLD?! Unnatural. Magnificent. There's a draft from that hatch past the Lounge door — something regal down there.",
 	4: "The King himself... good luck, friend. Sit hard, sit true.",
