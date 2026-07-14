@@ -2,6 +2,12 @@
 
 This is a collection of bugs, polish items, and design concerns. Entries here are not yet implementation plans and should not be dispatched automatically.
 
+> **Status 2026-07-13 (post-rebuild backlog pass):**
+> - **CF-B001 resolved** — health is heart icons (top-left); boss bar moved top-center and styled as unmistakable UI.
+> - **CF-B002 resolved for known cases** — both speed gates were hoppable (Workshop's cleared by 40px); raised to exceed the tallest movement capability (rocking launch, 260px) by ≥80px. Vents/tunnels are ceiling-bound and unbypassable; ledge gates exceed spring by margin; the throne pit is hatch-gated against softlock. Rocking-launch (post-Folder, optional) can reach the hub's armchair ledge — sequence-irrelevant, accepted.
+> - **CF-B003/B005 improved** — all bosses now pop a "!" cue + flash on every wind-up (BossBase.telegraph); hitstop/shake/knockback arcs cover impact feedback. Deeper per-boss animation is future work.
+> - **CF-B004 open** — tells improved; distinctive-mechanic redesign per boss remains future work.
+
 ## UI / HUD
 
 ### CF-B001 — Health bar resembles a platform
