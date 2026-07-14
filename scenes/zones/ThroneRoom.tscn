@@ -196,8 +196,8 @@ label_text = "The Workshop"
 
 [node name="ThroneSpeedGate" type="StaticBody2D" parent="Hazards"]
 script = ExtResource("7_speedgate")
-position = Vector2(1870, 260)
-size = Vector2(40, 140)
+position = Vector2(1870, 60)
+size = Vector2(40, 340)
 break_flag = "gate_throne_broken"
 
 [node name="EntryCheckpoint" type="Area2D" parent="Hazards"]

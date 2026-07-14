@@ -31,15 +31,13 @@ theme_override_constants/separation = 10
 
 [node name="BossBox" type="VBoxContainer" parent="."]
 layout_mode = 1
-anchors_preset = 7
+anchors_preset = 5
 anchor_left = 0.5
-anchor_top = 1.0
 anchor_right = 0.5
-anchor_bottom = 1.0
 offset_left = -260.0
-offset_top = -110.0
+offset_top = 96.0
 offset_right = 260.0
-offset_bottom = -66.0
+offset_bottom = 148.0
 
 [node name="BossName" type="Label" parent="BossBox"]
 layout_mode = 2

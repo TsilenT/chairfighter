@@ -229,8 +229,8 @@ label_text = "The Parlor (optional)"
 
 [node name="StorageSpeedGate" type="StaticBody2D" parent="Hazards"]
 script = ExtResource("7_speedgate")
-position = Vector2(60, 290)
-size = Vector2(40, 110)
+position = Vector2(60, 60)
+size = Vector2(40, 340)
 break_flag = "gate_workshop_storage_broken"
 
 [node name="ThroneHatch" type="StaticBody2D" parent="Hazards"]

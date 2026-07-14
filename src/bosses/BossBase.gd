@@ -34,6 +34,7 @@ var _spawn_pos := Vector2.ZERO
 var _hurt_flash := 0.0
 var _run_token := 0  # invalidates in-flight pattern coroutines on reset
 var _loop_id := 0    # each trigger starts a fresh loop; stale loops die
+var _warn_label: Label
 
 
 func _ready() -> void:
@@ -83,6 +84,17 @@ func _ready() -> void:
 		contact_shape.position = collider.position
 		contact.add_child(contact_shape)
 		add_child(contact)
+
+	# Telegraph cue: a big "!" above the boss during every wind-up (CF-B003).
+	_warn_label = Label.new()
+	_warn_label.text = "!"
+	_warn_label.add_theme_font_size_override("font_size", 52)
+	_warn_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.25))
+	_warn_label.add_theme_color_override("font_outline_color", Color(0.15, 0.08, 0.05))
+	_warn_label.add_theme_constant_override("outline_size", 10)
+	_warn_label.position = Vector2(-14, -body_height - 74.0)
+	_warn_label.visible = false
+	add_child(_warn_label)
 
 	var trigger := get_node_or_null("TriggerZone") as Area2D
 	if trigger != null:
@@ -254,13 +266,23 @@ func dir_to_player() -> float:
 	return signf(p.global_position.x - global_position.x)
 
 
-## Flash + pause so every attack has a readable tell.
+## Flash + "!" cue + wind-up crouch so every attack has a readable tell
+## (CF-B003/B005). All bosses inherit this.
 func telegraph(duration: float) -> void:
 	Events.sfx_requested.emit(&"telegraph")
+	if _warn_label != null:
+		_warn_label.visible = true
+		_warn_label.scale = Vector2(0.4, 0.4)
+		var pop := create_tween()
+		pop.tween_property(_warn_label, "scale", Vector2.ONE, duration * 0.3) \
+			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	# (No scale tween: non-uniform scale deforms a CharacterBody2D's collider.)
 	var tween := create_tween()
 	tween.tween_property(self, "modulate", Color(1.6, 1.4, 0.9), duration * 0.5)
 	tween.tween_property(self, "modulate", Color.WHITE, duration * 0.5)
 	await wait(duration)
+	if _warn_label != null:
+		_warn_label.visible = false
 
 
 ## Physics-time wait that dies with the current run (reset-safe) and does

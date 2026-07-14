@@ -27,6 +27,21 @@ func _ready() -> void:
 	_hearts.draw.connect(_draw_hearts)
 	_boss_box.visible = false
 	_zone_banner.modulate.a = 0.0
+	# Boss bar must never read as level geometry (CF-B001): top of screen,
+	# clearly a UI panel — dark bordered trough, blood-red rounded fill.
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(0.08, 0.05, 0.05, 0.9)
+	bg.border_color = Color(0.85, 0.75, 0.5)
+	bg.set_border_width_all(2)
+	bg.set_corner_radius_all(9)
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = Color(0.78, 0.16, 0.2)
+	fill.set_corner_radius_all(7)
+	fill.set_expand_margin_all(-1.0)
+	_boss_bar.add_theme_stylebox_override("background", bg)
+	_boss_bar.add_theme_stylebox_override("fill", fill)
+	_boss_name.add_theme_color_override("font_outline_color", Color(0.1, 0.06, 0.05))
+	_boss_name.add_theme_constant_override("outline_size", 6)
 
 
 func _on_health(current: int, maximum: int) -> void:
