@@ -16,6 +16,9 @@ extends CharacterBody2D
 @export var max_health := 40.0
 ## Form granted on defeat (empty = none, e.g. the final boss).
 @export var unlock_form_id: StringName = &""
+## Guardian bosses can award a pair. The first entry is the canonical form
+## selected on victory; unlock_form_id remains as scene/backward compatibility.
+@export var unlock_form_ids: Array[StringName] = []
 @export var arena_rect := Rect2(0, 0, 1152, 648)
 @export var body_half_width := 60.0
 @export var body_height := 120.0
@@ -195,7 +198,9 @@ func _on_died() -> void:
 	Particles.confetti(get_parent(), global_position + Vector2(0, -body_height / 2.0))
 	_lock_camera(false)
 	_set_blocker(false)
-	if unlock_form_id != &"":
+	if not unlock_form_ids.is_empty():
+		GameState.unlock_forms(unlock_form_ids)
+	elif unlock_form_id != &"":
 		GameState.unlock_form(unlock_form_id)
 	collision_layer = 0
 	for child in get_children():

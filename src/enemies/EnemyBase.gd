@@ -99,8 +99,11 @@ func _on_died() -> void:
 	collision_layer = 0
 	for child in get_children():
 		if child is Area2D:
-			(child as Area2D).monitoring = false
-			(child as Area2D).monitorable = false
+			# Death is commonly reached from Hitbox.area_entered. Area2D refuses
+			# immediate monitoring changes while that overlap signal is still
+			# unwinding, so tear collision down on the deferred boundary.
+			(child as Area2D).set_deferred("monitoring", false)
+			(child as Area2D).set_deferred("monitorable", false)
 
 
 func _draw() -> void:

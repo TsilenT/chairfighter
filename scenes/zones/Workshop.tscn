@@ -215,7 +215,8 @@ script = ExtResource("5_door")
 position = Vector2(1980, 645)
 target_zone_path = "res://scenes/zones/ThroneRoom.tscn"
 target_spawn = "Default"
-label_text = "The Throne Room"
+required_flags = Array[String](["boss_recliner_defeated", "boss_swivel_defeated", "boss_folder_defeated", "boss_granny_defeated"])
+label_text = "The Throne Room · 8-form finale"
 
 [node name="ParlorDoor" type="Area2D" parent="Doors"]
 script = ExtResource("5_door")
@@ -223,14 +224,14 @@ position = Vector2(1650, 345)
 target_zone_path = "res://scenes/zones/Parlor.tscn"
 target_spawn = "Default"
 required_flag = "boss_folder_defeated"
-label_text = "The Parlor (optional)"
+label_text = "The Parlor · fourth guardian"
 
 [node name="Hazards" type="Node2D" parent="."]
 
 [node name="StorageSpeedGate" type="StaticBody2D" parent="Hazards"]
 script = ExtResource("7_speedgate")
-position = Vector2(60, 60)
-size = Vector2(40, 340)
+position = Vector2(60, -360)
+size = Vector2(40, 760)
 break_flag = "gate_workshop_storage_broken"
 
 [node name="ThroneHatch" type="StaticBody2D" parent="Hazards"]
@@ -284,4 +285,4 @@ needs SPEED"
 position = Vector2(2560, 640)
 theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.8, 0.68, 0.35, 0.8)
-text = "low vent — FOLD to crawl"
+text = "THRONE SEAL: defeat 4 guardians\nthen FOLD through the low vent"

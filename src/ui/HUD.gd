@@ -3,7 +3,8 @@ extends Control
 ## (bottom-center), zone banner (top-center). Purely Events-driven.
 
 @onready var _hearts: Control = $Hearts
-@onready var _chips: HBoxContainer = $FormChips
+@onready var _chips: GridContainer = $FormChips
+@onready var _mechanic_hint: Label = $MechanicHint
 @onready var _boss_box: VBoxContainer = $BossBox
 @onready var _boss_name: Label = $BossBox/BossName
 @onready var _boss_bar: ProgressBar = $BossBox/BossBar
@@ -12,6 +13,18 @@ extends Control
 var _hp := 5
 var _hp_max := 5
 var _chip_labels: Dictionary = {}
+
+const FORM_HINTS := {
+	&"basic": "J / pad X — seat-first body bash",
+	&"armchair": "K / pad B (hold) — grapple gold hooks",
+	&"recliner": "K / pad B (hold) — brace and counter",
+	&"office": "K / pad B — dash through cracks",
+	&"barstool": "K / pad B (hold) — spin and reflect",
+	&"folding": "K / pad B — fold · jump folded to spring",
+	&"highchair": "K / pad B — throw the tray",
+	&"rocking": "K hold/release — launch · hard landing slams",
+	&"stool": "K / pad B in midair — pogo jump",
+}
 
 
 func _ready() -> void:
@@ -24,6 +37,7 @@ func _ready() -> void:
 	Events.zone_loaded.connect(_on_zone_loaded)
 	Events.player_died.connect(func() -> void: _boss_box.visible = false)
 	_build_chips()
+	_style_mechanic_hint()
 	_hearts.draw.connect(_draw_hearts)
 	_boss_box.visible = false
 	_zone_banner.modulate.a = 0.0
@@ -77,12 +91,27 @@ func _build_chips() -> void:
 	for id: StringName in GameState.FORM_ORDER:
 		var chip := Label.new()
 		chip.text = ""
-		chip.custom_minimum_size = Vector2(120, 34)
+		chip.custom_minimum_size = Vector2(106, 30)
 		chip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		chip.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		chip.add_theme_font_size_override("font_size", 14)
 		_chips.add_child(chip)
 		_chip_labels[id] = chip
 	_refresh_chips()
+
+
+func _style_mechanic_hint() -> void:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.08, 0.07, 0.065, 0.86)
+	sb.border_color = Color(0.62, 0.52, 0.32, 0.75)
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(8)
+	sb.content_margin_left = 12.0
+	sb.content_margin_right = 12.0
+	sb.content_margin_top = 8.0
+	sb.content_margin_bottom = 8.0
+	_mechanic_hint.add_theme_stylebox_override("normal", sb)
+	_mechanic_hint.add_theme_color_override("font_color", Color(0.96, 0.91, 0.78))
 
 
 func _refresh_chips() -> void:
@@ -114,6 +143,8 @@ func _refresh_chips() -> void:
 				sb.border_width_right = 3
 				sb.border_color = Color(0.98, 0.85, 0.4)
 		chip.add_theme_stylebox_override("normal", sb)
+	_mechanic_hint.text = "Q/E switch  ·  %s" % FORM_HINTS.get(
+			GameState.current_form, "J / pad X — attack")
 
 
 func _on_boss_started(_id: StringName, display_name: String) -> void:

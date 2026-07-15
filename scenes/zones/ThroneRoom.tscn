@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://src/zones/ThroneRoom.gd" id="1_zone"]
 [ext_resource type="Script" path="res://src/game/ZoneTheme.gd" id="2_theme"]
@@ -10,6 +10,7 @@
 [ext_resource type="Script" path="res://src/enemies/Footstool.gd" id="8_footstool"]
 [ext_resource type="Script" path="res://src/enemies/LampWisp.gd" id="9_wisp"]
 [ext_resource type="PackedScene" path="res://scenes/bosses/UpholsteredKing.tscn" id="10_king"]
+[ext_resource type="Script" path="res://src/world/RoyalTrialGate.gd" id="11_trial"]
 
 [sub_resource type="Resource" id="theme_throne"]
 script = ExtResource("2_theme")
@@ -25,7 +26,7 @@ parallax_near = Color(0.24, 0.09, 0.35, 1)
 [node name="ThroneRoom" type="Node2D"]
 script = ExtResource("1_zone")
 zone_display_name = "The Throne Room"
-camera_limits = Rect2(-200, -850, 4400, 1450)
+camera_limits = Rect2(-200, -850, 7400, 1450)
 theme_res = SubResource("theme_throne")
 
 [node name="SpawnPoints" type="Node2D" parent="."]
@@ -34,7 +35,7 @@ theme_res = SubResource("theme_throne")
 position = Vector2(150, 400)
 
 [node name="PreBoss" type="Marker2D" parent="SpawnPoints"]
-position = Vector2(3070, 0)
+position = Vector2(5800, 0)
 
 [node name="Geometry" type="Node2D" parent="."]
 
@@ -68,10 +69,15 @@ script = ExtResource("3_platform")
 size = Vector2(200, 32)
 position = Vector2(2860, 0)
 
+[node name="HallOfEightFloor" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(2650, 96)
+position = Vector2(3000, 0)
+
 [node name="ArenaFloor" type="StaticBody2D" parent="Geometry"]
 script = ExtResource("3_platform")
-size = Vector2(1100, 96)
-position = Vector2(3000, 0)
+size = Vector2(1250, 96)
+position = Vector2(5650, 0)
 
 [node name="EntryLeftWall" type="StaticBody2D" parent="Geometry"]
 script = ExtResource("3_platform")
@@ -94,19 +100,19 @@ decor = true
 [node name="ArenaCeiling" type="StaticBody2D" parent="Geometry"]
 script = ExtResource("3_platform")
 size = Vector2(1310, 40)
-position = Vector2(2850, -740)
+position = Vector2(5650, -740)
 decor = true
 
 [node name="ArenaLeftColumn" type="StaticBody2D" parent="Geometry"]
 script = ExtResource("3_platform")
 size = Vector2(50, 500)
-position = Vector2(2850, -700)
+position = Vector2(5650, -700)
 decor = true
 
 [node name="ArenaRightColumn" type="StaticBody2D" parent="Geometry"]
 script = ExtResource("3_platform")
 size = Vector2(60, 796)
-position = Vector2(4100, -700)
+position = Vector2(6900, -700)
 decor = true
 
 [node name="Route" type="Node2D" parent="."]
@@ -179,9 +185,54 @@ metadata/mode = "walk"
 metadata/form = "armchair"
 
 [node name="M13" type="Marker2D" parent="Route/RouteGauntlet"]
-position = Vector2(3620, 0)
-metadata/mode = "fight"
+position = Vector2(3340, 0)
+metadata/mode = "royal_trial"
 metadata/form = "armchair"
+
+[node name="M14" type="Marker2D" parent="Route/RouteGauntlet"]
+position = Vector2(3620, 0)
+metadata/mode = "royal_trial"
+metadata/form = "recliner"
+
+[node name="M15" type="Marker2D" parent="Route/RouteGauntlet"]
+position = Vector2(3900, 0)
+metadata/mode = "royal_trial"
+metadata/form = "office"
+
+[node name="M16" type="Marker2D" parent="Route/RouteGauntlet"]
+position = Vector2(4180, 0)
+metadata/mode = "royal_trial"
+metadata/form = "barstool"
+
+[node name="M17" type="Marker2D" parent="Route/RouteGauntlet"]
+position = Vector2(4460, 0)
+metadata/mode = "royal_trial"
+metadata/form = "folding"
+
+[node name="M18" type="Marker2D" parent="Route/RouteGauntlet"]
+position = Vector2(4740, 0)
+metadata/mode = "royal_trial"
+metadata/form = "highchair"
+
+[node name="M19" type="Marker2D" parent="Route/RouteGauntlet"]
+position = Vector2(5020, 0)
+metadata/mode = "royal_trial"
+metadata/form = "rocking"
+
+[node name="M20" type="Marker2D" parent="Route/RouteGauntlet"]
+position = Vector2(5300, 0)
+metadata/mode = "royal_trial"
+metadata/form = "stool"
+
+[node name="M21" type="Marker2D" parent="Route/RouteGauntlet"]
+position = Vector2(5800, 0)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="M22" type="Marker2D" parent="Route/RouteGauntlet"]
+position = Vector2(6420, 0)
+metadata/mode = "fight"
+metadata/form = "basic"
 
 [node name="Doors" type="Node2D" parent="."]
 
@@ -196,8 +247,8 @@ label_text = "The Workshop"
 
 [node name="ThroneSpeedGate" type="StaticBody2D" parent="Hazards"]
 script = ExtResource("7_speedgate")
-position = Vector2(1870, 60)
-size = Vector2(40, 340)
+position = Vector2(1870, -360)
+size = Vector2(40, 760)
 break_flag = "gate_throne_broken"
 
 [node name="EntryCheckpoint" type="Area2D" parent="Hazards"]
@@ -207,8 +258,76 @@ spawn_name = "Default"
 
 [node name="PreBossCheckpoint" type="Area2D" parent="Hazards"]
 script = ExtResource("6_checkpoint")
-position = Vector2(3070, 0)
+position = Vector2(5800, 0)
 spawn_name = "PreBoss"
+
+[node name="RoyalTrials" type="Node2D" parent="."]
+
+[node name="ArmchairProof" type="StaticBody2D" parent="RoyalTrials"]
+script = ExtResource("11_trial")
+position = Vector2(3260, 0)
+required_form = &"armchair"
+required_mechanic = &"grapple"
+prompt_action = "GRAPPLE THE GOLD HOOK"
+trial_number = 1
+
+[node name="ReclinerProof" type="StaticBody2D" parent="RoyalTrials"]
+script = ExtResource("11_trial")
+position = Vector2(3540, 0)
+required_form = &"recliner"
+required_mechanic = &"brace"
+prompt_action = "HOLD SPECIAL TO BRACE"
+trial_number = 2
+
+[node name="OfficeProof" type="StaticBody2D" parent="RoyalTrials"]
+script = ExtResource("11_trial")
+position = Vector2(3820, 0)
+required_form = &"office"
+required_mechanic = &"dash"
+prompt_action = "DASH THROUGH THE SEAL"
+trial_number = 3
+
+[node name="BarStoolProof" type="StaticBody2D" parent="RoyalTrials"]
+script = ExtResource("11_trial")
+position = Vector2(4100, 0)
+required_form = &"barstool"
+required_mechanic = &"spin"
+prompt_action = "HOLD SPECIAL TO SPIN"
+trial_number = 4
+
+[node name="FoldingProof" type="StaticBody2D" parent="RoyalTrials"]
+script = ExtResource("11_trial")
+position = Vector2(4380, 0)
+required_form = &"folding"
+required_mechanic = &"fold"
+alternate_mechanic = &"spring"
+prompt_action = "FOLD FLAT UNDER THE SEAL"
+trial_number = 5
+
+[node name="HighChairProof" type="StaticBody2D" parent="RoyalTrials"]
+script = ExtResource("11_trial")
+position = Vector2(4660, 0)
+required_form = &"highchair"
+required_mechanic = &"toss"
+prompt_action = "TOSS THE TRAY AT THE SEAL"
+trial_number = 6
+
+[node name="RockingProof" type="StaticBody2D" parent="RoyalTrials"]
+script = ExtResource("11_trial")
+position = Vector2(4940, 0)
+required_form = &"rocking"
+required_mechanic = &"launch"
+alternate_mechanic = &"slam"
+prompt_action = "CHARGE AND RELEASE TO LAUNCH"
+trial_number = 7
+
+[node name="StoolProof" type="StaticBody2D" parent="RoyalTrials"]
+script = ExtResource("11_trial")
+position = Vector2(5220, 0)
+required_form = &"stool"
+required_mechanic = &"pogo"
+prompt_action = "JUMP, THEN POGO IN MIDAIR"
+trial_number = 8
 
 [node name="Enemies" type="Node2D" parent="."]
 
@@ -235,8 +354,8 @@ skin_color = Color(0.92, 0.7, 0.24, 1)
 [node name="Boss" type="Node2D" parent="."]
 
 [node name="UpholsteredKing" parent="Boss" instance=ExtResource("10_king")]
-position = Vector2(3620, 0)
-arena_rect = Rect2(2850, -700, 1250, 700)
+position = Vector2(6420, 0)
+arena_rect = Rect2(5650, -700, 1250, 700)
 
 [node name="Props" type="Node2D" parent="."]
 
@@ -248,6 +367,18 @@ position = Vector2(830, 210)
 script = ExtResource("4_anchor")
 position = Vector2(1180, 200)
 
+[node name="TrialGrappleHook" type="Node2D" parent="Props"]
+script = ExtResource("4_anchor")
+position = Vector2(3190, -235)
+
+[node name="ArenaGrappleHookWest" type="Node2D" parent="Props"]
+script = ExtResource("4_anchor")
+position = Vector2(5920, -250)
+
+[node name="ArenaGrappleHookEast" type="Node2D" parent="Props"]
+script = ExtResource("4_anchor")
+position = Vector2(6720, -250)
+
 [node name="RoyalDecree" type="Label" parent="Props"]
 position = Vector2(210, 250)
 theme_override_font_sizes/font_size = 19
@@ -255,7 +386,19 @@ theme_override_colors/font_color = Color(0.96, 0.76, 0.22, 0.9)
 text = "ALL CHAIRS SHALL KNEEL"
 
 [node name="AudienceSign" type="Label" parent="Props"]
-position = Vector2(3090, -165)
-theme_override_font_sizes/font_size = 18
+position = Vector2(5650, -335)
+size = Vector2(1250, 40)
+theme_override_font_sizes/font_size = 19
 theme_override_colors/font_color = Color(0.96, 0.76, 0.22, 0.86)
-text = "THE FINAL SITTING"
+horizontal_alignment = 1
+text = "THE FINAL SITTING  •  SWITCH TO ANSWER THE KING'S EDICTS"
+
+[node name="HallOfEightSign" type="Label" parent="Props"]
+position = Vector2(3160, -220)
+size = Vector2(2220, 88)
+theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(0.98, 0.82, 0.3, 0.94)
+theme_override_colors/font_outline_color = Color(0.08, 0.025, 0.14, 1)
+theme_override_constants/outline_size = 9
+text = "THE EIGHTFOLD AUDIENCE\nSWITCH CHAIRS • USE THE NAMED SPECIAL • EACH BROKEN SEAL IS SAVED"
+horizontal_alignment = 1

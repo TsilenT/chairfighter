@@ -6,14 +6,28 @@ an interconnected world. The furniture went to war. Only one chair can end it.
 
 ## The arc
 
-**Workshop hub** → The Lounge (**Recliner Baron** → Armchair grapple) →
-The Office Complex (**Swivel Executive** → Office Chair dash) →
-The Storage Closet (**Steel Folder** → Folding Chair fold/spring) →
-The Throne Room gauntlet (**The Upholstered King** → the credits).
+**Workshop hub** → The Lounge (**Recliner Baron** → Armchair + Recliner) →
+The Office Complex (**Swivel Executive** → Office Chair + Bar Stool) →
+The Storage Closet (**Steel Folder** → Folding Chair + High Chair) →
+The Parlor (**Granny Tremor** → Rocking Chair + Spring Stool) →
+The Throne Room's eight-form gauntlet (**The Upholstered King** → credits).
 
-Every form has a traversal verb, a combat identity, and map gates it opens.
+The basic chair starts the run; each of the four guardians awards a pair, for
+eight earned forms before the final boss. Every earned form has a special verb
+and a combat identity, and the finale checks all eight in reward order.
 Casual difficulty: checkpoints heal, respawns keep progress, bosses retain
 most damage between attempts.
+
+| Earned form | Chair power |
+|---|---|
+| Armchair | Grapple gold hooks |
+| Recliner | Brace and counter |
+| Office Chair | Dash through cracked barriers |
+| Bar Stool | Spin and reflect projectiles |
+| Folding Chair | Fold through gaps; spring from folded |
+| High Chair | Throw its tray as a ranged attack |
+| Rocking Chair | Charge a high launch and landing slam |
+| Spring Stool | Pogo-jump once in midair |
 
 ## Controls (keyboard · controller-first bindings included)
 
@@ -23,7 +37,7 @@ most damage between attempts.
 | Enter door | W / ↑ (in doorway) |
 | Jump (hold = higher) | Space |
 | Attack | J |
-| Chair power (grapple / dash / fold) | K |
+| Chair power (changes with form) | K |
 | Switch form | Q / E |
 | Pause | Esc |
 

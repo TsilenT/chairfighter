@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="FormDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/player/FormDef.gd" id="1_formdef"]
+
+[resource]
+script = ExtResource("1_formdef")
+id = &"recliner"
+display_name = "Recliner"
+run_speed = 275.0
+accel = 2100.0
+decel = 2900.0
+air_control = 0.52
+jump_height = 125.0
+time_to_apex = 0.4
+fall_gravity_mult = 1.65
+attack_damage = 3.0
+attack_cooldown = 0.5
+attack_style = &"footrest_kick"
+attack_size = Vector2(112, 38)
+attack_offset = Vector2(36, -22)
+attack_active_time = 0.18
+attack_knockback = 410.0
+attack_impulse = 25.0
+collider_height = 56.0
+body_color = Color(0.39, 0.16, 0.36, 1)
+unlock_blurb = "Hold K (pad B) to BRACE. Block the hit, then shove it back with the footrest!"

@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="FormDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/player/FormDef.gd" id="1_formdef"]
+
+[resource]
+script = ExtResource("1_formdef")
+id = &"highchair"
+display_name = "High Chair"
+run_speed = 290.0
+accel = 2350.0
+decel = 2650.0
+air_control = 0.62
+jump_height = 150.0
+time_to_apex = 0.4
+fall_gravity_mult = 1.55
+attack_damage = 1.75
+attack_cooldown = 0.38
+attack_style = &"tray_shove"
+attack_size = Vector2(104, 40)
+attack_offset = Vector2(22, -33)
+attack_active_time = 0.16
+attack_knockback = 340.0
+attack_impulse = 45.0
+collider_height = 56.0
+body_color = Color(0.21, 0.58, 0.46, 1)
+unlock_blurb = "Tap K (pad B) to fling the tray. Finally: a chair that can attack from across the room!"

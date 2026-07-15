@@ -148,10 +148,33 @@ func _physics_process(delta: float) -> void:
 				_done()
 			else:
 				_fail("assert_form: %s, expected %s" % [GameState.current_form, step.get("form", "")])
+		"assert_health":
+			var expected := int(step.get("health", 5))
+			if _player_hp == expected:
+				_done()
+			else:
+				_fail("assert_health: %d, expected %d" % [_player_hp, expected])
 		"wait_on_floor":
 			var p := _player()
 			if p != null and p.is_on_floor() \
 					and (not p.has_method("is_alive") or p.is_alive()):
+				_done()
+		"wait_boss_edict":
+			var boss := _find_boss(step)
+			var form_id := StringName(String(step.get("form", "")))
+			if boss != null and boss.has_method("current_edict_form") \
+					and boss.current_edict_form() == form_id:
+				_done()
+		"wait_boss_cue":
+			var boss := _find_boss(step)
+			var form_id := StringName(String(step.get("form", "")))
+			if boss != null and boss.has_method("announced_edict_form") \
+					and boss.announced_edict_form() == form_id:
+				_done()
+		"wait_boss_open":
+			var boss := _find_boss(step)
+			if boss != null and boss.has_method("opening_edicts_complete") \
+					and boss.opening_edicts_complete():
 				_done()
 		"wait_won":
 			if _won:
@@ -170,7 +193,7 @@ func _default_timeout(op: String) -> float:
 	match op:
 		"auto_fight":
 			return 420.0
-		"wait_flag", "wait_zone", "wait_won":
+		"wait_flag", "wait_zone", "wait_won", "wait_boss_cue", "wait_boss_edict", "wait_boss_open":
 			return 30.0
 		"walk_until_x", "grapple":
 			return 15.0
@@ -212,9 +235,11 @@ func _fail(reason: String) -> void:
 	_release_all()
 	var p := _player()
 	if p != null:
-		reason += " [player id=%d at %s, vel %s, floor=%s, zone='%s', form=%s]" % [
+		reason += " [player id=%d at %s, vel %s, floor=%s, state=%s, special=%s, dash_cd=%.2f, special_buf=%.2f, zone='%s', form=%s]" % [
 			p.get_instance_id(), p.global_position.round(), p.velocity.round(),
-			p.is_on_floor(), _current_zone, GameState.current_form]
+			p.is_on_floor(), p.get("state"), Input.is_action_pressed("special"),
+			float(p.get("_dash_cooldown")), float(p.get("_special_buffer")),
+			_current_zone, GameState.current_form]
 	push_error("DEMO FAIL: " + reason)
 	print("DEMO FAIL: " + reason)
 	active = false

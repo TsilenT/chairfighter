@@ -2,6 +2,19 @@ extends BossBase
 ## The Upholstered King — final ruler of every seat in the realm.
 
 const FOOTSTOOL_SCRIPT := preload("res://src/enemies/Footstool.gd")
+const ROYAL_HAZARD_SCRIPT := preload("res://src/bosses/RoyalHazard.gd")
+
+var _opening_edict := 0
+var _edict_window_active := false
+var _edict_can_counter := false
+var _edict_countered := false
+var _edict_form: StringName = &""
+var _edict_mechanics: Array[StringName] = []
+var _edict_start_health := -1.0
+var _edict_layer: CanvasLayer
+var _edict_panel: PanelContainer
+var _edict_label: Label
+var _special_player: Node
 
 
 func _ready() -> void:
@@ -13,23 +26,287 @@ func _ready() -> void:
 	body_height = 170.0
 	contact_damage = 1.0
 	super._ready()
+	if is_queued_for_deletion():
+		return
 	# The King is enormous, so melee naturally overlaps him. Keep the contact
 	# hit honest but infrequent enough for the simple demo fighter to trade.
 	for child in get_children():
 		if child is Hitbox and (child as Hitbox).continuous:
 			(child as Hitbox).rehit_interval = 4.5
+	_build_edict_ui()
+
+
+func _on_trigger(body: Node2D) -> void:
+	if not GameState.has_all_final_forms():
+		_show_edict("AUDIENCE DENIED", "Eight earned chairs must answer the Crown.", Color(0.9, 0.3, 0.28))
+		return
+	if not GameState.has_completed_final_trials():
+		_show_edict("HALL UNANSWERED", "Prove all eight chair specials before approaching the Crown.", Color(0.9, 0.3, 0.28))
+		return
+	_bind_special_signal(body)
+	super._on_trigger(body)
+	if active and _edict_panel != null:
+		_edict_panel.visible = false
+
+
+func _on_hit_received(hb: Hitbox) -> void:
+	if _edict_window_active:
+		# Keep the specific chair + hazard instruction on screen. An accidental
+		# primary swing must not replace it with a vague generic warning.
+		return
+	if _opening_edict < 2:
+		# Ordinary swings cannot interrupt the clearly announced response
+		# window. Opening proofs repeat until the named response is performed.
+		_show_edict("THE CROWN COMMANDS A COUNTER", "The next named chair proof starts momentarily.", Color(0.98, 0.72, 0.22))
+		return
+	super._on_hit_received(hb)
+
+
+func _on_player_died() -> void:
+	_clear_edict()
+	super._on_player_died()
+
+
+func _bind_special_signal(player: Node) -> void:
+	if player == null or not player.has_signal("special_used"):
+		return
+	_special_player = player
+	var callback := Callable(self, "_on_special_used")
+	if not player.is_connected("special_used", callback):
+		player.connect("special_used", callback)
+
+
+func _on_special_used(form_id: StringName, mechanic: StringName) -> void:
+	if not active or defeated or not _edict_window_active or not _edict_can_counter:
+		return
+	if form_id != _edict_form or mechanic not in _edict_mechanics:
+		return
+	_edict_countered = true
+	_edict_can_counter = false
+	var def: FormDef = load("res://src/forms/%s.tres" % form_id)
+	var chair_name := def.display_name.to_upper() if def != null else String(form_id).to_upper()
+	_show_edict("RESPONSE SET • %s" % chair_name,
+			"Stay clear until the royal attack passes.", Color(0.72, 0.95, 1.0))
+
+
+func _clear_edict() -> void:
+	_edict_window_active = false
+	_edict_can_counter = false
+	_edict_countered = false
+	_edict_start_health = -1.0
+	_edict_form = &""
+	_edict_mechanics.clear()
+	if _edict_panel != null:
+		_edict_panel.visible = false
+
+
+## Public read-only hooks used by the input-path playthrough. They do not
+## advance the fight; the driver still has to transform and perform specials.
+func announced_edict_form() -> StringName:
+	return _edict_form if _edict_window_active else &""
+
+
+func current_edict_form() -> StringName:
+	# The demo and assistive automation see the requested form only once the
+	# corresponding hazard is live; a telegraph-only button tap is not proof.
+	return _edict_form if _edict_window_active and _edict_can_counter else &""
+
+
+func opening_edicts_complete() -> bool:
+	return _opening_edict >= 2
+
+
+func opening_edict_forms() -> Array[StringName]:
+	return [&"armchair", &"folding"]
 
 
 func _patterns() -> Array[Callable]:
+	# The audience opens with two deterministic form checks. A missed window
+	# repeats after a breather; only the named counter opens ordinary combat.
+	if _opening_edict == 0:
+		return [_grapple_escape]
+	if _opening_edict == 1:
+		return [_fold_sweep]
 	var list: Array[Callable] = [_royal_smash, _summon_court, _cushion_volley]
 	if phase >= 2:
 		list.append(_throne_charge)
+		list.append(_grapple_escape)
+		list.append(_fold_sweep)
 	return list
 
 
 func _on_phase_two() -> void:
 	# A royal tantrum, conducted entirely through upholstery.
 	hop(Vector2(0, -650.0))
+
+
+# -- form-response edicts --------------------------------------------------
+
+func _grapple_escape() -> void:
+	var countered: bool = await _run_edict(
+			&"armchair", [&"grapple"],
+			"FLOOR COLLAPSE • ARMCHAIR",
+			"Switch to ARMCHAIR, then hold SPECIAL near a gold hook.",
+			&"grapple")
+	if countered and _opening_edict == 0:
+		_opening_edict = 1
+
+
+func _fold_sweep() -> void:
+	var countered: bool = await _run_edict(
+			&"folding", [&"fold"],
+			"CROWN SWEEP • FOLDING CHAIR",
+			"Switch to FOLDING, then tap SPECIAL to duck beneath the beam.",
+			&"fold")
+	if countered and _opening_edict == 1:
+		_opening_edict = 2
+
+
+func _run_edict(form_id: StringName, mechanics: Array[StringName], title: String,
+		hint: String, hazard_kind: StringName) -> bool:
+	_edict_form = form_id
+	_edict_mechanics = mechanics
+	_edict_countered = false
+	_edict_window_active = true
+	_edict_can_counter = false
+	var def: FormDef = load("res://src/forms/%s.tres" % form_id)
+	var cue_color := def.body_color.lightened(0.3) if def != null else Color(0.98, 0.72, 0.22)
+	_show_edict(title, hint + "\nREADY — answer after the gold flash.", cue_color)
+	await telegraph(0.7)
+	if not active or defeated:
+		_clear_edict()
+		return false
+	var response_player := player_node()
+	_edict_start_health = response_player.current_health() \
+			if response_player != null and response_player.has_method("current_health") else -1.0
+	# Spawn first, then accept the form response. This guarantees the player is
+	# actually escaping the quake or ducking under the sweep—not cancelling it
+	# with an early input during the warning card.
+	_spawn_edict_hazard(hazard_kind)
+	_edict_can_counter = true
+	_show_edict(title, hint + "\nCOUNTER NOW — the attack is live.", cue_color)
+	var left := 0.9 if hazard_kind == &"grapple" else 2.2
+	while active and not defeated and left > 0.0:
+		await get_tree().physics_frame
+		if not can_process():
+			continue
+		left -= get_physics_process_delta_time()
+	if not active or defeated:
+		_clear_edict()
+		return false
+	_edict_window_active = false
+	var succeeded := _edict_countered and _response_survived(hazard_kind)
+	if succeeded:
+		_confirm_edict_counter(form_id)
+	else:
+		var missed_hint := "Hold the named safe state until the attack has passed." \
+				if _edict_countered else "This proof repeats until you use the named special."
+		_show_edict("EDICT UNANSWERED", missed_hint, Color(0.96, 0.46, 0.34))
+	await wait(0.65)
+	_clear_edict()
+	return succeeded
+
+
+func _response_survived(hazard_kind: StringName) -> bool:
+	var player := player_node()
+	if player == null or not player.has_method("current_health") \
+			or not is_equal_approx(player.current_health(), _edict_start_health):
+		return false
+	if hazard_kind == &"grapple":
+		# A real grapple signal plus unchanged health proves the chair cleared the
+		# live carpet; landing just after it retracts is still a clean escape.
+		return true
+	return GameState.current_form == &"folding" and player.has_method("is_folded") \
+			and player.is_folded()
+
+
+func _confirm_edict_counter(form_id: StringName) -> void:
+	var def: FormDef = load("res://src/forms/%s.tres" % form_id)
+	var chair_name := def.display_name.to_upper() if def != null else String(form_id).to_upper()
+	_show_edict("COUNTERED • %s" % chair_name,
+			"The Crown is staggered — 3 bonus damage!", Color(0.45, 1.0, 0.58))
+	Events.sfx_requested.emit(&"boss_hit")
+	Events.hitstop_requested.emit(0.1)
+	Events.screenshake_requested.emit(5.0, 0.25)
+	if health != null and health.damage(3.0, Vector2.ZERO):
+		Events.boss_health_changed.emit(boss_id, health.current, health.max_health)
+
+
+func _spawn_edict_hazard(kind: StringName) -> void:
+	if kind == &"grapple":
+		# A broad carpet quake leaves the high gold hooks as the clean escape.
+		var section_w := arena_rect.size.x / 3.0
+		for i in 3:
+			_spawn_royal_hazard(
+					Vector2(arena_rect.position.x + section_w * (i + 0.5), arena_rect.end.y - 13.0),
+					Vector2.ZERO, Vector2(section_w - 12.0, 26.0), 0.9,
+					Color(0.96, 0.58, 0.16))
+		Events.screenshake_requested.emit(5.0, 0.3)
+		return
+	# A thick beam clips a standing chair's upper hurtbox but leaves a folded
+	# chair safely below it. Jumping rises farther into the danger band.
+	var player := player_node()
+	var from_left := player == null or player.global_position.x > arena_rect.get_center().x
+	var start_x := arena_rect.position.x - 120.0 if from_left else arena_rect.end.x + 120.0
+	var speed := 760.0 if from_left else -760.0
+	_spawn_royal_hazard(Vector2(start_x, arena_rect.end.y - 82.0),
+			Vector2(speed, 0), Vector2(210.0, 80.0), 2.2, Color(0.72, 0.24, 0.82))
+
+
+func _spawn_royal_hazard(at: Vector2, vel: Vector2, hazard_size: Vector2,
+		life: float, hazard_color: Color) -> void:
+	if not active or defeated:
+		return
+	var hazard := ROYAL_HAZARD_SCRIPT.new()
+	hazard.velocity = vel
+	hazard.size = hazard_size
+	hazard.lifetime = life
+	hazard.color = hazard_color
+	get_parent().add_child(hazard)
+	hazard.global_position = at
+	Events.sfx_requested.emit(&"telegraph")
+
+
+func _build_edict_ui() -> void:
+	_edict_layer = CanvasLayer.new()
+	_edict_layer.layer = 8
+	add_child(_edict_layer)
+	_edict_panel = PanelContainer.new()
+	_edict_panel.anchor_left = 0.5
+	_edict_panel.anchor_right = 0.5
+	_edict_panel.offset_left = -390.0
+	_edict_panel.offset_top = 162.0
+	_edict_panel.offset_right = 390.0
+	_edict_panel.offset_bottom = 262.0
+	_edict_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.07, 0.018, 0.12, 0.94)
+	panel_style.border_color = Color(0.96, 0.76, 0.22, 0.9)
+	panel_style.set_border_width_all(3)
+	panel_style.set_corner_radius_all(14)
+	panel_style.content_margin_left = 20.0
+	panel_style.content_margin_right = 20.0
+	panel_style.content_margin_top = 10.0
+	panel_style.content_margin_bottom = 10.0
+	_edict_panel.add_theme_stylebox_override("panel", panel_style)
+	_edict_layer.add_child(_edict_panel)
+	_edict_label = Label.new()
+	_edict_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_edict_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_edict_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_edict_label.add_theme_font_size_override("font_size", 20)
+	_edict_label.add_theme_color_override("font_outline_color", Color(0.04, 0.01, 0.07))
+	_edict_label.add_theme_constant_override("outline_size", 6)
+	_edict_panel.add_child(_edict_label)
+	_edict_panel.visible = false
+
+
+func _show_edict(title: String, hint: String, color: Color) -> void:
+	if _edict_panel == null or _edict_label == null:
+		return
+	_edict_label.text = "%s\n%s" % [title, hint]
+	_edict_label.add_theme_color_override("font_color", color)
+	_edict_panel.visible = true
 
 
 # -- royal attack patterns --------------------------------------------------
@@ -125,6 +402,7 @@ func _arena_footstool_count() -> int:
 
 
 func _on_died() -> void:
+	_clear_edict()
 	super._on_died()
 	# BossBase fades and frees this node before two seconds elapse. Connect the
 	# SceneTreeTimer to the persistent event bus so the awaited finale cannot be

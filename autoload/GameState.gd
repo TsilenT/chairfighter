@@ -3,12 +3,41 @@ extends Node
 ## unlocked forms, active form, story flags, and the respawn checkpoint.
 ## Mutations emit through the Events bus; consumers never poll each other.
 
-const FORM_ORDER: Array[StringName] = [&"basic", &"armchair", &"office", &"folding", &"rocking"]
+## The basic chair is the starting chassis; the other eight are earned in
+## pairs from the four guardian bosses.  Keeping this order acquisition-first
+## makes cycling and the HUD read as four obvious reward pairs.
+const FORM_ORDER: Array[StringName] = [
+	&"basic",
+	&"armchair", &"recliner",
+	&"office", &"barstool",
+	&"folding", &"highchair",
+	&"rocking", &"stool",
+]
+const REQUIRED_FINAL_FORMS: Array[StringName] = [
+	&"armchair", &"recliner",
+	&"office", &"barstool",
+	&"folding", &"highchair",
+	&"rocking", &"stool",
+]
+const FINAL_GUARDIAN_FLAGS: Array[String] = [
+	"boss_recliner_defeated",
+	"boss_swivel_defeated",
+	"boss_folder_defeated",
+	"boss_granny_defeated",
+]
+const BOSS_FORM_REWARDS := {
+	"boss_recliner_defeated": [&"armchair", &"recliner"],
+	"boss_swivel_defeated": [&"office", &"barstool"],
+	"boss_folder_defeated": [&"folding", &"highchair"],
+	"boss_granny_defeated": [&"rocking", &"stool"],
+}
 
 const START_ZONE := "res://scenes/zones/Workshop.tscn"
 const START_SPAWN := "Default"
+const FINAL_ZONE := "res://scenes/zones/ThroneRoom.tscn"
 const SAVE_PATH := "user://chairfighter_save.json"
 const DEMO_SAVE_PATH := "user://chairfighter_demo_save.json"
+const TEST_SAVE_PATH := "user://chairfighter_test_save.json"
 
 var unlocked_forms: Array[StringName] = [&"basic"]
 var current_form: StringName = &"basic"
@@ -35,6 +64,8 @@ func _ready() -> void:
 ## Route saves to a throwaway path during demo/capture runs so a playthrough
 ## never reads or destroys the real player save.
 func _save_path() -> String:
+	if get_node_or_null("/root/TestRunner") != null:
+		return TEST_SAVE_PATH
 	var dd := get_node_or_null("/root/DemoDriver")
 	if dd != null and dd.active:
 		return DEMO_SAVE_PATH
@@ -61,7 +92,7 @@ func save_game() -> void:
 	if _finished:
 		return
 	var data := {
-		"version": 1,
+		"version": 2,
 		"unlocked_forms": unlocked_forms.map(func(f: StringName) -> String: return String(f)),
 		"current_form": String(current_form),
 		"flags": flags,
@@ -87,6 +118,7 @@ func load_game() -> bool:
 	if not (data is Dictionary):
 		push_error("[GameState] Corrupt save; starting fresh")
 		return false
+	var save_version := int(data.get("version", 1))
 	unlocked_forms.clear()
 	for name in data.get("unlocked_forms", ["basic"]):
 		var id := StringName(String(name))
@@ -94,15 +126,33 @@ func load_game() -> bool:
 			unlocked_forms.append(id)
 	if unlocked_forms.is_empty():
 		unlocked_forms = [&"basic"]
+	flags = data.get("flags", {})
+	# Version-1 saves may already have a defeated boss whose newly-added
+	# companion reward was not present when that save was written. Repair the
+	# reward set silently so loading an old run can never strand progression.
+	_repair_unlocks_from_flags()
 	current_form = StringName(String(data.get("current_form", "basic")))
 	if current_form not in unlocked_forms:
 		current_form = unlocked_forms[0]
-	flags = data.get("flags", {})
 	checkpoint_zone = String(data.get("checkpoint_zone", START_ZONE))
 	checkpoint_spawn = String(data.get("checkpoint_spawn", START_SPAWN))
 	if not ResourceLoader.exists(checkpoint_zone):
 		checkpoint_zone = START_ZONE
 		checkpoint_spawn = START_SPAWN
+	# Version-1 allowed the Throne after the third guardian, and its PreBoss
+	# marker now sits beyond the new Hall of Eight. Never materialize an old or
+	# incomplete save on the wrong side of the new progression checks.
+	var invalid_final_checkpoint := checkpoint_zone == FINAL_ZONE and (
+			save_version < 2
+			or not has_defeated_all_guardians()
+			or (checkpoint_spawn == "PreBoss" and not has_completed_final_trials()))
+	if invalid_final_checkpoint:
+		checkpoint_zone = START_ZONE
+		checkpoint_spawn = START_SPAWN
+	# The King flag is written before the two-second ending beat. Recover that
+	# terminal transition from any checkpoint if the process closed in between.
+	if has_flag("boss_king_defeated"):
+		_emit_recovered_victory.call_deferred()
 	return true
 
 
@@ -112,20 +162,55 @@ func clear_save() -> void:
 
 
 func unlock_form(id: StringName) -> void:
-	if id in unlocked_forms:
+	var ids: Array[StringName] = [id]
+	unlock_forms(ids)
+
+
+## Award a boss's pair atomically. Both rewards are present before either
+## announcement fires, and the first reward remains selected so the signature
+## progression form (grapple/dash/fold/launch) is immediately demonstrated.
+func unlock_forms(ids: Array[StringName]) -> void:
+	var added: Array[StringName] = []
+	for id in ids:
+		if id in unlocked_forms or id in added:
+			continue
+		if id not in FORM_ORDER:
+			push_error("[GameState] Unknown form: %s" % id)
+			continue
+		added.append(id)
+	if added.is_empty():
 		return
-	if id not in FORM_ORDER:
-		push_error("[GameState] Unknown form: %s" % id)
-		return
-	unlocked_forms.append(id)
+	unlocked_forms.append_array(added)
 	# Switch BEFORE announcing so the form_unlocked autosave snapshots the
-	# new active form, not the one the player is leaving.
-	set_form(id)
-	Events.form_unlocked.emit(id)
+	# complete pair and the intended active form.
+	set_form(added[0])
+	for id in added:
+		Events.form_unlocked.emit(id)
 
 
 func is_unlocked(id: StringName) -> bool:
 	return id in unlocked_forms
+
+
+func has_all_final_forms() -> bool:
+	for id in REQUIRED_FINAL_FORMS:
+		if not is_unlocked(id):
+			return false
+	return true
+
+
+func has_completed_final_trials() -> bool:
+	for id in REQUIRED_FINAL_FORMS:
+		if not has_flag("final_trial_%s" % id):
+			return false
+	return true
+
+
+func has_defeated_all_guardians() -> bool:
+	for flag in FINAL_GUARDIAN_FLAGS:
+		if not has_flag(flag):
+			return false
+	return true
 
 
 func set_form(id: StringName) -> bool:
@@ -166,3 +251,17 @@ func set_checkpoint(zone_path: String, spawn: String) -> void:
 	checkpoint_zone = zone_path
 	checkpoint_spawn = spawn
 	Events.checkpoint_activated.emit(zone_path, spawn)
+
+
+func _repair_unlocks_from_flags() -> void:
+	for flag: String in BOSS_FORM_REWARDS:
+		if not has_flag(flag):
+			continue
+		for id: StringName in BOSS_FORM_REWARDS[flag]:
+			if id in FORM_ORDER and id not in unlocked_forms:
+				unlocked_forms.append(id)
+
+
+func _emit_recovered_victory() -> void:
+	if has_flag("boss_king_defeated"):
+		Events.game_won.emit()

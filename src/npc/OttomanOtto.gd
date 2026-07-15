@@ -5,10 +5,10 @@ extends Node2D
 
 const LINES := {
 	0: "Oh! A basic chair, out HERE? The Lounge is thataway. Mind the footstools — they bite shins.",
-	1: "You BEAT the Baron?! Try holding K (pad B) near those golden hooks. I'd do it myself but... no arms.",
-	2: "Wheels! Fancy. I hear the Storage Closet wall cracks if you hit it at speed. Not that I've tried. No wheels.",
-	3: "You can FOLD?! Unnatural. Magnificent. There's a draft from that hatch past the Lounge door — something regal down there.",
-	4: "The King himself... good luck, friend. Sit hard, sit true.",
+	1: "The Baron left TWO tricks! Armchair grapples to the Office route; Recliner braces and counters. Q / E swaps.",
+	2: "Office Chair dashes through the tall left gate; Bar Stool spins projectiles back. Storage is next.",
+	3: "Folding Chair squeezes and springs; High Chair throws its tray. The Folder opened Granny's Parlor.",
+	4: "Eight forms! The Throne seal is open. Its Hall tests every SPECIAL — Q / E swaps chairs.",
 }
 
 var _bubble: Label
@@ -52,10 +52,16 @@ func _ready() -> void:
 
 
 func _refresh() -> void:
-	var stage: int = GameState.unlocked_forms.size() - 1
-	if GameState.has_flag("boss_king_defeated"):
+	var stage := 0
+	if GameState.has_flag("boss_recliner_defeated"):
+		stage = 1
+	if GameState.has_flag("boss_swivel_defeated"):
+		stage = 2
+	if GameState.has_flag("boss_folder_defeated"):
+		stage = 3
+	if GameState.has_flag("boss_granny_defeated") or GameState.has_flag("boss_king_defeated"):
 		stage = 4
-	_bubble.text = LINES.get(clampi(stage, 0, 4), LINES[0])
+	_bubble.text = LINES[stage]
 	_bubble.visible = _player_near
 
 

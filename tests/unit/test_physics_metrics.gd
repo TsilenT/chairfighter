@@ -15,7 +15,7 @@ func run(tree: SceneTree) -> Array:
 	var fails: Array[String] = []
 	var gs := tree.root.get_node("/root/GameState")
 	gs.new_game()
-	for id in [&"armchair", &"office", &"folding", &"rocking"]:
+	for id: StringName in gs.REQUIRED_FINAL_FORMS:
 		gs.unlock_form(id)
 
 	_sandbox = Node2D.new()

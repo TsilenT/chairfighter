@@ -168,6 +168,8 @@ func _on_player_died() -> void:
 
 
 func _on_game_won() -> void:
+	if _ending:
+		return
 	# Terminal state: no further zone changes, respawns, or pausing.
 	_ending = true
 	_pending_zone = []

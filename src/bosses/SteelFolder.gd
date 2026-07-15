@@ -1,5 +1,5 @@
 extends BossBase
-## The Steel Folder — Storage Closet boss, unlocks the Folding Chair.
+## The Steel Folder — Storage boss, unlocks Folding Chair + High Chair.
 ## A hostile folding chair that weaponizes its suspiciously compact profile.
 
 var _flat_pose := false
@@ -10,7 +10,7 @@ func _ready() -> void:
 	boss_id = &"folder"
 	display_name = "The Steel Folder"
 	max_health = 40.0  # tuned down at integration: fast mover, casual difficulty
-	unlock_form_id = &"folding"
+	unlock_form_ids = [&"folding", &"highchair"]
 	body_half_width = 50.0
 	body_height = 130.0
 	contact_damage = 1.0

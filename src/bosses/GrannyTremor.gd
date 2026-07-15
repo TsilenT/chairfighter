@@ -1,5 +1,5 @@
 extends BossBase
-## Granny Tremor — Parlor boss, unlocks the Rocking Chair.
+## Granny Tremor — Parlor boss, unlocks Rocking Chair + Spring Stool.
 ##
 ## Her floor passes teach the launch's hop timing; her stomp previews the
 ## ground-shaking landing that the player earns by defeating her.
@@ -17,7 +17,7 @@ func _ready() -> void:
 	boss_id = &"granny"
 	display_name = "Granny Tremor"
 	max_health = 55.0
-	unlock_form_id = &"rocking"
+	unlock_form_ids = [&"rocking", &"stool"]
 	body_half_width = 55.0
 	body_height = 130.0
 	contact_damage = 1.0

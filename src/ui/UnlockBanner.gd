@@ -5,16 +5,48 @@ extends Control
 @onready var _title: Label = $Panel/VBox/Title
 @onready var _blurb: Label = $Panel/VBox/Blurb
 
+var _pending: Array[Dictionary] = []
+var _showing := false
+var _announced_progress := 0
+
 
 func _ready() -> void:
 	Events.unlock_banner_requested.connect(_show_banner)
 	_panel.visible = false
+	for id: StringName in GameState.REQUIRED_FINAL_FORMS:
+		if GameState.is_unlocked(id):
+			_announced_progress += 1
 
 
 func _show_banner(form_id: StringName, display_name: String, blurb: String) -> void:
-	var def: FormDef = load("res://src/forms/%s.tres" % form_id)
-	_title.text = "NEW FORM — %s" % display_name.to_upper()
-	_blurb.text = blurb
+	var progress := 0
+	if form_id in GameState.REQUIRED_FINAL_FORMS:
+		_announced_progress = mini(_announced_progress + 1, GameState.REQUIRED_FINAL_FORMS.size())
+		progress = _announced_progress
+	_pending.append({"id": form_id, "name": display_name, "blurb": blurb, "progress": progress})
+	if not _showing:
+		_drain_queue.call_deferred()
+
+
+func _drain_queue() -> void:
+	if _showing:
+		return
+	_showing = true
+	while not _pending.is_empty():
+		var reward: Dictionary = _pending.pop_front()
+		await _present(reward)
+	_showing = false
+
+
+func _present(reward: Dictionary) -> void:
+	var form_id := StringName(String(reward["id"]))
+	var def := load("res://src/forms/%s.tres" % form_id) as FormDef
+	var reward_number := int(reward.get("progress", 0))
+	if reward_number > 0:
+		_title.text = "UNLOCK %d / 8 — %s" % [reward_number, String(reward["name"]).to_upper()]
+	else:
+		_title.text = "NEW FORM — %s" % String(reward["name"]).to_upper()
+	_blurb.text = String(reward["blurb"])
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = def.body_color.darkened(0.45) if def != null else Color(0.2, 0.2, 0.2)
 	sb.bg_color.a = 0.92
@@ -29,6 +61,7 @@ func _show_banner(form_id: StringName, display_name: String, blurb: String) -> v
 	Events.sfx_requested.emit(&"unlock")
 	var tween := create_tween()
 	tween.tween_property(_panel, "modulate:a", 1.0, 0.3)
-	tween.tween_interval(3.0)
-	tween.tween_property(_panel, "modulate:a", 0.0, 0.7)
-	tween.tween_callback(func() -> void: _panel.visible = false)
+	tween.tween_interval(2.1)
+	tween.tween_property(_panel, "modulate:a", 0.0, 0.45)
+	await tween.finished
+	_panel.visible = false

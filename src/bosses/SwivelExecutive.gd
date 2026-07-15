@@ -1,5 +1,5 @@
 extends "res://src/bosses/BossBase.gd"
-## The Swivel Executive — Office Complex boss, unlocks the Office Chair.
+## The Swivel Executive — Office boss, unlocks Office Chair + Bar Stool.
 ##
 ## Patterns: an arena-wide rolling charge, a shower of overdue paperwork,
 ## and a swivel-assisted hop that ends in a pair of low shockwaves. Phase 2
@@ -16,7 +16,7 @@ func _ready() -> void:
 	boss_id = &"swivel"
 	display_name = "The Swivel Executive"
 	max_health = 50.0
-	unlock_form_id = &"office"
+	unlock_form_ids = [&"office", &"barstool"]
 	body_half_width = 60.0
 	body_height = 110.0
 	contact_damage = 1.0

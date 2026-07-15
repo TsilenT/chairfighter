@@ -1,13 +1,14 @@
 class_name Door
 extends Area2D
 ## Zone exit. Classic "press UP to enter" while standing in the doorway —
-## walking past a door never teleports. Optionally locked behind a flag
-## (e.g. a boss defeat) — locked doors render barred and refuse entry.
+## walking past a door never teleports. Optionally locked behind one or more
+## flags (e.g. boss defeats) — locked doors render barred and refuse entry.
 ## Origin = center of the doorway.
 
 @export var target_zone_path: String
 @export var target_spawn: String = "Default"
 @export var required_flag: String = ""
+@export var required_flags: Array[String] = []
 @export var label_text: String = ""
 @export var doorway_size := Vector2(72, 110)
 
@@ -37,7 +38,12 @@ func _ready() -> void:
 
 
 func is_open() -> bool:
-	return required_flag.is_empty() or GameState.has_flag(required_flag)
+	if not required_flag.is_empty() and not GameState.has_flag(required_flag):
+		return false
+	for flag in required_flags:
+		if not GameState.has_flag(flag):
+			return false
+	return true
 
 
 func _physics_process(delta: float) -> void:
@@ -78,3 +84,14 @@ func _draw() -> void:
 		for i in 3:
 			var x := -half.x + doorway_size.x * (0.25 + 0.25 * i)
 			draw_line(Vector2(x, -half.y + 6), Vector2(x, half.y - 6), Color(0.55, 0.45, 0.4), 5.0)
+	# Multi-guardian seals show their progress directly on the door. Four
+	# little studs are much easier to read than repeatedly trying a locked exit.
+	if not required_flags.is_empty():
+		var spacing := 14.0
+		var start_x := -spacing * (required_flags.size() - 1) * 0.5
+		for i in required_flags.size():
+			var earned := GameState.has_flag(required_flags[i])
+			var pip_color := Color(0.98, 0.82, 0.3) if earned else Color(0.34, 0.18, 0.18)
+			draw_circle(Vector2(start_x + i * spacing, half.y - 12.0), 5.0, pip_color)
+			draw_circle(Vector2(start_x + i * spacing, half.y - 12.0), 5.0,
+					Color(0.12, 0.08, 0.06), false, 1.5)

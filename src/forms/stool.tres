@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="FormDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/player/FormDef.gd" id="1_formdef"]
+
+[resource]
+script = ExtResource("1_formdef")
+id = &"stool"
+display_name = "Spring Stool"
+run_speed = 400.0
+accel = 3150.0
+decel = 3300.0
+air_control = 0.88
+jump_height = 165.0
+time_to_apex = 0.37
+fall_gravity_mult = 1.65
+attack_damage = 1.5
+attack_cooldown = 0.22
+attack_style = &"leg_kick"
+attack_size = Vector2(78, 44)
+attack_offset = Vector2(4, -21)
+attack_active_time = 0.12
+attack_knockback = 350.0
+attack_impulse = 115.0
+collider_height = 48.0
+body_color = Color(0.58, 0.22, 0.54, 1)
+unlock_blurb = "Tap K (pad B) in midair to POGO-JUMP once. Tiny seat, enormous bounce!"

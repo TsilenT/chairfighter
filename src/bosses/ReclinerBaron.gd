@@ -1,5 +1,5 @@
 extends BossBase
-## The Recliner Baron — Lounge boss, unlocks Armchair. REFERENCE BOSS:
+## The Recliner Baron — Lounge boss, unlocks Armchair + Recliner. REFERENCE BOSS:
 ## other bosses follow this shape (telegraphed async patterns + phase 2).
 ##
 ## Patterns: footrest jab (lunge), cushion toss (arced projectiles),
@@ -13,7 +13,7 @@ func _ready() -> void:
 	boss_id = &"recliner"
 	display_name = "The Recliner Baron"
 	max_health = 34.0  # first boss, casual on-ramp
-	unlock_form_id = &"armchair"
+	unlock_form_ids = [&"armchair", &"recliner"]
 	body_half_width = 66.0
 	body_height = 128.0
 	super._ready()

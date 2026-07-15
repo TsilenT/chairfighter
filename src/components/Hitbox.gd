@@ -36,7 +36,10 @@ func activate(duration: float) -> void:
 
 func deactivate() -> void:
 	_burst_left = 0.0
-	monitoring = continuous
+	# Deactivation can be triggered by a damage callback while physics is
+	# flushing Area2D overlaps (for example, an enemy hits a spinning Bar
+	# Stool). Defer the monitor mutation so that response is always legal.
+	set_deferred("monitoring", continuous)
 	_hit_expiry.clear()
 
 

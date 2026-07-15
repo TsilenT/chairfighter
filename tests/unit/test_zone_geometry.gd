@@ -8,7 +8,8 @@ extends RefCounted
 ##   Route/ children are either Marker2D (single route) or Node2D sub-routes
 ##   containing ordered Marker2D children. Marker metadata:
 ##     mode: how you ARRIVE here from the previous marker —
-##       start|walk|jump|drop|grapple|dash_tunnel|speed_gate|vent|spring|door|fight
+##       start|walk|jump|drop|grapple|dash_tunnel|speed_gate|vent|spring|
+##       launch|smash|royal_trial|door|fight
 ##     form: form id required for this leg (default "basic")
 
 const ZONES: Array[String] = [
@@ -32,7 +33,7 @@ const SPRING_DX_MAX := 130.0
 const LAUNCH_UP_MAX := 240.0   # rocking charge-launch (capability 260)
 const LAUNCH_DX_MAX := 220.0
 const RUN_DX_MAX := 900.0
-const REACH_UP_FULL := 240.0   # best vertical with all unlocks (launch)
+const REACH_UP_FULL := 450.0   # launch chained into one midair pogo
 const REACH_GAP_FULL := 240.0  # generous horizontal reach envelope
 
 
@@ -161,6 +162,15 @@ func _validate_route(zone: Node2D, route_name: String, markers: Array) -> Array[
 					fails.append("%s: smash must descend (ascends %.0fpx)" % [leg, up])
 				if _nearest_cracked_floor(zone, cur.global_position) > 120.0:
 					fails.append("%s: no cracked floor within 120px of the smash marker" % leg)
+			"royal_trial":
+				var gate := _nearest_royal_trial(zone, cur.global_position)
+				if gate == null:
+					fails.append("%s: no RoyalTrialGate near marker" % leg)
+				elif gate.required_form != form_id:
+					fails.append("%s: nearby trial requires %s, marker declares %s" % [
+						leg, gate.required_form, form_id])
+				elif StringName(gate.required_mechanic) == &"":
+					fails.append("%s: trial has no required mechanic" % leg)
 			_:
 				fails.append("%s: unknown mode '%s'" % [leg, mode])
 	return fails
@@ -186,6 +196,19 @@ func _nearest_anchor(zone: Node2D, from: Vector2) -> Node2D:
 		if dist < best_dist:
 			best_dist = dist
 			best = anchor
+	return best
+
+
+func _nearest_royal_trial(zone: Node2D, from: Vector2) -> RoyalTrialGate:
+	var best: RoyalTrialGate = null
+	var best_dist := 120.0
+	for node in zone.get_tree().get_nodes_in_group("royal_trials"):
+		if not (node is Node2D) or not zone.is_ancestor_of(node):
+			continue
+		var dist := (node as Node2D).global_position.distance_to(from)
+		if dist < best_dist:
+			best_dist = dist
+			best = node as RoyalTrialGate
 	return best
 
 

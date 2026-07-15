@@ -100,15 +100,24 @@ Dash tunnels are 40px tall (dash collider 32). Vents 26–28px (folded 20).
 
 ## Progression flags & forms (fixed vocabulary)
 
-Forms: `basic`, `armchair`, `office`, `folding`, `rocking`.
+Forms (fixed cycling order): `basic`, `armchair`, `recliner`, `office`,
+`barstool`, `folding`, `highchair`, `rocking`, `stool`.
 Boss flags (auto from boss_id): `boss_recliner_defeated`, `boss_swivel_defeated`,
-`boss_folder_defeated`, `boss_king_defeated`, `boss_granny_defeated`.
+`boss_folder_defeated`, `boss_granny_defeated`, `boss_king_defeated`. The four
+guardian flags are all required at the Workshop's Throne door. Guardian reward
+pairs, in cycling/finale order, are Armchair + Recliner, Office Chair + Bar
+Stool, Folding Chair + High Chair, and Rocking Chair + Spring Stool.
+The final Hall uses eight `RoyalTrialGate` nodes in that same form order. A
+successful real `Player.special_used(form, mechanic)` sets the durable flag
+`final_trial_<form>`; the post-Hall checkpoint and King must never be reachable
+without all eight. Trial seals must exceed the combined Rocking-launch +
+Spring-Stool-pogo envelope (currently 450px plus body/margin).
 World objects also include `src/world/CrackedFloor.gd` (origin TOP-LEFT, `size`,
 optional `break_flag`; shatters under a rocking slam landing — the player's
 launch/high-fall landing calls `crack_break()`).
-Zone scene paths: `res://scenes/zones/{Workshop,Lounge,OfficeComplex,StorageCloset,ThroneRoom}.tscn`.
+Zone scene paths: `res://scenes/zones/{Workshop,Lounge,OfficeComplex,StorageCloset,Parlor,ThroneRoom}.tscn`.
 Workshop return spawns (use as your exit-door target_spawn):
-`FromLounge`, `FromOffice`, `FromStorage`, `FromThrone`.
+`FromLounge`, `FromOffice`, `FromStorage`, `FromParlor`, `FromThrone`.
 
 ## Playthrough segment (`tests/playthrough/seg_<zone>.json`)
 
@@ -118,7 +127,9 @@ input. Ops: `tap|press|release` (action), `jump` (hold=secs), `walk_until_x`
 `special_tap`, `special_hold` (secs), `transform_to` (form), `wait` (secs),
 `wait_zone` (zone display name), `wait_flag` (flag), `wait_on_floor`,
 `auto_fight` (boss=<boss_id>, flag=<defeat flag>), `assert_flag`,
-`assert_zone`, `screenshot` (name). First steps for a segment:
+`assert_zone`, `assert_form`, `assert_health` (health), `wait_boss_cue`
+(announced form), `wait_boss_edict` (live counter form), `wait_boss_open`, and
+`screenshot` (name). First steps for a segment:
 ```json
 [{"op":"wait","secs":1.0},{"op":"tap","action":"ui_accept"},
  {"op":"wait_zone","zone":"The Workshop"},
