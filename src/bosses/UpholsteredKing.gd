@@ -8,6 +8,7 @@ var _opening_edict := 0
 var _edict_window_active := false
 var _edict_can_counter := false
 var _edict_countered := false
+var _edict_escape_proved := false
 var _edict_form: StringName = &""
 var _edict_mechanics: Array[StringName] = []
 var _edict_start_health := -1.0
@@ -93,6 +94,7 @@ func _clear_edict() -> void:
 	_edict_window_active = false
 	_edict_can_counter = false
 	_edict_countered = false
+	_edict_escape_proved = false
 	_edict_start_health = -1.0
 	_edict_form = &""
 	_edict_mechanics.clear()
@@ -167,6 +169,7 @@ func _run_edict(form_id: StringName, mechanics: Array[StringName], title: String
 	_edict_form = form_id
 	_edict_mechanics = mechanics
 	_edict_countered = false
+	_edict_escape_proved = false
 	_edict_window_active = true
 	_edict_can_counter = false
 	var def: FormDef = load("res://src/forms/%s.tres" % form_id)
@@ -190,6 +193,12 @@ func _run_edict(form_id: StringName, mechanics: Array[StringName], title: String
 		await get_tree().physics_frame
 		if not can_process():
 			continue
+		if hazard_kind == &"grapple":
+			var live_player := player_node()
+			if live_player != null and live_player.has_method("is_grappling") \
+					and live_player.is_grappling() \
+					and live_player.global_position.y <= arena_rect.end.y - 80.0:
+				_edict_escape_proved = true
 		left -= get_physics_process_delta_time()
 	if not active or defeated:
 		_clear_edict()
@@ -212,10 +221,11 @@ func _response_survived(hazard_kind: StringName) -> bool:
 	if player == null or not player.has_method("current_health"):
 		return false
 	if hazard_kind == &"grapple":
-		# The live-window grapple signal is the proof. A late carpet graze may cost
-		# health, but must not silently repeat the edict and trap the player in an
-		# automation-hostile damage loop after they performed the named mechanic.
-		return true
+		# A clean response keeps its health. If the carpet grazes the launch frame,
+		# accept only a grapple observed above the danger strip while the response
+		# was live; merely tapping grapple and remaining on the floor is not proof.
+		var unharmed := is_equal_approx(player.current_health(), _edict_start_health)
+		return unharmed or _edict_escape_proved
 	if not is_equal_approx(player.current_health(), _edict_start_health):
 		return false
 	return GameState.current_form == &"folding" and player.has_method("is_folded") \

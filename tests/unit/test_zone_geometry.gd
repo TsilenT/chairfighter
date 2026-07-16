@@ -28,13 +28,16 @@ const WALK_UP_MAX := 8.0
 const DROP_DX_MAX := 170.0
 const GRAPPLE_ANCHOR_MAX := 360.0
 const GRAPPLE_LANDING_MAX := 285.0
-const GRAPPLE_LEG_MIN := 350.0  # ordinary running jumps must not clear it
+const GRAPPLE_LEG_MIN := 350.0
+const GRAPPLE_PHYSICAL_GAP_MIN := 300.0  # ordinary running jumps must not clear it
 const POGO_UP_MAX := 210.0
 const POGO_DX_MAX := 220.0
 const RUN_DX_MAX := 900.0
 const REACH_UP_FULL := 420.0   # Spring Stool normal jump + one pogo
 const REACH_GAP_FULL := 240.0  # generous horizontal reach envelope
 const SPEED_GATE_MIN_HEIGHT := 500.0
+const SPEED_GATE_FLOOR_Y := 400.0
+const SPEED_GATE_CEILING_MAX_Y := -100.0
 
 
 func run(tree: SceneTree) -> Array:
@@ -122,6 +125,15 @@ func _validate_route(zone: Node2D, route_name: String, markers: Array) -> Array[
 					fails.append("%s: grapple leg must declare form=armchair" % leg)
 				if absf(d.y) < 100.0 and dx < GRAPPLE_LEG_MIN:
 					fails.append("%s: grapple span %.0fpx is short enough for an ordinary running jump" % [leg, dx])
+				if absf(d.y) < 100.0:
+					var takeoff_platform := _platform_beneath_marker(zone, prev.global_position)
+					var landing_platform := _platform_beneath_marker(zone, cur.global_position)
+					if takeoff_platform == null or landing_platform == null:
+						fails.append("%s: cannot resolve physical takeoff/landing platforms" % leg)
+					else:
+						var physical_gap := _horizontal_gap(takeoff_platform.top_rect(), landing_platform.top_rect())
+						if physical_gap < GRAPPLE_PHYSICAL_GAP_MIN:
+							fails.append("%s: physical platform gap %.0fpx remains ordinary-jumpable" % [leg, physical_gap])
 				var anchor := _best_anchor_for_leg(zone, prev.global_position, cur.global_position)
 				if anchor == null:
 					fails.append("%s: no grapple anchor in zone" % leg)
@@ -176,10 +188,27 @@ func _validate_speed_gates(zone: Node2D) -> Array[String]:
 	var fails: Array[String] = []
 	for node in zone.find_children("*", "", true, false):
 		var gate := node as SpeedGate
-		if gate != null and gate.size.y < SPEED_GATE_MIN_HEIGHT:
-			fails.append("speed gate '%s' is only %.0fpx tall; enhanced jumps can bypass it" % [
-					gate.name, gate.size.y])
+		if gate == null:
+			continue
+		if gate.size.y < SPEED_GATE_MIN_HEIGHT:
+			fails.append("speed gate '%s' is only %.0fpx tall; enhanced jumps can bypass it" % [gate.name, gate.size.y])
+		if not is_equal_approx(gate.global_position.y + gate.size.y, SPEED_GATE_FLOOR_Y):
+			fails.append("speed gate '%s' does not meet the %.0fpx floor" % [gate.name, SPEED_GATE_FLOOR_Y])
+		if gate.global_position.y > SPEED_GATE_CEILING_MAX_Y:
+			fails.append("speed gate '%s' leaves a jumpable opening above it" % gate.name)
 	return fails
+
+
+func _platform_beneath_marker(zone: Node2D, point: Vector2) -> Node2D:
+	for node in zone.get_tree().get_nodes_in_group("platforms"):
+		var platform := node as Node2D
+		if platform == null or not zone.is_ancestor_of(platform) or not platform.has_method("top_rect"):
+			continue
+		var rect: Rect2 = platform.top_rect()
+		if point.x >= rect.position.x - 24.0 and point.x <= rect.end.x + 24.0 \
+				and absf(point.y - rect.position.y) <= 48.0:
+			return platform
+	return null
 
 
 func _nearest_cracked_floor(zone: Node2D, from: Vector2) -> float:

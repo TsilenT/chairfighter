@@ -147,16 +147,30 @@ func run(tree: SceneTree) -> Array:
 	await _begin_jump(tree)
 	var slam_before := _count_mechanic(used_mechanics, &"slam")
 	Input.action_press("special")
-	await tree.physics_frame
+	var slam_activated := false
+	for _i in 4:
+		await tree.physics_frame
+		if player.get("_slam_committed"):
+			slam_activated = true
+			break
 	Input.action_release("special")
+	var slam_start_y := player.global_position.y
+	if not slam_activated:
+		fails.append("rocking: airborne special never committed the downward slam")
+	elif player.velocity.y < Player.SLAM_FALL_SPEED:
+		fails.append("rocking: airborne special manufactured upward traversal before slamming")
+	var slam_min_y := player.global_position.y
 	var slam_guard := 0
 	while not player.is_on_floor() and slam_guard < 120:
 		await tree.physics_frame
+		slam_min_y = minf(slam_min_y, player.global_position.y)
 		slam_guard += 1
 	for _i in 2:
 		await tree.physics_frame
 	if _count_mechanic(used_mechanics, &"slam") != slam_before + 1:
 		fails.append("rocking: committed descent did not emit one landing slam")
+	if slam_min_y < slam_start_y - 1.0:
+		fails.append("rocking: slam path rose above its activation point")
 
 	# Stool pogo is available once per airtime and refreshes only on landing.
 	gs.set_form(&"stool")

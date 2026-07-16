@@ -209,7 +209,7 @@ Traversal uses:
 
 Combat uses:
 
-- Charged slam.
+- Committed downward slam.
 - Ground shockwave.
 - Better damage against armored enemies.
 
@@ -218,31 +218,26 @@ Map gates:
 - Cracked floors.
 - Downward smash routes and impact switches.
 
-### 4.6 Throne Form
+### 4.6 Spring Stool Form
 
-**Boss Source:** The Upholstered King.
+**Boss Source:** Granny Tremor.
 
-**Fantasy:** Heavy royal chair with authority and mass.
+**Fantasy:** A compact spring-loaded stool that turns a normal jump into one airborne pogo.
 
-**Unique Mechanic:** Heavy stance / command aura.
+**Unique Mechanic:** One midair pogo, refreshed on landing.
 
 Traversal uses:
 
-- Resist wind, water currents, or conveyor belts.
-- Sink through weak platforms.
-- Hold down large pressure plates.
+- Gain extra vertical reach after committing to a normal jump.
+- Reach high ledges and ascending routes that no other chair can clear.
 
 Combat uses:
 
-- Slow heavy attack.
-- Brief armor while planted.
-- Intimidation aura that stuns small enemies.
+- Pogo impact damages enemies beneath the stool.
 
 Map gates:
 
-- Heavy pressure switches.
-- Wind tunnels.
-- Breakable weak floors.
+- High ledges and pogo staircases.
 
 ---
 
@@ -359,30 +354,27 @@ Rocking Chair gates:
 - Cracked floors.
 - Downward smash routes.
 
-Throne gates:
+Spring Stool gates:
 
-- Heavy pressure plates.
-- Wind tunnels.
-- Weak floors.
+- High ledges.
+- Pogo staircases.
 
 ### 6.2 Recommended Unlock Order
 
-For a first implementation, use this order:
+The implemented paired-reward order is:
 
 1. Basic Chair.
-2. Armchair.
-3. Office Chair.
-4. Folding Chair.
-5. Rocking Chair.
-6. Throne.
+2. Armchair + Recliner.
+3. Office Chair + Bar Stool.
+4. Folding Chair + High Chair.
+5. Rocking Chair + Spring Stool.
 
 Reasoning:
 
-- Armchair teaches deliberate traversal first.
-- Office Chair adds speed and momentum second.
-- Folding Chair adds state switching third.
-- Rocking Chair adds charge/timing fourth.
-- Throne adds heavy environmental interactions later.
+- Armchair teaches deliberate traversal first, while Recliner teaches defense.
+- Office Chair adds speed and Bar Stool adds projectile reflection.
+- Folding Chair adds low-profile state switching; High Chair adds ranged combat.
+- Rocking Chair adds committed downward traversal; Spring Stool exclusively adds enhanced vertical reach.
 
 ---
 
