@@ -130,6 +130,34 @@ func run(tree: SceneTree) -> Array:
 		tray.queue_free()
 	await tree.physics_frame
 
+	# Folding is the low-profile specialist, not another high-jump form.
+	gs.set_form(&"folding")
+	await _settle(tree, player)
+	await _tap(tree, "special")
+	var folded_y := player.global_position.y
+	await _begin_jump(tree)
+	if not player.is_folded() or absf(player.global_position.y - folded_y) > 2.0:
+		fails.append("folding: jump while folded should not spring or unfold")
+	await _tap(tree, "special")
+
+	# Rocking Chair converts an ordinary jump into a committed downward slam;
+	# it must never manufacture extra upward traversal.
+	gs.set_form(&"rocking")
+	await _settle(tree, player)
+	await _begin_jump(tree)
+	var slam_before := _count_mechanic(used_mechanics, &"slam")
+	Input.action_press("special")
+	await tree.physics_frame
+	Input.action_release("special")
+	var slam_guard := 0
+	while not player.is_on_floor() and slam_guard < 120:
+		await tree.physics_frame
+		slam_guard += 1
+	for _i in 2:
+		await tree.physics_frame
+	if _count_mechanic(used_mechanics, &"slam") != slam_before + 1:
+		fails.append("rocking: committed descent did not emit one landing slam")
+
 	# Stool pogo is available once per airtime and refreshes only on landing.
 	gs.set_form(&"stool")
 	await _settle(tree, player)

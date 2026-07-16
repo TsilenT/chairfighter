@@ -168,7 +168,7 @@ func unlock_form(id: StringName) -> void:
 
 ## Award a boss's pair atomically. Both rewards are present before either
 ## announcement fires, and the first reward remains selected so the signature
-## progression form (grapple/dash/fold/launch) is immediately demonstrated.
+## progression form (grapple/dash/fold/slam) is immediately demonstrated.
 func unlock_forms(ids: Array[StringName]) -> void:
 	var added: Array[StringName] = []
 	for id in ids:

@@ -20,9 +20,9 @@ const FORM_HINTS := {
 	&"recliner": "K / pad B (hold) — brace and counter",
 	&"office": "K / pad B — dash through cracks",
 	&"barstool": "K / pad B (hold) — spin and reflect",
-	&"folding": "K / pad B — fold · jump folded to spring",
+	&"folding": "K / pad B — fold flat for low passages",
 	&"highchair": "K / pad B — throw the tray",
-	&"rocking": "K hold/release — launch · hard landing slams",
+	&"rocking": "K / pad B in midair — slam straight down",
 	&"stool": "K / pad B in midair — pogo jump",
 }
 

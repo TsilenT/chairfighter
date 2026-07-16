@@ -49,7 +49,7 @@ position = Vector2(-100, 400)
 
 [node name="EntryFloorTakeoff" type="StaticBody2D" parent="Geometry"]
 script = ExtResource("3_platform")
-size = Vector2(300, 96)
+size = Vector2(190, 96)
 position = Vector2(350, 400)
 
 [node name="CubicleFloorLanding" type="StaticBody2D" parent="Geometry"]
@@ -64,7 +64,7 @@ position = Vector2(1250, 400)
 
 [node name="CubicleFloorEast" type="StaticBody2D" parent="Geometry"]
 script = ExtResource("3_platform")
-size = Vector2(430, 96)
+size = Vector2(320, 96)
 position = Vector2(1750, 400)
 
 [node name="PreBossLanding" type="StaticBody2D" parent="Geometry"]
@@ -135,7 +135,7 @@ metadata/mode = "start"
 metadata/form = "basic"
 
 [node name="M1" type="Marker2D" parent="Route/MainRoute"]
-position = Vector2(620, 400)
+position = Vector2(520, 400)
 metadata/mode = "walk"
 metadata/form = "basic"
 
@@ -175,7 +175,7 @@ metadata/mode = "jump"
 metadata/form = "basic"
 
 [node name="M9" type="Marker2D" parent="Route/MainRoute"]
-position = Vector2(2140, 400)
+position = Vector2(2050, 400)
 metadata/mode = "walk"
 metadata/form = "basic"
 
@@ -296,7 +296,7 @@ arena_rect = Rect2(2700, -248, 1152, 648)
 
 [node name="GrappleAnchorWest" type="Node2D" parent="Props"]
 script = ExtResource("4_anchor")
-position = Vector2(815, 190)
+position = Vector2(810, 190)
 
 [node name="GrappleAnchorEast" type="Node2D" parent="Props"]
 script = ExtResource("4_anchor")

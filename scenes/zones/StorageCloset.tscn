@@ -169,8 +169,8 @@ label_text = "The Workshop"
 
 [node name="StorageMidGate" type="StaticBody2D" parent="Hazards"]
 script = ExtResource("6_speedgate")
-position = Vector2(1680, 290)
-size = Vector2(40, 110)
+position = Vector2(1680, -360)
+size = Vector2(40, 760)
 break_flag = "gate_storage_mid_broken"
 
 [node name="CrusherA" type="AnimatableBody2D" parent="Hazards"]

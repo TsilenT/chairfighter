@@ -8,8 +8,8 @@ extends RefCounted
 ##   Route/ children are either Marker2D (single route) or Node2D sub-routes
 ##   containing ordered Marker2D children. Marker metadata:
 ##     mode: how you ARRIVE here from the previous marker —
-##       start|walk|jump|drop|grapple|dash_tunnel|speed_gate|vent|spring|
-##       launch|smash|royal_trial|door|fight
+##       start|walk|jump|drop|grapple|dash_tunnel|speed_gate|vent|pogo|
+##       smash|royal_trial|door|fight
 ##     form: form id required for this leg (default "basic")
 
 const ZONES: Array[String] = [
@@ -27,14 +27,14 @@ const JUMP_DX_MAX := 170.0
 const WALK_UP_MAX := 8.0
 const DROP_DX_MAX := 170.0
 const GRAPPLE_ANCHOR_MAX := 360.0
-const GRAPPLE_LANDING_MAX := 280.0
-const SPRING_UP_MAX := 210.0
-const SPRING_DX_MAX := 130.0
-const LAUNCH_UP_MAX := 240.0   # rocking charge-launch (capability 260)
-const LAUNCH_DX_MAX := 220.0
+const GRAPPLE_LANDING_MAX := 285.0
+const GRAPPLE_LEG_MIN := 350.0  # ordinary running jumps must not clear it
+const POGO_UP_MAX := 210.0
+const POGO_DX_MAX := 220.0
 const RUN_DX_MAX := 900.0
-const REACH_UP_FULL := 450.0   # launch chained into one midair pogo
+const REACH_UP_FULL := 420.0   # Spring Stool normal jump + one pogo
 const REACH_GAP_FULL := 240.0  # generous horizontal reach envelope
+const SPEED_GATE_MIN_HEIGHT := 500.0
 
 
 func run(tree: SceneTree) -> Array:
@@ -68,6 +68,7 @@ func _validate_zone(zone: Node2D) -> Array[String]:
 			var markers: Array = routes[route_name]
 			fails.append_array(_validate_route(zone, route_name, markers))
 	fails.append_array(_validate_platform_reachability(zone))
+	fails.append_array(_validate_speed_gates(zone))
 	return fails
 
 
@@ -119,7 +120,9 @@ func _validate_route(zone: Node2D, route_name: String, markers: Array) -> Array[
 			"grapple":
 				if form_id != &"armchair":
 					fails.append("%s: grapple leg must declare form=armchair" % leg)
-				var anchor := _nearest_anchor(zone, prev.global_position)
+				if absf(d.y) < 100.0 and dx < GRAPPLE_LEG_MIN:
+					fails.append("%s: grapple span %.0fpx is short enough for an ordinary running jump" % [leg, dx])
+				var anchor := _best_anchor_for_leg(zone, prev.global_position, cur.global_position)
 				if anchor == null:
 					fails.append("%s: no grapple anchor in zone" % leg)
 				else:
@@ -141,20 +144,13 @@ func _validate_route(zone: Node2D, route_name: String, markers: Array) -> Array[
 					fails.append("%s: vent leg must declare form=folding" % leg)
 				if up > WALK_UP_MAX:
 					fails.append("%s: vent ascends %.0fpx (must be flat)" % [leg, up])
-			"spring":
-				if form_id != &"folding":
-					fails.append("%s: spring leg must declare form=folding" % leg)
-				if up > SPRING_UP_MAX:
-					fails.append("%s: spring ascends %.0fpx (max %.0f)" % [leg, up, SPRING_UP_MAX])
-				if dx > SPRING_DX_MAX:
-					fails.append("%s: spring spans %.0fpx (max %.0f)" % [leg, dx, SPRING_DX_MAX])
-			"launch":
-				if form_id != &"rocking":
-					fails.append("%s: launch leg must declare form=rocking" % leg)
-				if up > LAUNCH_UP_MAX:
-					fails.append("%s: launch ascends %.0fpx (max %.0f)" % [leg, up, LAUNCH_UP_MAX])
-				if dx > LAUNCH_DX_MAX:
-					fails.append("%s: launch spans %.0fpx (max %.0f)" % [leg, dx, LAUNCH_DX_MAX])
+			"pogo":
+				if form_id != &"stool":
+					fails.append("%s: pogo leg must declare form=stool" % leg)
+				if up > POGO_UP_MAX:
+					fails.append("%s: pogo ascends %.0fpx (max %.0f)" % [leg, up, POGO_UP_MAX])
+				if dx > POGO_DX_MAX:
+					fails.append("%s: pogo spans %.0fpx (max %.0f)" % [leg, dx, POGO_DX_MAX])
 			"smash":
 				if form_id != &"rocking":
 					fails.append("%s: smash leg must declare form=rocking" % leg)
@@ -176,6 +172,16 @@ func _validate_route(zone: Node2D, route_name: String, markers: Array) -> Array[
 	return fails
 
 
+func _validate_speed_gates(zone: Node2D) -> Array[String]:
+	var fails: Array[String] = []
+	for node in zone.find_children("*", "", true, false):
+		var gate := node as SpeedGate
+		if gate != null and gate.size.y < SPEED_GATE_MIN_HEIGHT:
+			fails.append("speed gate '%s' is only %.0fpx tall; enhanced jumps can bypass it" % [
+					gate.name, gate.size.y])
+	return fails
+
+
 func _nearest_cracked_floor(zone: Node2D, from: Vector2) -> float:
 	var best := INF
 	for node in zone.get_tree().get_nodes_in_group("cracked_floors"):
@@ -185,16 +191,17 @@ func _nearest_cracked_floor(zone: Node2D, from: Vector2) -> float:
 	return best
 
 
-func _nearest_anchor(zone: Node2D, from: Vector2) -> Node2D:
+func _best_anchor_for_leg(zone: Node2D, from: Vector2, landing: Vector2) -> Node2D:
 	var best: Node2D = null
-	var best_dist := INF
+	var best_score := INF
 	for node in zone.get_tree().get_nodes_in_group("grapple_anchors"):
 		var anchor := node as Node2D
 		if anchor == null or not zone.is_ancestor_of(anchor):
 			continue
-		var dist := anchor.global_position.distance_to(from)
-		if dist < best_dist:
-			best_dist = dist
+		var score := anchor.global_position.distance_to(from) \
+				+ anchor.global_position.distance_to(landing)
+		if score < best_score:
+			best_score = score
 			best = anchor
 	return best
 
@@ -227,6 +234,13 @@ func _validate_platform_reachability(zone: Node2D) -> Array[String]:
 	for p in platforms:
 		var rect: Rect2 = p.top_rect() if p.has_method("top_rect") else Rect2(p.global_position, Vector2(64, 16))
 		var reachable := false
+		# A platform containing a declared spawn is reachable by definition.
+		var spawn_root := zone.get_node_or_null("SpawnPoints")
+		if spawn_root != null:
+			for spawn in spawn_root.get_children():
+				if spawn is Node2D and rect.grow(24.0).has_point((spawn as Node2D).global_position):
+					reachable = true
+					break
 		# Reachable from another platform's top?
 		for q in platforms:
 			if q == p:

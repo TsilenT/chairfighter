@@ -32,10 +32,10 @@ func run(tree: SceneTree) -> Array:
 	if throne_door.required_flags != gs.FINAL_GUARDIAN_FLAGS:
 		fails.append("Workshop Throne door should require all four guardian flags")
 	var storage_speed_gate := workshop.get_node("Hazards/StorageSpeedGate") as SpeedGate
-	var stacked_escape_height := Player.ROCK_LAUNCH_HEIGHT + Player.POGO_HEIGHT + Player.STAND_HEIGHT
+	var stacked_escape_height := 420.0 + Player.STAND_HEIGHT
 	if 400.0 - storage_speed_gate.position.y <= stacked_escape_height \
 			or not is_equal_approx(storage_speed_gate.position.y + storage_speed_gate.size.y, 400.0):
-		fails.append("Workshop dash gate is bypassable with launch + pogo")
+		fails.append("Workshop dash gate is bypassable with Stool jump + pogo")
 	workshop.free()
 
 	# Locked form cannot be selected.

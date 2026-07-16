@@ -179,13 +179,13 @@ metadata/form = "folding"
 
 [node name="M1" type="Marker2D" parent="Route/RouteBasementReturn"]
 position = Vector2(2975, 490)
-metadata/mode = "spring"
-metadata/form = "folding"
+metadata/mode = "pogo"
+metadata/form = "stool"
 
 [node name="M2" type="Marker2D" parent="Route/RouteBasementReturn"]
 position = Vector2(2880, 400)
 metadata/mode = "jump"
-metadata/form = "folding"
+metadata/form = "stool"
 
 [node name="Doors" type="Node2D" parent="."]
 

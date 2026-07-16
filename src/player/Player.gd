@@ -36,11 +36,6 @@ const GRAPPLE_KEEP := 0.55
 
 const FOLD_HEIGHT := 20.0
 const FOLD_SPEED := 140.0
-const SPRING_HEIGHT := 230.0
-
-const ROCK_CHARGE_MIN := 0.5
-const ROCK_LAUNCH_HEIGHT := 260.0
-const ROCK_CHARGE_SPEED := 60.0
 const SLAM_FALL_SPEED := 900.0
 
 const BRACE_SPEED := 70.0
@@ -64,8 +59,7 @@ var _jump_buffer := 0.0
 var _special_buffer := 0.0
 var _jump_cut_done := true
 var _spring_active := false
-var _rock_charge := 0.0
-var _launched := false
+var _slam_committed := false
 var _dash_left := 0.0
 var _dash_cooldown := 0.0
 var _attack_cooldown := 0.0
@@ -178,11 +172,6 @@ func _apply_form() -> void:
 			# swap rather than strand a non-folding form at 20px tall.
 			GameState.set_form(&"folding")
 			return
-	# Leaving the rocking form mid-charge must not carry the charge (which
-	# would lock the new form's speed and fire a phantom launch on return).
-	if _rock_charge != 0.0:
-		_rock_charge = 0.0
-		_visual.set_charge(0.0)
 	_hitbox.damage = form.attack_damage
 	var shape: RectangleShape2D = (_hitbox.get_child(0) as CollisionShape2D).shape
 	shape.size = form.attack_size
@@ -216,9 +205,8 @@ func on_spawned() -> void:
 
 ## Clear all one-shot motion flags so nothing leaks across respawn/zone load.
 func _reset_transient_motion() -> void:
-	_launched = false
+	_slam_committed = false
 	_spring_active = false
-	_rock_charge = 0.0
 	_fall_peak_speed = 0.0
 	_was_on_floor = false
 	_special_buffer = 0.0
@@ -361,8 +349,6 @@ func _process_move(delta: float) -> void:
 		speed = BRACE_SPEED
 	elif _spinning:
 		speed *= SPIN_SPEED_MULT
-	if _rock_charge > 0.0 and form.id == &"rocking":
-		speed = ROCK_CHARGE_SPEED  # planted while rocking up a charge
 	var accel := form.accel if is_on_floor() else form.accel * form.air_control
 	if dir != 0.0:
 		if signf(dir) != signf(velocity.x) and velocity.x != 0.0:
@@ -376,13 +362,12 @@ func _process_move(delta: float) -> void:
 
 	_apply_gravity(delta)
 
-	# Jump: buffered + coyote. Folded jump = spring launch.
+	# Jump: buffered + coyote. A folded chair stays planted; Folding owns
+	# low-clearance traversal while Spring Stool owns enhanced vertical reach.
 	if _jump_buffer > 0.0 and (is_on_floor() or _coyote > 0.0):
 		_jump_buffer = 0.0
 		_coyote = 0.0
-		if folded:
-			_spring_jump()
-		else:
+		if not folded:
 			velocity.y = form.jump_velocity()
 			_jump_cut_done = false
 			_visual.play_jump()
@@ -402,19 +387,6 @@ func _apply_gravity(delta: float) -> void:
 	var rising_held := velocity.y < 0.0 and Input.is_action_pressed("jump") and not _jump_cut_done
 	var g := form.rise_gravity() if (rising_held or (_spring_active and velocity.y < 0.0)) else form.fall_gravity()
 	velocity.y = minf(velocity.y + g * delta, MAX_FALL_SPEED)
-
-
-func _spring_jump() -> void:
-	_set_folded(false)
-	if folded:
-		return  # no headroom to unfold (inside a vent): no launch, keep crawling
-	# Fixed-height launch derived the same way as normal jumps.
-	velocity.y = -sqrt(2.0 * form.rise_gravity() * SPRING_HEIGHT)
-	_jump_cut_done = true  # springs are full-commitment
-	_spring_active = true
-	_visual.play_jump()
-	Events.sfx_requested.emit(&"spring")
-	special_used.emit(&"folding", &"spring")
 
 
 func _handle_attack() -> void:
@@ -461,7 +433,8 @@ func _handle_special() -> void:
 				_consume_special_press()
 				_toss_tray()
 		&"rocking":
-			_handle_rock_charge()
+			if _consume_special_press():
+				_try_rocking_slam()
 		&"stool":
 			if _consume_special_press():
 				_try_pogo()
@@ -572,39 +545,17 @@ func _cancel_sustained_specials() -> void:
 	_stop_spin()
 
 
-## Rocking Chair: hold special on the ground to rock up momentum; release a
-## full charge to launch high (260px — above every jump and the spring).
-## The release edge is detected from our own charge state, NOT
-## is_action_just_released — synthetic input can miss the stamp boundary.
-func _handle_rock_charge() -> void:
-	var holding := Input.is_action_pressed("special")
-	if holding:
-		if not is_on_floor():
-			return  # hold the charge frozen mid-air; resume on landing
-		if _rock_charge == 0.0:
-			Events.sfx_requested.emit(&"telegraph")
-		_rock_charge += get_physics_process_delta_time()
-		_visual.set_charge(minf(_rock_charge / ROCK_CHARGE_MIN, 1.0))
+## Rocking Chair: press special while airborne to commit straight down. It
+## owns impact and cracked-floor traversal, never additional jump height.
+func _try_rocking_slam() -> void:
+	if is_on_floor():
 		return
-	if _rock_charge == 0.0:
-		return
-	# Release edge: we were charging last tick and the button is up now.
-	var charged := _rock_charge >= ROCK_CHARGE_MIN
-	_rock_charge = 0.0
-	_visual.set_charge(0.0)
-	if charged and is_on_floor():
-		velocity.y = -sqrt(2.0 * form.rise_gravity() * ROCK_LAUNCH_HEIGHT)
-		velocity.x += facing * 200.0
-		_jump_cut_done = true
-		_spring_active = true  # rise under rise-gravity, full commitment
-		_launched = true
-		# Consume buffer/coyote so a jump pressed just after release can't
-		# overwrite the launch with a normal 135px hop.
-		_jump_buffer = 0.0
-		_coyote = 0.0
-		_visual.play_jump()
-		special_used.emit(&"rocking", &"launch")
-		Events.sfx_requested.emit(&"spring")
+	velocity.x *= 0.3
+	velocity.y = SLAM_FALL_SPEED
+	_jump_cut_done = true
+	_spring_active = false
+	_slam_committed = true
+	Events.sfx_requested.emit(&"telegraph")
 
 
 # ── dash ──
@@ -650,8 +601,10 @@ func _try_grapple() -> void:
 		var dist := to_anchor.length()
 		if dist > best_dist:
 			continue
-		# Accept anchors ahead of us or meaningfully above.
-		if signf(to_anchor.x) != facing and to_anchor.y > -40.0:
+		# Prefer forward traversal. A hook behind the chair is eligible only when
+		# it is far overhead (for vertical shafts), never merely because the
+		# previous gap's hook is still visible behind us.
+		if signf(to_anchor.x) != facing and to_anchor.y > -220.0:
 			continue
 		best = anchor
 		best_dist = dist
@@ -837,11 +790,11 @@ func _post_move(delta: float) -> void:
 		if _fall_peak_speed > 300.0:
 			Events.sfx_requested.emit(&"land")
 			Particles.dust(get_parent(), global_position, intensity)
-		# Rocking slam: a launched (or very heavy) landing shocks the ground
+		# Rocking slam: a committed dive (or very heavy fall) shocks the ground
 		# and shatters cracked floors underfoot.
-		if form.id == &"rocking" and (_launched or _fall_peak_speed > SLAM_FALL_SPEED):
+		if form.id == &"rocking" and (_slam_committed or _fall_peak_speed > SLAM_FALL_SPEED):
 			_ground_slam()
-		_launched = false
+		_slam_committed = false
 		_fall_peak_speed = 0.0
 	if velocity.y > _fall_peak_speed:
 		_fall_peak_speed = velocity.y

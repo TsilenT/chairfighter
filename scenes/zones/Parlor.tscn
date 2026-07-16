@@ -248,13 +248,13 @@ metadata/form = "rocking"
 
 [node name="B3" type="Marker2D" parent="Route/RouteBonus"]
 position = Vector2(2130, 520)
-metadata/mode = "launch"
-metadata/form = "rocking"
+metadata/mode = "pogo"
+metadata/form = "stool"
 
 [node name="B4" type="Marker2D" parent="Route/RouteBonus"]
 position = Vector2(2210, 400)
-metadata/mode = "launch"
-metadata/form = "rocking"
+metadata/mode = "pogo"
+metadata/form = "stool"
 
 [node name="RouteShortcut" type="Node2D" parent="Route"]
 

@@ -209,13 +209,15 @@ func _run_edict(form_id: StringName, mechanics: Array[StringName], title: String
 
 func _response_survived(hazard_kind: StringName) -> bool:
 	var player := player_node()
-	if player == null or not player.has_method("current_health") \
-			or not is_equal_approx(player.current_health(), _edict_start_health):
+	if player == null or not player.has_method("current_health"):
 		return false
 	if hazard_kind == &"grapple":
-		# A real grapple signal plus unchanged health proves the chair cleared the
-		# live carpet; landing just after it retracts is still a clean escape.
+		# The live-window grapple signal is the proof. A late carpet graze may cost
+		# health, but must not silently repeat the edict and trap the player in an
+		# automation-hostile damage loop after they performed the named mechanic.
 		return true
+	if not is_equal_approx(player.current_health(), _edict_start_health):
+		return false
 	return GameState.current_form == &"folding" and player.has_method("is_folded") \
 			and player.is_folded()
 
@@ -240,7 +242,7 @@ func _spawn_edict_hazard(kind: StringName) -> void:
 			_spawn_royal_hazard(
 					Vector2(arena_rect.position.x + section_w * (i + 0.5), arena_rect.end.y - 13.0),
 					Vector2.ZERO, Vector2(section_w - 12.0, 26.0), 0.9,
-					Color(0.96, 0.58, 0.16))
+					Color(0.96, 0.58, 0.16), 0.45)
 		Events.screenshake_requested.emit(5.0, 0.3)
 		return
 	# A thick beam clips a standing chair's upper hurtbox but leaves a folded
@@ -254,7 +256,7 @@ func _spawn_edict_hazard(kind: StringName) -> void:
 
 
 func _spawn_royal_hazard(at: Vector2, vel: Vector2, hazard_size: Vector2,
-		life: float, hazard_color: Color) -> void:
+		life: float, hazard_color: Color, warmup: float = 0.25) -> void:
 	if not active or defeated:
 		return
 	var hazard := ROYAL_HAZARD_SCRIPT.new()
@@ -262,6 +264,7 @@ func _spawn_royal_hazard(at: Vector2, vel: Vector2, hazard_size: Vector2,
 	hazard.size = hazard_size
 	hazard.lifetime = life
 	hazard.color = hazard_color
+	hazard.warmup = warmup
 	get_parent().add_child(hazard)
 	hazard.global_position = at
 	Events.sfx_requested.emit(&"telegraph")

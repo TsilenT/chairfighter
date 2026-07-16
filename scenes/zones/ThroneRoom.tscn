@@ -41,13 +41,13 @@ position = Vector2(5800, 0)
 
 [node name="EntryFloor" type="StaticBody2D" parent="Geometry"]
 script = ExtResource("3_platform")
-size = Vector2(750, 96)
+size = Vector2(560, 96)
 position = Vector2(-100, 400)
 
 [node name="GrappleIsland" type="StaticBody2D" parent="Geometry"]
 script = ExtResource("3_platform")
-size = Vector2(200, 36)
-position = Vector2(880, 400)
+size = Vector2(60, 36)
+position = Vector2(860, 400)
 
 [node name="FarLanding" type="StaticBody2D" parent="Geometry"]
 script = ExtResource("3_platform")
@@ -59,15 +59,17 @@ script = ExtResource("3_platform")
 size = Vector2(1100, 96)
 position = Vector2(1500, 400)
 
-[node name="SpringLedgeOne" type="StaticBody2D" parent="Geometry"]
+[node name="PogoLedgeOne" type="StaticBody2D" parent="Geometry"]
 script = ExtResource("3_platform")
-size = Vector2(180, 32)
-position = Vector2(2630, 200)
+size = Vector2(260, 32)
+position = Vector2(2600, 200)
+one_way = true
 
-[node name="SpringLedgeTwo" type="StaticBody2D" parent="Geometry"]
+[node name="PogoLedgeTwo" type="StaticBody2D" parent="Geometry"]
 script = ExtResource("3_platform")
-size = Vector2(200, 32)
-position = Vector2(2860, 0)
+size = Vector2(280, 32)
+position = Vector2(2820, 0)
+one_way = true
 
 [node name="HallOfEightFloor" type="StaticBody2D" parent="Geometry"]
 script = ExtResource("3_platform")
@@ -125,17 +127,17 @@ metadata/mode = "start"
 metadata/form = "basic"
 
 [node name="M1" type="Marker2D" parent="Route/RouteGauntlet"]
-position = Vector2(630, 400)
+position = Vector2(440, 400)
 metadata/mode = "walk"
 metadata/form = "basic"
 
 [node name="M2" type="Marker2D" parent="Route/RouteGauntlet"]
-position = Vector2(930, 400)
+position = Vector2(860, 400)
 metadata/mode = "grapple"
 metadata/form = "armchair"
 
 [node name="M3" type="Marker2D" parent="Route/RouteGauntlet"]
-position = Vector2(1030, 400)
+position = Vector2(920, 400)
 metadata/mode = "walk"
 metadata/form = "armchair"
 
@@ -166,23 +168,23 @@ metadata/form = "folding"
 
 [node name="M9" type="Marker2D" parent="Route/RouteGauntlet"]
 position = Vector2(2670, 200)
-metadata/mode = "spring"
-metadata/form = "folding"
+metadata/mode = "pogo"
+metadata/form = "stool"
 
 [node name="M10" type="Marker2D" parent="Route/RouteGauntlet"]
 position = Vector2(2750, 200)
 metadata/mode = "walk"
-metadata/form = "folding"
+metadata/form = "stool"
 
 [node name="M11" type="Marker2D" parent="Route/RouteGauntlet"]
 position = Vector2(2880, 0)
-metadata/mode = "spring"
-metadata/form = "folding"
+metadata/mode = "pogo"
+metadata/form = "stool"
 
 [node name="M12" type="Marker2D" parent="Route/RouteGauntlet"]
 position = Vector2(3070, 0)
 metadata/mode = "walk"
-metadata/form = "armchair"
+metadata/form = "stool"
 
 [node name="M13" type="Marker2D" parent="Route/RouteGauntlet"]
 position = Vector2(3340, 0)
@@ -300,7 +302,6 @@ script = ExtResource("11_trial")
 position = Vector2(4380, 0)
 required_form = &"folding"
 required_mechanic = &"fold"
-alternate_mechanic = &"spring"
 prompt_action = "FOLD FLAT UNDER THE SEAL"
 trial_number = 5
 
@@ -316,9 +317,8 @@ trial_number = 6
 script = ExtResource("11_trial")
 position = Vector2(4940, 0)
 required_form = &"rocking"
-required_mechanic = &"launch"
-alternate_mechanic = &"slam"
-prompt_action = "CHARGE AND RELEASE TO LAUNCH"
+required_mechanic = &"slam"
+prompt_action = "JUMP, THEN SLAM DOWN"
 trial_number = 7
 
 [node name="StoolProof" type="StaticBody2D" parent="RoyalTrials"]
@@ -361,11 +361,11 @@ arena_rect = Rect2(5650, -700, 1250, 700)
 
 [node name="GrappleAnchorWest" type="Node2D" parent="Props"]
 script = ExtResource("4_anchor")
-position = Vector2(830, 210)
+position = Vector2(760, 250)
 
 [node name="GrappleAnchorEast" type="Node2D" parent="Props"]
 script = ExtResource("4_anchor")
-position = Vector2(1180, 200)
+position = Vector2(1240, 300)
 
 [node name="TrialGrappleHook" type="Node2D" parent="Props"]
 script = ExtResource("4_anchor")

@@ -7,7 +7,7 @@ const LINES := {
 	0: "Oh! A basic chair, out HERE? The Lounge is thataway. Mind the footstools — they bite shins.",
 	1: "The Baron left TWO tricks! Armchair grapples to the Office route; Recliner braces and counters. Q / E swaps.",
 	2: "Office Chair dashes through the tall left gate; Bar Stool spins projectiles back. Storage is next.",
-	3: "Folding Chair squeezes and springs; High Chair throws its tray. The Folder opened Granny's Parlor.",
+	3: "Folding Chair squeezes through vents; High Chair throws its tray. The Folder opened Granny's Parlor.",
 	4: "Eight forms! The Throne seal is open. Its Hall tests every SPECIAL — Q / E swaps chairs.",
 }
 

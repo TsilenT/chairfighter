@@ -1,8 +1,8 @@
 extends BossBase
 ## Granny Tremor — Parlor boss, unlocks Rocking Chair + Spring Stool.
 ##
-## Her floor passes teach the launch's hop timing; her stomp previews the
-## ground-shaking landing that the player earns by defeating her.
+## Her floor passes teach jump timing; her stomp previews the Rocking Chair's
+## downward slam, while her bouncing rhythm foreshadows Spring Stool's pogo.
 
 var _rocking := false
 var _charging := false

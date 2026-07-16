@@ -12,8 +12,8 @@ const PROMPT_RADIUS := 225.0
 @export var alternate_mechanic: StringName = &""
 @export var prompt_action := "GRAPPLE THE GOLD HOOK"
 @export var trial_number := 1
-## Taller than a Rocking launch chained into a mid-air Spring Stool pogo, so
-## form switching cannot hop over a proof and counterfeit the intended check.
+## Taller than Spring Stool's normal jump chained into its one mid-air pogo,
+## so form switching cannot hop over a proof and counterfeit the intended check.
 @export var size := Vector2(40.0, 760.0)
 @export var activation_radius := 390.0
 @export var clear_flag := ""

@@ -45,17 +45,17 @@ Binding contract for every zone-builder agent. Read the exemplars FIRST:
 | walk | ascend ≤ 8px |
 | jump | ascend ≤ 96px, horizontal span ≤ 170px |
 | drop | descend only, span ≤ 170px |
-| grapple (form=armchair) | anchor ≤ 360px from takeoff; landing ≤ 280px from anchor |
+| grapple (form=armchair) | route span ≥ 350px; anchor ≤ 360px from takeoff; landing ≤ 285px from anchor |
 | dash_tunnel / speed_gate (form=office) | flat; span ≤ 900px; runway ≥ 400px flat before gate |
 | vent (form=folding) | flat; passage height 26–28px (folded player is 20px) |
-| spring (form=folding) | ascend ≤ 210px, span ≤ 130px |
-| launch (form=rocking) | ascend ≤ 240px, span ≤ 220px (hold K on ground ≥0.5s, release) |
+| pogo (form=stool) | ascend ≤ 210px, span ≤ 220px |
 | smash (form=rocking) | descend only; a CrackedFloor (src/world/CrackedFloor.gd) within 120px of the marker |
 
 Gating margins: anything meant to be UNreachable without an unlock must exceed
-capability clearly (≥60px vertical beyond a 150px jump ⇒ ≥210px ledges; use
-≥240px to also exceed spring where folding shouldn't trivialize it).
-Dash tunnels are 40px tall (dash collider 32). Vents 26–28px (folded 20).
+capability clearly. Grapple spans are at least 350px so an ordinary running
+jump cannot clear them. Speed gates are at least 500px tall so the Spring Stool
+cannot pogo over them. Dash tunnels are 40px tall (dash collider 32). Vents
+are 26–28px (folded 20); jumping while folded does nothing.
 
 ## Zone scene contract (structure — copy Workshop.tscn)
 
@@ -110,11 +110,11 @@ Stool, Folding Chair + High Chair, and Rocking Chair + Spring Stool.
 The final Hall uses eight `RoyalTrialGate` nodes in that same form order. A
 successful real `Player.special_used(form, mechanic)` sets the durable flag
 `final_trial_<form>`; the post-Hall checkpoint and King must never be reachable
-without all eight. Trial seals must exceed the combined Rocking-launch +
-Spring-Stool-pogo envelope (currently 450px plus body/margin).
+without all eight. Trial seals must exceed the Spring Stool's normal-jump plus
+one-pogo envelope (currently budgeted as 420px plus body/margin).
 World objects also include `src/world/CrackedFloor.gd` (origin TOP-LEFT, `size`,
-optional `break_flag`; shatters under a rocking slam landing — the player's
-launch/high-fall landing calls `crack_break()`).
+optional `break_flag`; shatters when the Rocking Chair jumps and uses its
+airborne downward slam onto the floor).
 Zone scene paths: `res://scenes/zones/{Workshop,Lounge,OfficeComplex,StorageCloset,Parlor,ThroneRoom}.tscn`.
 Workshop return spawns (use as your exit-door target_spawn):
 `FromLounge`, `FromOffice`, `FromStorage`, `FromParlor`, `FromThrone`.

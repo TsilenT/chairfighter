@@ -15,7 +15,9 @@ func run(_tree: SceneTree) -> Array[String]:
 		zone.free()
 		return ["ThroneRoom has no RoyalTrials"]
 	var seen: Array[StringName] = []
-	var stacked_escape_height := Player.ROCK_LAUNCH_HEIGHT + Player.POGO_HEIGHT + Player.STAND_HEIGHT
+	# Spring Stool is now the sole enhanced-jump form. Leave a generous margin
+	# over its normal jump + one airborne pogo when checking finale seals.
+	var stacked_escape_height := 420.0 + Player.STAND_HEIGHT
 	for node in trials_root.get_children():
 		var trial := node as RoyalTrialGate
 		if trial == null:
@@ -25,7 +27,7 @@ func run(_tree: SceneTree) -> Array[String]:
 		if trial.required_mechanic == &"":
 			fails.append("%s has no required mechanic" % trial.name)
 		if trial.size.y <= stacked_escape_height:
-			fails.append("%s is short enough to bypass with launch + pogo" % trial.name)
+			fails.append("%s is short enough to bypass with Stool jump + pogo" % trial.name)
 		if not trial.accepts(trial.required_form, trial.required_mechanic):
 			fails.append("%s rejects its configured special" % trial.name)
 	if seen != GameState.REQUIRED_FINAL_FORMS:
@@ -37,7 +39,7 @@ func run(_tree: SceneTree) -> Array[String]:
 	if throne_speed_gate == null \
 			or 400.0 - throne_speed_gate.position.y <= stacked_escape_height \
 			or not is_equal_approx(throne_speed_gate.position.y + throne_speed_gate.size.y, 400.0):
-		fails.append("Throne dash gate is bypassable with launch + pogo")
+		fails.append("Throne dash gate is bypassable with Stool jump + pogo")
 
 	var checkpoint := zone.get_node_or_null("Hazards/PreBossCheckpoint") as Node2D
 	var last_trial := trials_root.get_child(trials_root.get_child_count() - 1) as Node2D

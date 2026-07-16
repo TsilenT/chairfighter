@@ -71,7 +71,8 @@ func run(tree: SceneTree) -> Array:
 	if dash_dist < 220.0 or dash_dist > 300.0:
 		fails.append("office: dash distance %.1f, expected 220..300" % dash_dist)
 
-	# Folding: fold collider + spring jump height.
+	# Folding owns low-profile traversal only. Jumping while folded must not
+	# counterfeit the Spring Stool's vertical identity.
 	gs.set_form(&"folding")
 	await _settle(tree, player)
 	await _tap(tree, "special")
@@ -80,50 +81,16 @@ func run(tree: SceneTree) -> Array:
 	var fold_h: float = (player.get_node("Collider").shape as RectangleShape2D).size.y
 	if absf(fold_h - 20.0) > 0.5:
 		fails.append("folding: folded collider height %.1f, expected 20" % fold_h)
-	var spring := await _measure_jump(tree, player, true)
-	if absf(spring - 230.0) > 230.0 * EPS_JUMP:
-		fails.append("folding: spring jump %.1f, expected 230 ±5%%" % spring)
-	await tree.physics_frame
+	var folded_y: float = player.global_position.y
+	Input.action_press("jump")
+	for _i in 12:
+		await tree.physics_frame
+	Input.action_release("jump")
+	if not player.folded or absf(player.global_position.y - folded_y) > 2.0:
+		fails.append("folding: folded jump should stay folded and grounded")
+	await _tap(tree, "special")
 	if player.folded:
-		fails.append("folding: spring jump should unfold")
-
-	# Rocking: charge-launch height.
-	gs.set_form(&"rocking")
-	await _settle(tree, player)
-	var y0: float = player.global_position.y
-	Input.action_press("special")
-	for _i in 45:  # 0.75s charge (min is 0.5)
-		await tree.physics_frame
-	Input.action_release("special")
-	var min_y := y0
-	for _i in 90:
-		await tree.physics_frame
-		min_y = minf(min_y, player.global_position.y)
-		if player.is_on_floor() and player.global_position.y > min_y + 50.0:
-			break
-	var launch := y0 - min_y
-	if absf(launch - 260.0) > 260.0 * EPS_JUMP:
-		fails.append("rocking: charge launch %.1f, expected 260 ±5%%" % launch)
-
-	# Regression: transforming away mid-charge must not lock the new form's
-	# speed to the rock-charge crawl nor carry a pending launch.
-	gs.set_form(&"rocking")
-	await _settle(tree, player)
-	Input.action_press("special")
-	for _i in 20:  # ~0.33s of charge
-		await tree.physics_frame
-	gs.set_form(&"armchair")  # transform mid-charge
-	Input.action_release("special")
-	await tree.physics_frame
-	Input.action_press("move_right")
-	for _i in 45:
-		await tree.physics_frame
-	var armchair_speed: float = player.velocity.x
-	Input.action_release("move_right")
-	if armchair_speed < 250.0:  # armchair runs 300; crawl-lock would be ~60
-		fails.append("rocking: transform mid-charge locked speed to %.1f (leaked charge)" % armchair_speed)
-	if player.velocity.y < -100.0:
-		fails.append("rocking: transform mid-charge fired a phantom launch")
+		fails.append("folding: second special tap should unfold")
 
 	player.queue_free()
 	_sandbox.queue_free()

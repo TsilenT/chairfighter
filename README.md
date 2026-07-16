@@ -24,9 +24,9 @@ most damage between attempts.
 | Recliner | Brace and counter |
 | Office Chair | Dash through cracked barriers |
 | Bar Stool | Spin and reflect projectiles |
-| Folding Chair | Fold through gaps; spring from folded |
+| Folding Chair | Fold flat through low gaps and vents |
 | High Chair | Throw its tray as a ranged attack |
-| Rocking Chair | Charge a high launch and landing slam |
+| Rocking Chair | Slam downward through cracked floors |
 | Spring Stool | Pogo-jump once in midair |
 
 ## Controls (keyboard · controller-first bindings included)

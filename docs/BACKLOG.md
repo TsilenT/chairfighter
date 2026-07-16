@@ -4,7 +4,7 @@ This is a collection of bugs, polish items, and design concerns. Entries here ar
 
 > **Status 2026-07-13 (post-rebuild backlog pass):**
 > - **CF-B001 resolved** — health is heart icons (top-left); boss bar moved top-center and styled as unmistakable UI.
-> - **CF-B002 resolved for known cases** — both speed gates and all eight royal trial seals are 760px tall, above the 260px Rocking launch + 190px midair Stool pogo chain. Vents/tunnels are ceiling-bound and unbypassable; ledge gates exceed spring by margin; the throne pit is hatch-gated against softlock. The Throne door requires all four guardian flags, and the King independently requires all eight durable trial flags.
+> - **CF-B002 resolved for known cases** — every speed gate and all eight royal trial seals are 760px tall, above the Spring Stool's normal-jump + pogo envelope. Grapple spans are widened beyond ordinary running jumps; vents/tunnels are ceiling-bound and unbypassable; the throne pit is hatch-gated against softlock. The Throne door requires all four guardian flags, and the King independently requires all eight durable trial flags.
 > - **CF-B003/B005 improved** — all bosses now pop a "!" cue + flash on every wind-up (BossBase.telegraph); hitstop/shake/knockback arcs cover impact feedback. Deeper per-boss animation is future work.
 > - **CF-B004 open** — tells improved; distinctive-mechanic redesign per boss remains future work.
 

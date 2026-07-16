@@ -181,8 +181,7 @@ Map gates:
 Traversal uses:
 
 - Fold flat to slip through narrow gaps.
-- Become temporarily aerodynamic for a longer air drift.
-- Spring open for a boosted jump.
+- Stay planted while folded; unfold before jumping.
 
 Combat uses:
 
@@ -194,7 +193,6 @@ Map gates:
 
 - Narrow vents.
 - Timed crusher passages.
-- Vertical shafts requiring fold-spring jumps.
 
 ### 4.5 Rocking Chair Form
 
@@ -202,13 +200,12 @@ Map gates:
 
 **Fantasy:** An old rocking chair with uncanny rhythm.
 
-**Unique Mechanic:** Rhythm rocking / charge release.
+**Unique Mechanic:** Airborne downward slam.
 
 Traversal uses:
 
-- Charge momentum in place by rocking.
-- Launch in an arc after charging.
-- Traverse seesaw platforms more effectively.
+- Jump normally, then commit straight downward with the chair power.
+- Break cracked floors with the landing impact.
 
 Combat uses:
 
@@ -218,9 +215,8 @@ Combat uses:
 
 Map gates:
 
-- Break cracked floors.
-- Activate rhythm plates.
-- Launch over high walls where normal jumps fail.
+- Cracked floors.
+- Downward smash routes and impact switches.
 
 ### 4.6 Throne Form
 
@@ -357,13 +353,11 @@ Folding Chair gates:
 
 - Narrow vents.
 - Timed crusher gaps.
-- Fold-spring shafts.
 
 Rocking Chair gates:
 
 - Cracked floors.
-- Charge-jump arcs.
-- Rhythm locks.
+- Downward smash routes.
 
 Throne gates:
 
