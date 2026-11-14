@@ -11,6 +11,8 @@ const SHAKE_MAX := 8.0
 var _zone_limits := Rect2(-100000, -100000, 200000, 200000)
 var _shake_strength := 0.0
 var _shake_left := 0.0
+var _shake_duration := 0.0
+var _look_current := 0.0
 var _look_x := 0.0
 
 
@@ -51,16 +53,19 @@ func set_facing(facing: float) -> void:
 
 
 func _process(delta: float) -> void:
-	offset.x = lerpf(offset.x, _look_x, LOOKAHEAD_SPEED * delta)
-	if _shake_left > 0.0:
-		_shake_left -= delta
-		var s: float = minf(_shake_strength, SHAKE_MAX) * (_shake_left / 0.3)
-		offset.y = randf_range(-s, s)
-		offset.x += randf_range(-s, s)
-	else:
-		offset.y = lerpf(offset.y, 0.0, 10.0 * delta)
+	_look_current = lerpf(_look_current, _look_x, 1.0 - exp(-LOOKAHEAD_SPEED * delta))
+	var shake := Vector2.ZERO
+	if GameState.camera_shake and _shake_left > 0.0:
+		_shake_left = maxf(0.0, _shake_left - delta)
+		var strength := minf(_shake_strength, SHAKE_MAX) * pow(_shake_left / _shake_duration, 2.0)
+		var clock := float(Time.get_ticks_msec())
+		shake = Vector2(sin(clock * 0.057), cos(clock * 0.071)) * strength
+	offset = Vector2(_look_current, 0.0) + shake
 
 
 func _on_shake(strength: float, duration: float) -> void:
+	if not GameState.camera_shake or duration <= 0.0:
+		return
 	_shake_strength = strength
-	_shake_left = maxf(_shake_left, duration)
+	_shake_left = duration
+	_shake_duration = duration

@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://src/zones/Parlor.gd" id="1_zone"]
 [ext_resource type="Script" path="res://src/game/ZoneTheme.gd" id="2_theme"]
@@ -12,6 +12,8 @@
 [ext_resource type="Script" path="res://src/enemies/LampWisp.gd" id="10_wisp"]
 [ext_resource type="Script" path="res://src/enemies/CoatRack.gd" id="11_coatrack"]
 [ext_resource type="PackedScene" path="res://scenes/bosses/GrannyTremor.tscn" id="12_granny"]
+
+[ext_resource type="Script" path="res://src/enemies/HouseFurniture.gd" id="house_furniture"]
 
 [sub_resource type="Resource" id="theme_parlor"]
 script = ExtResource("2_theme")
@@ -47,6 +49,12 @@ position = Vector2(3400, 400)
 script = ExtResource("3_platform")
 size = Vector2(720, 96)
 position = Vector2(-100, 400)
+
+[node name="Dresser" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+size = Vector2(135, 734)
+position = Vector2(335, -360)
+decor = true
 
 [node name="EntryPitBed" type="StaticBody2D" parent="Geometry"]
 script = ExtResource("3_platform")
@@ -141,12 +149,6 @@ size = Vector2(48, 744)
 position = Vector2(3492, -248)
 decor = true
 
-[node name="GrandfatherClockWest" type="StaticBody2D" parent="Geometry"]
-script = ExtResource("3_platform")
-size = Vector2(92, 240)
-position = Vector2(360, 50)
-decor = true
-
 [node name="GrandfatherClockEast" type="StaticBody2D" parent="Geometry"]
 script = ExtResource("3_platform")
 size = Vector2(92, 230)
@@ -169,10 +171,15 @@ position = Vector2(140, 400)
 metadata/mode = "start"
 metadata/form = "basic"
 
-[node name="M1" type="Marker2D" parent="Route/RouteBoss"]
-position = Vector2(600, 400)
+[node name="FoldApproach" type="Marker2D" parent="Route/RouteBoss"]
+position = Vector2(285, 400)
 metadata/mode = "walk"
 metadata/form = "basic"
+
+[node name="M1" type="Marker2D" parent="Route/RouteBoss"]
+position = Vector2(600, 400)
+metadata/mode = "vent"
+metadata/form = "folding"
 
 [node name="M2" type="Marker2D" parent="Route/RouteBoss"]
 position = Vector2(740, 400)
@@ -279,16 +286,17 @@ metadata/form = "basic"
 script = ExtResource("4_door")
 position = Vector2(20, 345)
 target_zone_path = "res://scenes/zones/Workshop.tscn"
-target_spawn = "FromParlor"
+target_spawn = "FloorLanding"
 label_text = "The Workshop"
 
 [node name="WorkshopShortcut" type="Area2D" parent="Doors"]
 script = ExtResource("4_door")
 position = Vector2(3400, 345)
 target_zone_path = "res://scenes/zones/Workshop.tscn"
-target_spawn = "FromParlor"
+target_spawn = "AfterParlor"
 required_flag = "boss_granny_defeated"
-label_text = "Shortcut: The Workshop"
+label_text = "Return to the Workshop"
+locked_hint = "Defeat Granny Tremor"
 
 [node name="Hazards" type="Node2D" parent="."]
 
@@ -368,11 +376,11 @@ position = Vector2(1160, 145)
 skin_color = Color(0.9, 0.67, 0.32, 1)
 swoop_range = 190.0
 
-[node name="DoilyLampWisp" type="CharacterBody2D" parent="Enemies"]
-script = ExtResource("10_wisp")
+[node name="PendulumClock" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("house_furniture")
+kind = 3
 position = Vector2(1700, 120)
 skin_color = Color(0.84, 0.52, 0.38, 1)
-swoop_range = 185.0
 
 [node name="HallCoatRack" type="CharacterBody2D" parent="Enemies"]
 script = ExtResource("11_coatrack")
@@ -389,6 +397,18 @@ arena_rect = Rect2(2340, -248, 1152, 648)
 contact_damage = 1.0
 
 [node name="Props" type="Node2D" parent="."]
+
+[node name="SignDresser" type="Label" parent="Props"]
+position = Vector2(165, 252)
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.93, 0.78, 0.49, 0.95)
+text = "MIND THE DRESSER →\nFold flat and crawl underneath."
+
+[node name="SignDresserReturn" type="Label" parent="Props"]
+position = Vector2(480, 274)
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.93, 0.78, 0.49, 0.95)
+text = "← WORKSHOP\nFold to fit underneath"
 
 [node name="ClockFaceWest" type="Label" parent="Props"]
 position = Vector2(374, 72)

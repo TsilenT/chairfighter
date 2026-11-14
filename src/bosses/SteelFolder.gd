@@ -4,16 +4,17 @@ extends BossBase
 
 var _flat_pose := false
 var _ricochet_pose := false
+var _slide_dir := 0.0
 
 
 func _ready() -> void:
 	boss_id = &"folder"
 	display_name = "The Steel Folder"
 	max_health = 40.0  # tuned down at integration: fast mover, casual difficulty
-	unlock_form_ids = [&"folding", &"highchair"]
 	body_half_width = 50.0
 	body_height = 130.0
 	contact_damage = 1.0
+	contact_while_idle = false
 	super._ready()
 
 
@@ -28,12 +29,20 @@ func _on_phase_two() -> void:
 	queue_redraw()
 
 
+func _clear_attack() -> void:
+	_ricochet_pose = false
+	_slide_dir = 0.0
+	use_gravity = true
+	# Damage can end the attack while the physics server is flushing overlaps.
+	if _flat_pose:
+		_set_flat_pose.call_deferred(false)
+	super._clear_attack()
+
+
 # ── patterns ──
 
 func _snap_slam() -> void:
-	await telegraph(0.5)
-	if not active or defeated:
-		return
+	var token := _run_token
 	var p := player_node()
 	var target_x := global_position.x
 	if p != null:
@@ -41,15 +50,24 @@ func _snap_slam() -> void:
 				arena_rect.position.x + body_half_width + 36.0,
 				arena_rect.end.x - body_half_width - 36.0)
 	var dx := target_x - global_position.x
-	velocity = Vector2(clampf(dx / 0.5, -580.0, 580.0), -820.0)
+	var hop_x := clampf(dx / 0.5, -580.0, 580.0)
+	target_x = global_position.x + hop_x * 0.32
+	await telegraph(0.55, "Snap slam", PackedVector2Array([Vector2(target_x, arena_rect.end.y)]))
+	if not is_attack_current(token):
+		return
+	_set_contact_active(true)
+	velocity = Vector2(hop_x, -820.0)
 	await wait(0.32)
-	if not active or defeated:
+	if not is_attack_current(token):
 		return
 	# Snap shut at the apex, then drop much faster than gravity alone.
 	velocity.x = 0.0
 	velocity.y = 1100.0
-	var landed := await _wait_for_landing(1.0)
-	if not landed or not active or defeated:
+	var landed := await wait_for_landing(1.0)
+	if not is_attack_current(token):
+		return
+	_set_contact_active(false)
+	if not landed:
 		return
 	velocity = Vector2.ZERO
 	Events.screenshake_requested.emit(6.0, 0.25)
@@ -58,15 +76,11 @@ func _snap_slam() -> void:
 			Vector2(-500.0, -170.0), Color(0.88, 0.9, 0.94), 9.0)
 	spawn_projectile(global_position + Vector2(54.0, -22.0),
 			Vector2(500.0, -170.0), Color(0.88, 0.9, 0.94), 9.0)
-	await wait(0.65)
+	await recover(0.65)
 
 
 func _low_slide() -> void:
-	await telegraph(0.5)
-	if not active or defeated:
-		return
-	_set_flat_pose(true)
-	Events.sfx_requested.emit(&"dash")
+	var token := _run_token
 	var left_edge := arena_rect.position.x + body_half_width + 26.0
 	var right_edge := arena_rect.end.x - body_half_width - 26.0
 	var arena_center := arena_rect.position.x + arena_rect.size.x * 0.5
@@ -76,27 +90,34 @@ func _low_slide() -> void:
 	var target := right_edge if slide_dir > 0.0 else left_edge
 	var passes := 2 if phase >= 2 else 1
 	for pass_index in passes:
+		_slide_dir = signf(target - global_position.x)
+		_set_flat_pose(true)
+		if pass_index == 0:
+			await telegraph(0.52, "Low slide")
+		else:
+			await telegraph(0.34, "Return slide")
+		if not is_attack_current(token):
+			return
+		Events.sfx_requested.emit(&"dash")
+		_set_contact_active(true)
 		await move_to_x(target, 500.0, 3.0)
-		if not active or defeated:
-			break
-		velocity.x = 0.0
-		await wait(0.22)
-		if pass_index + 1 < passes:
-			target = left_edge if target > arena_center else right_edge
+		if not is_attack_current(token):
+			return
+		_set_contact_active(false)
+		target = left_edge if target > arena_center else right_edge
 	_set_flat_pose(false)
-	velocity.x = 0.0
-	if active and not defeated:
-		await wait(0.7)
+	_slide_dir = 0.0
+	await recover(0.7)
 
 
 func _ricochet() -> void:
-	await telegraph(0.55)
-	if not active or defeated:
-		return
-	_ricochet_pose = true
-	use_gravity = false
-	queue_redraw()
 	var token := _run_token
+	_ricochet_pose = true
+	await telegraph(0.6, "Ricochet")
+	if not is_attack_current(token):
+		return
+	use_gravity = false
+	_set_contact_active(true)
 	var speed := 660.0 if phase >= 2 else 480.0
 	var vertical_speed := 450.0 if phase >= 2 else 360.0
 	var bounce_goal := 3 if phase >= 2 else 2
@@ -111,9 +132,12 @@ func _ricochet() -> void:
 	var bounces := 0
 	var time_left := 8.0
 	velocity = Vector2(x_dir * speed, y_dir * vertical_speed)
-	while bounces < bounce_goal and time_left > 0.0 \
-			and token == _run_token and active and not defeated:
+	while bounces < bounce_goal and time_left > 0.0:
 		await get_tree().physics_frame
+		if not is_attack_current(token):
+			return
+		if not can_process():
+			continue
 		var delta := get_physics_process_delta_time()
 		time_left -= delta
 		# Keep the motion deterministic even when move_and_slide touches an
@@ -139,14 +163,13 @@ func _ricochet() -> void:
 		velocity = Vector2(x_dir * speed, y_dir * vertical_speed)
 	_ricochet_pose = false
 	use_gravity = true
-	queue_redraw()
-	if token != _run_token or not active or defeated:
-		velocity = Vector2.ZERO
-		return
 	velocity = Vector2(0.0, 520.0)
-	await _wait_for_landing(1.5)
+	await wait_for_landing(1.5)
+	if not is_attack_current(token):
+		return
+	_set_contact_active(false)
 	velocity = Vector2.ZERO
-	await wait(0.7)
+	await recover(0.7)
 
 
 func _set_flat_pose(value: bool) -> void:
@@ -176,19 +199,6 @@ func _set_flat_pose(value: bool) -> void:
 	queue_redraw()
 
 
-func _wait_for_landing(timeout: float) -> bool:
-	var token := _run_token
-	var left := timeout
-	# Always give the launch/drop one physics tick before testing is_on_floor.
-	await get_tree().physics_frame
-	while left > 0.0 and token == _run_token and active and not defeated:
-		if is_on_floor():
-			return true
-		await get_tree().physics_frame
-		left -= get_physics_process_delta_time()
-	return false
-
-
 # ── placeholder visual (Phase 4 re-skins) ──
 
 func _draw() -> void:
@@ -213,6 +223,11 @@ func _draw() -> void:
 		draw_line(Vector2(-23.0, -20.0), Vector2(-7.0, -17.0), warning, 4.0)
 		draw_line(Vector2(7.0, -17.0), Vector2(23.0, -20.0), warning, 4.0)
 		draw_circle(Vector2(58.0, -23.0), 4.0, bright)
+		if not is_zero_approx(_slide_dir):
+			var arrow := PackedVector2Array([Vector2(76 * _slide_dir, -27),
+					Vector2(90 * _slide_dir, -17), Vector2(76 * _slide_dir, -7)])
+			draw_polyline(arrow, outline, 8.0, true)
+			draw_polyline(arrow, warning, 4.0, true)
 		return
 
 	var h := body_height

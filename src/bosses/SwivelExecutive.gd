@@ -9,25 +9,18 @@ var _rolling := false
 var _slamming := false
 var _charge_dir := 1.0
 var _wheel_spin := 0.0
-var _contact_hitbox: Hitbox
+var _winding := false
 
 
 func _ready() -> void:
 	boss_id = &"swivel"
 	display_name = "The Swivel Executive"
 	max_health = 50.0
-	unlock_form_ids = [&"office", &"barstool"]
 	body_half_width = 60.0
 	body_height = 110.0
 	contact_damage = 1.0
+	contact_while_idle = false
 	super._ready()
-	# Proximity is the punish window; body contact only hurts while the chair
-	# is physically charging or slamming.
-	for child in get_children():
-		if child is Hitbox and (child as Hitbox).continuous:
-			_contact_hitbox = child as Hitbox
-			break
-	_set_contact_active(false)
 
 
 func _patterns() -> Array[Callable]:
@@ -36,30 +29,26 @@ func _patterns() -> Array[Callable]:
 
 
 func _on_phase_two() -> void:
-	# An indignant little bounce announces that future charges come in pairs.
-	hop(Vector2(0, -440.0))
+	Events.screenshake_requested.emit(3.0, 0.2)
 
 
-func _on_player_died() -> void:
-	_set_contact_active(false)
-	super._on_player_died()
+func _clear_attack() -> void:
+	_winding = false
+	_rolling = false
+	_slamming = false
+	super._clear_attack()
 
 
 func _physics_process(delta: float) -> void:
-	var spin_rate := 17.0 if _rolling else (8.0 if phase >= 2 else 4.5)
+	var spin_rate := 17.0 if _rolling or _winding else (8.0 if phase >= 2 else 4.5)
 	_wheel_spin = fmod(_wheel_spin + delta * spin_rate, TAU)
 	super._physics_process(delta)
-
-
-func _set_contact_active(enabled: bool) -> void:
-	if _contact_hitbox != null and is_instance_valid(_contact_hitbox):
-		_contact_hitbox.set_deferred("monitoring", enabled)
 
 
 # -- patterns ---------------------------------------------------------------
 
 func _roll_charge() -> void:
-	await telegraph(0.5)
+	var token := _run_token
 	var charge_count := 2 if phase >= 2 else 1
 	var speed := 800.0 if phase >= 2 else 650.0
 	var left_edge := arena_rect.position.x + body_half_width + 28.0
@@ -71,78 +60,85 @@ func _roll_charge() -> void:
 		# the player has chased the boss into a corner.
 		var target_x := right_edge if global_position.x < arena_mid else left_edge
 		_charge_dir = signf(target_x - global_position.x)
-		if is_zero_approx(_charge_dir):
-			_charge_dir = dir_to_player()
+		_winding = true
+		if pass_index == 0:
+			await telegraph(0.58, "Rolling charge")
+		else:
+			await telegraph(0.34, "Return charge")
+		if not is_attack_current(token):
+			return
+		_winding = false
 		_rolling = true
 		_set_contact_active(true)
 		await move_to_x(target_x, speed, 2.4)
-		velocity.x = 0.0
+		if not is_attack_current(token):
+			return
 		_rolling = false
 		_set_contact_active(false)
-		if pass_index + 1 < charge_count:
-			# A short brake squeal is the tell for the immediate return pass.
-			await wait(0.32)
-	await wait(0.58)
+	await recover(0.58)
 
 
 func _paper_storm() -> void:
-	await telegraph(0.5)
+	var token := _run_token
 	var p := player_node()
 	if p == null:
 		return
 	var count := 6 if phase >= 2 else 4
 	var center_x := p.global_position.x
-	var spawn_y := arena_rect.position.y + 72.0
+	var floor_y := arena_rect.end.y
+	var spawn_y := floor_y - 415.0
+	var targets := PackedVector2Array()
+	var safe_center := clampf(center_x, arena_rect.position.x + 245.0, arena_rect.end.x - 245.0)
 	for i in count:
 		var spread := (float(i) - (float(count) - 1.0) * 0.5) * 74.0
-		var paper_x := clampf(center_x + spread,
-				arena_rect.position.x + 44.0, arena_rect.end.x - 44.0)
-		var drift := -60.0 if i % 2 == 0 else 60.0
+		targets.append(Vector2(safe_center + spread, floor_y))
+	await telegraph(0.65, "Paper storm", targets)
+	for i in count:
+		if not is_attack_current(token):
+			return
 		var paper_color := Color(0.94, 0.96, 0.97) if i % 2 == 0 \
 				else Color(0.68, 0.73, 0.77)
-		spawn_projectile(Vector2(paper_x, spawn_y), Vector2(drift, -50.0),
-				paper_color, 7.0)
+		spawn_projectile(Vector2(targets[i].x, spawn_y), Vector2(0.0, -50.0),
+				paper_color, 9.0, &"paper")
 		await wait(0.14)
 	# The Executive admires the filing job; this is a generous punish window.
-	await wait(0.72)
+	await recover(0.72)
 
 
 func _swivel_slam() -> void:
-	await telegraph(0.55)
+	var token := _run_token
 	var p := player_node()
 	var hop_x := dir_to_player() * 360.0
 	if p != null:
 		var dx := clampf(p.global_position.x - global_position.x, -310.0, 310.0)
 		hop_x = clampf(dx * 1.35, -440.0, 440.0)
+	var target := Vector2(global_position.x + hop_x * 0.4, arena_rect.end.y)
+	await telegraph(0.55, "Swivel slam", PackedVector2Array([target]))
+	if not is_attack_current(token):
+		return
 	_slamming = true
 	_set_contact_active(true)
 	hop(Vector2(hop_x, -710.0))
 	await wait(0.34)
+	if not is_attack_current(token):
+		return
 	velocity.x *= 0.45
 	velocity.y = 1150.0
-
-	var token := _run_token
-	var landing_time := 0.9
-	while token == _run_token and not defeated and landing_time > 0.0:
-		await get_tree().physics_frame
-		landing_time -= get_physics_process_delta_time()
-		if is_on_floor():
-			break
-	if token != _run_token or defeated:
-		_slamming = false
-		_set_contact_active(false)
+	var landed := await wait_for_landing(0.9)
+	if not is_attack_current(token):
 		return
-
 	velocity.x = 0.0
+	_slamming = false
+	_set_contact_active(false)
+	if not landed:
+		return
 	Events.screenshake_requested.emit(5.0, 0.24)
 	var wave_origin := global_position + Vector2(0, -20.0)
 	spawn_projectile(wave_origin + Vector2(-18.0, 0), Vector2(-720.0, -220.0),
-			Color(0.26, 0.78, 0.75), 8.0)
+			Color(0.26, 0.78, 0.75), 8.0, &"wave")
 	spawn_projectile(wave_origin + Vector2(18.0, 0), Vector2(720.0, -220.0),
-			Color(0.26, 0.78, 0.75), 8.0)
-	_slamming = false
-	_set_contact_active(false)
-	await wait(0.68)
+			Color(0.26, 0.78, 0.75), 8.0, &"wave")
+	await recover(0.68)
 
 
 # -- placeholder visual (Phase 4 re-skins) ---------------------------------
@@ -221,6 +217,11 @@ func _draw() -> void:
 			var near_x := trail * (64.0 + float(i) * 3.0)
 			var far_x := trail * (91.0 + float(i) * 8.0)
 			draw_line(Vector2(near_x, y), Vector2(far_x, y), teal, 3.0)
+	if _winding:
+		var arrow := PackedVector2Array([Vector2(73 * _charge_dir, -31),
+				Vector2(88 * _charge_dir, -20), Vector2(73 * _charge_dir, -9)])
+		draw_polyline(arrow, outline, 9.0, true)
+		draw_polyline(arrow, teal, 5.0, true)
 	if _slamming:
 		draw_arc(Vector2(0, -18), 58.0, 0.12, PI - 0.12, 20,
 				Color(teal.r, teal.g, teal.b, 0.55), 3.0)

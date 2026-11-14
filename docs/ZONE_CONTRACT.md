@@ -102,22 +102,22 @@ are 26–28px (folded 20); jumping while folded does nothing.
 
 Forms (fixed cycling order): `basic`, `armchair`, `recliner`, `office`,
 `barstool`, `folding`, `highchair`, `rocking`, `stool`.
-Boss flags (auto from boss_id): `boss_recliner_defeated`, `boss_swivel_defeated`,
-`boss_folder_defeated`, `boss_granny_defeated`, `boss_king_defeated`. The four
-guardian flags are all required at the Workshop's Throne door. Guardian reward
-pairs, in cycling/finale order, are Armchair + Recliner, Office Chair + Bar
-Stool, Folding Chair + High Chair, and Rocking Chair + Spring Stool.
-The final Hall uses eight `RoyalTrialGate` nodes in that same form order. A
-successful real `Player.special_used(form, mechanic)` sets the durable flag
-`final_trial_<form>`; the post-Hall checkpoint and King must never be reachable
-without all eight. Trial seals must exceed the Spring Stool's normal-jump plus
-one-pogo envelope (currently budgeted as 420px plus body/margin).
+Boss flags use `boss_<boss_id>_defeated`. `GameState.CAMPAIGN` lists each
+floor's guardian and single reward in the intended route order. The doors
+are placed according to the ability that makes them reachable. The
+Workshop's Throne door also requires all eight guardian flags.
+The final Hall uses eight `RoyalTrialGate` nodes in that same form order. Each
+trial sets the durable flag `final_trial_<form>` when its fixture is operated.
+For example, the Recliner must block the launcher's shot and the High Chair
+must land a tray hit on the raised catch. The post-Hall checkpoint and King
+require all eight flags. Trial seals must exceed the Spring Stool's normal
+jump plus one-pogo envelope (currently budgeted as 420px plus body/margin).
 World objects also include `src/world/CrackedFloor.gd` (origin TOP-LEFT, `size`,
 optional `break_flag`; shatters when the Rocking Chair jumps and uses its
 airborne downward slam onto the floor).
-Zone scene paths: `res://scenes/zones/{Workshop,Lounge,OfficeComplex,StorageCloset,Parlor,ThroneRoom}.tscn`.
-Workshop return spawns (use as your exit-door target_spawn):
-`FromLounge`, `FromOffice`, `FromStorage`, `FromParlor`, `FromThrone`.
+Floor entrances return to the Workshop's `FloorLanding`. Post-boss shortcuts
+use each floor's `After...` marker to return on the approach side of the
+next obstacle. The Throne's return door uses `FromThrone`.
 
 ## Playthrough segment (`tests/playthrough/seg_<zone>.json`)
 

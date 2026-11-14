@@ -1,0 +1,258 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://src/zones/ZoneBase.gd" id="zone"]
+[ext_resource type="Script" path="res://src/game/ZoneTheme.gd" id="theme"]
+[ext_resource type="Script" path="res://src/world/Platform.gd" id="platform"]
+[ext_resource type="Script" path="res://src/world/Door.gd" id="door"]
+[ext_resource type="Script" path="res://src/world/Checkpoint.gd" id="checkpoint"]
+[ext_resource type="Script" path="res://src/enemies/FloorFurniture.gd" id="enemy"]
+[ext_resource type="Script" path="res://src/world/CrackedFloor.gd" id="cracked"]
+[ext_resource type="Script" path="res://src/world/Spikes.gd" id="spikes"]
+[ext_resource type="PackedScene" path="res://scenes/bosses/CanopyBouncer.tscn" id="boss"]
+
+[sub_resource type="Resource" id="theme"]
+script = ExtResource("theme")
+bg_top = Color(0.15, 0.26, 0.22, 1)
+bg_bottom = Color(0.055, 0.10, 0.11, 1)
+platform_base = Color(0.24, 0.36, 0.26, 1)
+platform_top = Color(0.48, 0.59, 0.35, 1)
+platform_outline = Color(0.11, 0.075, 0.09, 1)
+accent = Color(0.89, 0.76, 0.42, 1)
+parallax_far = Color(0.10, 0.22, 0.18, 1)
+parallax_near = Color(0.17, 0.30, 0.25, 1)
+
+[node name="Conservatory" type="Node2D"]
+script = ExtResource("zone")
+zone_display_name = "The Conservatory"
+camera_limits = Rect2(-160, -200, 3610, 1250)
+theme_res = SubResource("theme")
+
+[node name="SpawnPoints" type="Node2D" parent="."]
+
+[node name="Default" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(140, 400)
+
+[node name="PreBoss" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(2100, 650)
+
+[node name="Geometry" type="Node2D" parent="."]
+
+[node name="Mezzanine" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("platform")
+position = Vector2(-100, 400)
+size = Vector2(830, 96)
+
+[node name="LoadingDivider" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("platform")
+position = Vector2(900, -360)
+size = Vector2(110, 873)
+decor = true
+
+[node name="LedgeAboveDrain" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("platform")
+position = Vector2(1010, 400)
+size = Vector2(330, 32)
+decor = true
+
+[node name="LowerServiceFloor" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("platform")
+position = Vector2(700, 650)
+size = Vector2(2650, 96)
+
+[node name="ServiceWall" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("platform")
+position = Vector2(660, 496)
+size = Vector2(40, 250)
+decor = true
+
+[node name="PlanterBox" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("platform")
+position = Vector2(1260, 588)
+size = Vector2(175, 62)
+
+[node name="RaisedBed" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("platform")
+position = Vector2(1710, 570)
+size = Vector2(210, 80)
+
+[node name="EntryBoundary" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("platform")
+position = Vector2(-148, -360)
+size = Vector2(48, 856)
+decor = true
+
+[node name="ArenaBoundary" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("platform")
+position = Vector2(3350, -360)
+size = Vector2(48, 1106)
+decor = true
+
+[node name="Route" type="Node2D" parent="."]
+
+[node name="Marker0" type="Marker2D" parent="Route"]
+position = Vector2(140, 400)
+metadata/mode = "start"
+metadata/form = "basic"
+
+[node name="Marker1" type="Marker2D" parent="Route"]
+position = Vector2(805, 400)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="Marker2" type="Marker2D" parent="Route"]
+position = Vector2(805, 285)
+metadata/mode = "start"
+metadata/form = "rocking"
+
+[node name="Marker3" type="Marker2D" parent="Route"]
+position = Vector2(805, 400)
+metadata/mode = "smash"
+metadata/form = "rocking"
+
+[node name="Marker4" type="Marker2D" parent="Route"]
+position = Vector2(805, 650)
+metadata/mode = "drop"
+metadata/form = "rocking"
+
+[node name="Marker5" type="Marker2D" parent="Route"]
+position = Vector2(1230, 650)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="Marker6" type="Marker2D" parent="Route"]
+position = Vector2(1310, 588)
+metadata/mode = "jump"
+metadata/form = "basic"
+
+[node name="Marker7" type="Marker2D" parent="Route"]
+position = Vector2(1410, 588)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="Marker8" type="Marker2D" parent="Route"]
+position = Vector2(1510, 650)
+metadata/mode = "drop"
+metadata/form = "basic"
+
+[node name="Marker9" type="Marker2D" parent="Route"]
+position = Vector2(1665, 650)
+metadata/mode = "jump"
+metadata/form = "basic"
+
+[node name="Marker10" type="Marker2D" parent="Route"]
+position = Vector2(1750, 570)
+metadata/mode = "jump"
+metadata/form = "basic"
+
+[node name="Marker11" type="Marker2D" parent="Route"]
+position = Vector2(1890, 570)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="Marker12" type="Marker2D" parent="Route"]
+position = Vector2(2010, 650)
+metadata/mode = "drop"
+metadata/form = "basic"
+
+[node name="Marker13" type="Marker2D" parent="Route"]
+position = Vector2(2510, 650)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="Marker14" type="Marker2D" parent="Route"]
+position = Vector2(2770, 650)
+metadata/mode = "fight"
+metadata/form = "basic"
+
+[node name="Doors" type="Node2D" parent="."]
+
+[node name="WorkshopEntry" type="Area2D" parent="Doors"]
+script = ExtResource("door")
+position = Vector2(20, 345)
+target_zone_path = "res://scenes/zones/Workshop.tscn"
+target_spawn = "FloorLanding"
+label_text = "The Workshop"
+
+[node name="WorkshopShortcut" type="Area2D" parent="Doors"]
+script = ExtResource("door")
+position = Vector2(3220, 595)
+target_zone_path = "res://scenes/zones/Workshop.tscn"
+target_spawn = "AfterConservatory"
+required_flag = "boss_bouncer_defeated"
+label_text = "Workshop Express"
+
+[node name="DrainExit" type="Area2D" parent="Doors"]
+script = ExtResource("door")
+position = Vector2(1095, 595)
+target_zone_path = "res://scenes/zones/Workshop.tscn"
+target_spawn = "FloorLanding"
+label_text = "Workshop service lift"
+
+[node name="Hazards" type="Node2D" parent="."]
+
+[node name="EntryCheckpoint" type="Area2D" parent="Hazards"]
+script = ExtResource("checkpoint")
+position = Vector2(140, 400)
+spawn_name = "Default"
+
+[node name="PreBossCheckpoint" type="Area2D" parent="Hazards"]
+script = ExtResource("checkpoint")
+position = Vector2(2100, 650)
+spawn_name = "PreBoss"
+
+[node name="ServiceHatch" type="StaticBody2D" parent="Hazards"]
+script = ExtResource("cracked")
+position = Vector2(730, 400)
+size = Vector2(170, 24)
+break_flag = "conservatory_service_hatch_broken"
+
+[node name="WaterValve" type="Node2D" parent="Hazards"]
+script = ExtResource("spikes")
+position = Vector2(1540, 626)
+size = Vector2(100, 24)
+
+[node name="Enemies" type="Node2D" parent="."]
+
+[node name="FloorEnemy1" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("enemy")
+position = Vector2(1180, 650)
+role = 3
+skin_color = Color(0.48, 0.59, 0.35, 1)
+
+[node name="FloorEnemy2" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("enemy")
+position = Vector2(1480, 650)
+role = 3
+skin_color = Color(0.48, 0.59, 0.35, 1)
+
+[node name="FloorEnemy3" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("enemy")
+position = Vector2(2000, 650)
+role = 3
+skin_color = Color(0.48, 0.59, 0.35, 1)
+
+[node name="Boss" type="Node2D" parent="."]
+
+[node name="CanopyBouncer" parent="Boss" instance=ExtResource("boss")]
+position = Vector2(2770, 650)
+arena_rect = Rect2(2180, 2, 1152, 648)
+
+[node name="Props" type="Node2D" parent="."]
+
+[node name="HatchSign" type="Label" parent="Props"]
+position = Vector2(405, 238)
+theme_override_colors/font_color = Color(0.89, 0.76, 0.42, 1)
+theme_override_font_sizes/font_size = 17
+text = "LOWER GLASSHOUSE  →\nRocking Chair · jump and drop onto the cracked service hatch"
+
+[node name="DrainSign" type="Label" parent="Props"]
+position = Vector2(1030, 510)
+theme_override_colors/font_color = Color(0.89, 0.76, 0.42, 1)
+theme_override_font_sizes/font_size = 17
+text = "DRAIN PIPE SERVICE  →"
+
+[node name="BossSign" type="Label" parent="Props"]
+position = Vector2(2250, 495)
+theme_override_colors/font_color = Color(0.89, 0.76, 0.42, 1)
+theme_override_font_sizes/font_size = 17
+text = "PRIVATE CANOPY"

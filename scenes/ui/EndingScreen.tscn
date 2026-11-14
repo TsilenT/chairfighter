@@ -29,36 +29,21 @@ offset_right = 420.0
 offset_bottom = 180.0
 alignment = 1
 
-[node name="Crown" type="Label" parent="Center"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 72
-text = "👑"
-horizontal_alignment = 1
-
 [node name="Title" type="Label" parent="Center"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 64
 theme_override_colors/font_color = Color(0.98, 0.85, 0.4, 1)
-text = "LONG LIVE THE CHAIR"
+text = "A Seat for Everyone"
 horizontal_alignment = 1
 
 [node name="Body" type="Label" parent="Center"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 theme_override_colors/font_color = Color(0.85, 0.8, 0.78, 1)
-text = "The Upholstered King has folded.
-Every stool, bench, and beanbag in the realm may rest easy.
-
-Thanks for playing!"
+text = "Otto unlocked the front doors before dawn.
+By breakfast, there wasn't a standing guest in the house."
 horizontal_alignment = 1
 
 [node name="Spacer" type="Control" parent="Center"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 40)
-
-[node name="Prompt" type="Label" parent="Center"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-theme_override_colors/font_color = Color(0.7, 0.66, 0.62, 1)
-text = "Press ENTER to return to the title"
-horizontal_alignment = 1

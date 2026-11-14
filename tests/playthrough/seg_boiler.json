@@ -1,0 +1,22 @@
+[
+  {"op":"wait","secs":1.0},
+  {"op":"tap","action":"ui_accept"},
+  {"op":"wait_zone","zone":"The Workshop"},
+  {"op":"cheat_setup","forms":["armchair"],"form":"armchair","zone":"res://scenes/zones/BoilerRoom.tscn","spawn":"Default","zone_name":"The Boiler Room"},
+  {"op":"walk_until_x","x":550,"tol":10,"timeout":10},
+  {"op":"grapple","attach_by":1.2},
+  {"op":"walk_until_x","x":1050,"tol":14,"timeout":10},
+  {"op":"wait_on_floor","timeout":8},
+  {"op":"walk_until_x","x":1515,"tol":10,"timeout":14},
+  {"op":"press","action":"move_right"},
+  {"op":"jump","hold":0.37},
+  {"op":"walk_until_x","x":1680,"tol":12,"timeout":8},
+  {"op":"wait_on_floor","timeout":8},
+  {"op":"walk_until_x","x":2510,"tol":16,"timeout":18},
+  {"op":"auto_fight","boss":"boiler","flag":"boss_boiler_defeated","hop_interval":0.85,"timeout":180},
+  {"op":"assert_form","form":"recliner"},
+  {"op":"walk_until_x","x":3220,"tol":16,"timeout":14},
+  {"op":"press","action":"move_up"},
+  {"op":"wait_zone","zone":"The Workshop","timeout":8},
+  {"op":"release","action":"move_up"}
+]

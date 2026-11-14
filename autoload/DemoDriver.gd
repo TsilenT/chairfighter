@@ -135,6 +135,11 @@ func _physics_process(delta: float) -> void:
 				_done()
 			else:
 				_fail("assert_flag: %s not set" % step.get("flag", ""))
+		"assert_flag_unset":
+			if GameState.has_flag(String(step.get("flag", ""))):
+				_fail("assert_flag_unset: %s is already set" % step.get("flag", ""))
+			else:
+				_done()
 		"wait_zone":
 			if _current_zone == String(step.get("zone", "")):
 				_done()

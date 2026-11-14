@@ -14,6 +14,7 @@ enum State { MOVE, DASH, GRAPPLE, HURT, DEAD }
 ## Finale trials and other encounter scripting can listen for successful
 ## mechanics without depending on private timers or synthetic input edges.
 signal special_used(form_id: StringName, mechanic: StringName)
+signal braced_hit(hitbox: Hitbox)
 
 const BODY_WIDTH := 44.0
 const STAND_HEIGHT := 56.0
@@ -39,6 +40,8 @@ const FOLD_SPEED := 140.0
 const SLAM_FALL_SPEED := 900.0
 
 const BRACE_SPEED := 70.0
+const RIPOSTE_WINDOW := 1.1
+const RIPOSTE_BONUS_DAMAGE := 1.5
 const SPIN_SPEED_MULT := 0.55
 const SPIN_DEFLECT_RANGE := 76.0
 const TRAY_SPEED := 650.0
@@ -62,6 +65,7 @@ var _spring_active := false
 var _slam_committed := false
 var _dash_left := 0.0
 var _dash_cooldown := 0.0
+var _dash_trail_left := 0.0
 var _attack_cooldown := 0.0
 var _hurt_left := 0.0
 var _transform_cooldown := 0.0
@@ -70,6 +74,7 @@ var _was_on_floor := false
 var _fall_peak_speed := 0.0
 var _grapple_target: Node2D = null
 var _braced := false
+var _riposte_left := 0.0
 var _spinning := false
 var _pogo_available := true
 
@@ -91,7 +96,6 @@ func _ready() -> void:
 	collision_mask = 1
 	_build_components()
 	Events.form_changed.connect(func(_id: StringName) -> void: _apply_form())
-	Events.form_unlocked.connect(_on_form_unlocked)
 	_apply_form()
 	_health.changed.emit(_health.current, _health.max_health)
 
@@ -157,9 +161,11 @@ func _build_components() -> void:
 
 func _apply_form() -> void:
 	_cancel_sustained_specials()
+	_riposte_left = 0.0
 	# Never carry a queued power from one chair into a different chair.
 	_special_buffer = 0.0
 	var id := GameState.current_form
+	var prior := form
 	var path := "res://src/forms/%s.tres" % id
 	form = load(path)
 	if form == null:
@@ -183,13 +189,11 @@ func _apply_form() -> void:
 	var current_h := (_collider.shape as RectangleShape2D).size.y
 	if want_h <= current_h or _headroom_clear(want_h):
 		_set_collider_height(want_h)
-	Events.sfx_requested.emit(&"transform")
-
-
-func _on_form_unlocked(id: StringName) -> void:
-	var def: FormDef = load("res://src/forms/%s.tres" % id)
-	if def != null:
-		Events.unlock_banner_requested.emit(id, def.display_name, def.unlock_blurb)
+	if prior != null and prior.id != id:
+		Particles.burst(get_parent(), global_position + Vector2(0, -25),
+				form.body_color.lightened(0.4), 9, 148.0, 0.29, false, 120.0)
+		_visual.play_transform()
+		Events.sfx_requested.emit(&"transform")
 
 
 ## Called by Game after placing us at a spawn point.
@@ -211,6 +215,7 @@ func _reset_transient_motion() -> void:
 	_was_on_floor = false
 	_special_buffer = 0.0
 	_pogo_available = true
+	_riposte_left = 0.0
 	if _visual != null:
 		_visual.set_charge(0.0)
 
@@ -269,6 +274,8 @@ func is_using_special(mechanic: StringName) -> bool:
 			return is_spinning()
 		&"fold":
 			return folded
+		&"pogo":
+			return _spring_active
 	return false
 
 
@@ -313,6 +320,7 @@ func _tick_timers(delta: float) -> void:
 	_attack_cooldown = maxf(0.0, _attack_cooldown - delta)
 	_transform_cooldown = maxf(0.0, _transform_cooldown - delta)
 	_tray_cooldown = maxf(0.0, _tray_cooldown - delta)
+	_riposte_left = maxf(0.0, _riposte_left - delta)
 	if is_on_floor():
 		_coyote = COYOTE_TIME
 		_pogo_available = true
@@ -340,6 +348,12 @@ func _handle_transform_input() -> void:
 	elif Input.is_action_just_pressed("transform_prev"):
 		GameState.cycle_form(-1)
 		_transform_cooldown = TRANSFORM_COOLDOWN
+
+
+func request_form(id: StringName) -> bool:
+	if state != State.MOVE or folded:
+		return false
+	return GameState.set_form(id)
 
 
 func _process_move(delta: float) -> void:
@@ -397,7 +411,9 @@ func _handle_attack() -> void:
 	_attack_cooldown = form.attack_cooldown
 	var hit_shape := _hitbox.get_child(0) as CollisionShape2D
 	hit_shape.position = Vector2(facing * form.attack_offset.x, form.attack_offset.y)
-	_hitbox.damage = form.attack_damage
+	var riposte := form.id == &"recliner" and _riposte_left > 0.0
+	_riposte_left = 0.0
+	_hitbox.damage = form.attack_damage + (RIPOSTE_BONUS_DAMAGE if riposte else 0.0)
 	_hitbox.knockback_strength = form.attack_knockback
 	_hitbox.activate(form.attack_active_time)
 	# The chair itself commits into the contact zone. Cap at normal run speed so
@@ -407,7 +423,7 @@ func _handle_attack() -> void:
 		velocity.x = facing * minf(form.run_speed,
 				maxf(0.0, forward_speed) + form.attack_impulse)
 	_visual.play_attack(form.attack_style)
-	Events.sfx_requested.emit(&"attack")
+	Events.sfx_requested.emit(&"counter" if riposte else &"attack")
 
 
 func _handle_special() -> void:
@@ -459,7 +475,7 @@ func _handle_brace() -> void:
 	if _braced:
 		velocity.x = move_toward(velocity.x, 0.0, 180.0)
 		special_used.emit(&"recliner", &"brace")
-		Events.sfx_requested.emit(&"telegraph")
+		Events.sfx_requested.emit(&"ability_ready")
 
 
 ## Bar Stool: hold to swivel. The body catches nearby projectiles every tick,
@@ -515,6 +531,7 @@ func _toss_tray() -> void:
 	tray.color = form.body_color.lightened(0.15)
 	tray.radius = 14.0
 	tray.visual_style = &"tray"
+	tray.is_player_tray = true
 	tray.velocity = Vector2(facing * TRAY_SPEED, -95.0)
 	get_parent().add_child(tray)
 	tray.global_position = global_position + Vector2(facing * 26.0, -38.0)
@@ -555,7 +572,7 @@ func _try_rocking_slam() -> void:
 	_jump_cut_done = true
 	_spring_active = false
 	_slam_committed = true
-	Events.sfx_requested.emit(&"telegraph")
+	Events.sfx_requested.emit(&"ability_ready")
 
 
 # ── dash ──
@@ -563,6 +580,7 @@ func _try_rocking_slam() -> void:
 func _start_dash() -> void:
 	state = State.DASH
 	_dash_left = DASH_TIME
+	_dash_trail_left = 0.0
 	velocity = Vector2(facing * DASH_SPEED, 0.0)
 	_set_collider_height(DASH_HEIGHT)
 	_visual.play_land(0.6)  # lean-down pose
@@ -572,6 +590,11 @@ func _start_dash() -> void:
 
 func _process_dash(delta: float) -> void:
 	_dash_left -= delta
+	_dash_trail_left -= delta
+	if _dash_trail_left <= 0.0:
+		_dash_trail_left = 0.052
+		Particles.burst(get_parent(), global_position + Vector2(-20 * facing, -14),
+				form.body_color.lightened(0.38), 3, 85.0, 0.18, false, 30.0)
 	velocity.x = facing * DASH_SPEED
 	velocity.y = minf(velocity.y + form.fall_gravity() * 0.25 * delta, 300.0)
 	if _dash_left <= 0.0:
@@ -730,7 +753,9 @@ func _on_hit_received(hitbox: Hitbox) -> void:
 		# A planted recliner catches attacks on its upholstered front. Rear hits
 		# still land, so facing the telegraph remains part of the mechanic.
 		velocity.x = -facing * 55.0
+		_riposte_left = RIPOSTE_WINDOW
 		_visual.play_block()
+		braced_hit.emit(hitbox)
 		Events.hitstop_requested.emit(0.035)
 		Events.screenshake_requested.emit(2.0, 0.12)
 		Events.sfx_requested.emit(&"hit")
@@ -747,6 +772,7 @@ func _can_brace_hit(hitbox: Hitbox) -> bool:
 
 func _on_damaged(_amount: float, knockback: Vector2) -> void:
 	_cancel_sustained_specials()
+	_riposte_left = 0.0
 	if state == State.GRAPPLE:
 		_release_grapple(false)
 	if state == State.DASH:
@@ -799,4 +825,5 @@ func _post_move(delta: float) -> void:
 	if velocity.y > _fall_peak_speed:
 		_fall_peak_speed = velocity.y
 	_was_on_floor = is_on_floor()
+	_visual.set_riposte_ready(_riposte_left > 0.0)
 	_visual.update_motion(velocity, is_on_floor(), delta)

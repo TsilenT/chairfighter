@@ -1,8 +1,15 @@
 extends Control
-## Victory screen. ui_accept returns to the title (reloads the Game scene).
+## Victory screen.
+
+const Style := preload("res://src/ui/MenuStyle.gd")
 
 
-func _process(_delta: float) -> void:
-	# Polled (not event-driven) so the demo driver's synthetic input works.
-	if Input.is_action_just_pressed("ui_accept"):
-		get_tree().reload_current_scene()
+func _ready() -> void:
+	var close := Style.button("Return to title")
+	close.pressed.connect(_return_to_title)
+	$Center.add_child(close)
+	close.grab_focus()
+
+
+func _return_to_title() -> void:
+	get_tree().reload_current_scene()

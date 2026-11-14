@@ -3,14 +3,6 @@ extends Node2D
 ## comments on your progress. Speech bubble appears when the player is near;
 ## his line changes as forms unlock. The protagonist stays silent.
 
-const LINES := {
-	0: "Oh! A basic chair, out HERE? The Lounge is thataway. Mind the footstools — they bite shins.",
-	1: "The Baron left TWO tricks! Armchair grapples to the Office route; Recliner braces and counters. Q / E swaps.",
-	2: "Office Chair dashes through the tall left gate; Bar Stool spins projectiles back. Storage is next.",
-	3: "Folding Chair squeezes through vents; High Chair throws its tray. The Folder opened Granny's Parlor.",
-	4: "Eight forms! The Throne seal is open. Its Hall tests every SPECIAL — Q / E swaps chairs.",
-}
-
 var _bubble: Label
 var _player_near := false
 var _bob := 0.0
@@ -25,7 +17,7 @@ func _ready() -> void:
 	_bubble.custom_minimum_size = Vector2(340, 0)
 	_bubble.autowrap_mode = TextServer.AUTOWRAP_WORD
 	_bubble.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_bubble.position = Vector2(-170, -160)
+	_bubble.position = Vector2(-170, -262)
 	_bubble.visible = false
 	add_child(_bubble)
 
@@ -52,16 +44,7 @@ func _ready() -> void:
 
 
 func _refresh() -> void:
-	var stage := 0
-	if GameState.has_flag("boss_recliner_defeated"):
-		stage = 1
-	if GameState.has_flag("boss_swivel_defeated"):
-		stage = 2
-	if GameState.has_flag("boss_folder_defeated"):
-		stage = 3
-	if GameState.has_flag("boss_granny_defeated") or GameState.has_flag("boss_king_defeated"):
-		stage = 4
-	_bubble.text = LINES[stage]
+	_bubble.text = "Otto: " + GameState.current_objective()
 	_bubble.visible = _player_near
 
 

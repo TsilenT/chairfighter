@@ -20,6 +20,7 @@ var _dash_lean := 0.0
 var _charge := 0.0
 var _charge_phase := 0.0
 var _braced := false
+var _riposte_ready := false
 var _spinning := false
 var _special_phase := 0.0
 
@@ -43,6 +44,10 @@ func set_folded(folded: bool) -> void:
 
 func play_jump() -> void:
 	_squash = Vector2(0.78, 1.3)
+
+
+func play_transform() -> void:
+	_squash = Vector2(1.23, 0.8)
 
 
 func play_land(intensity: float = 1.0) -> void:
@@ -76,6 +81,10 @@ func play_block() -> void:
 func set_braced(value: bool) -> void:
 	_braced = value
 	queue_redraw()
+
+
+func set_riposte_ready(value: bool) -> void:
+	_riposte_ready = value
 
 
 func set_spinning(value: bool) -> void:
@@ -215,7 +224,8 @@ func _draw_recliner(base: Color) -> void:
 	draw_polyline(PackedVector2Array([back[0], back[1], back[2], back[3], back[0]]), OUTLINE, 2.0)
 	_rounded(Rect2(-10, -31, 35, 15), base.lightened(0.1), 6.0)
 	# Resting footrest: the primary attack visibly kicks this piece outward.
-	_rounded(Rect2(16, -22, 17, 10), base.lightened(0.18), 5.0)
+	var footrest := Color(1.0, 0.82, 0.35) if _riposte_ready else base.lightened(0.18)
+	_rounded(Rect2(16, -22, 17, 10), footrest, 5.0)
 	_eyes(Vector2(-16, -48), 9.0, 4.5)
 	if _braced:
 		draw_line(Vector2(-20, -4), Vector2(-29, 0), dark, 5.0)

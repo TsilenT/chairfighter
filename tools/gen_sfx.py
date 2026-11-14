@@ -4,8 +4,10 @@
 Design language (SPEC §12): physical comedy + readable feedback.
 Wood clacks for basic, plush thumps, wheel squeaks, metal snaps, royal booms.
 
-Usage: python3 tools/gen_sfx.py   (writes assets/audio/sfx/<name>.wav)
+Usage: python3 tools/gen_sfx.py [cue ...]
+Writes assets/audio/sfx/<name>.wav, for all cues by default.
 """
+import argparse
 import math
 import os
 import random
@@ -67,6 +69,12 @@ def slide(f0, f1, t, dur):
     """Exponential pitch slide frequency at time t."""
     k = min(t / dur, 1.0)
     return f0 * (f1 / f0) ** k
+
+
+def strike(t, dur, f, attack=0.003):
+    """A struck wood tone with a brief, inharmonic overtone."""
+    return env_ad(t, dur, attack, 3) * (
+        0.8 * sine(f, t) + 0.2 * sine(f * 2.76, t) * math.exp(-40 * t))
 
 
 # ── recipes ──
@@ -170,10 +178,14 @@ def sfx_checkpoint():  # cozy chime
     return render(d, f)
 
 
-def sfx_gate_open():  # sliding stone + sparkle
+def sfx_gate_open():  # furniture latch, followed by a friendly rising third
     d = 0.45
-    return render(d, lambda t: env_ad(t, d, 0.03, 2) * (
-        0.35 * noise() * (1 - t / d) + 0.35 * sine(slide(300, 700, t, d), t)))
+    def f(t):
+        latch = 0.32 * noise() * env_ad(t, 0.13, 0.002, 3) + 0.45 * strike(t, 0.13, 185)
+        a = 0.38 * strike(t - 0.055, 0.23, 523) if t >= 0.055 else 0
+        b = 0.38 * strike(t - 0.15, 0.28, 659) if t >= 0.15 else 0
+        return latch + a + b
+    return render(d, f)
 
 
 def sfx_break():  # wall shatter
@@ -193,10 +205,31 @@ def sfx_enemy_down():  # squash pop
         0.6 * sine(slide(600, 90, t, d), t) + 0.2 * noise() * env_ad(t, 0.05, 0.001, 6)))
 
 
-def sfx_telegraph():  # warning shimmer
+def sfx_telegraph():  # two crisp, urgent taps rise above the fight
+    d = 0.22
+    def f(t):
+        a = 0.68 * strike(t, 0.10, 784)
+        b = 0.58 * strike(t - 0.075, 0.14, 1109) if t >= 0.075 else 0
+        return a + b
+    return render(d, f)
+
+
+def sfx_ability_ready():  # the hinge takes weight
+    d = 0.18
+    def f(t):
+        latch = 0.58 * strike(t, 0.075, 218)
+        settle = 0.33 * strike(t - 0.055, 0.12, 321) if t >= 0.055 else 0
+        return latch + settle
+    return render(d, f)
+
+
+def sfx_counter():  # a solid block snaps back
     d = 0.25
-    return render(d, lambda t: env_ad(t, d, 0.02, 2) * 0.4 * (
-        sine(880, t) * (0.5 + 0.5 * sine(30, t))))
+    def f(t):
+        block = 0.70 * strike(t, 0.13, 155)
+        snap = 0.59 * strike(t - 0.028, 0.21, 712) if t >= 0.028 else 0
+        return block + snap
+    return render(d, f)
 
 
 def sfx_boss_start():  # dread horn
@@ -227,15 +260,13 @@ def sfx_boss_down():  # triumphant collapse
     return render(d, f)
 
 
-def sfx_unlock():  # the fanfare: major arpeggio up
-    d = 1.2
-    notes = [392, 494, 587, 784, 988]
+def sfx_unlock():  # a little struck-wood fanfare
+    d = 0.95
+    notes = [(0.0, 392), (0.12, 494), (0.24, 587), (0.37, 784)]
     def f(t):
-        i = min(int(t / 0.16), 4)
-        local = t - i * 0.16
-        tone = 0.4 * square(notes[i], t, 0.35) + 0.3 * sine(notes[i] * 2, t)
-        tail = 0.3 * sine(988, t) * env_ad(max(t - 0.8, 0), 0.4, 0.01, 2) if t > 0.8 else 0
-        return tone * env_ad(local, 0.16, 0.004, 1.5) * (1.0 if t < 0.8 else 0.4) + tail
+        melody = sum(0.59 * strike(t - start, 0.38, note) for start, note in notes if t >= start)
+        harmony = 0.28 * strike(t - 0.37, 0.55, 494) if t >= 0.37 else 0
+        return melody + harmony
     return render(d, f)
 
 
@@ -264,9 +295,18 @@ RECIPES = {
     "boss_start": sfx_boss_start, "boss_hit": sfx_boss_hit,
     "boss_rage": sfx_boss_rage, "boss_down": sfx_boss_down,
     "unlock": sfx_unlock, "ui_start": sfx_ui_start, "ui_blip": sfx_ui_blip,
+    "ability_ready": sfx_ability_ready, "counter": sfx_counter,
 }
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("cues", nargs="*", metavar="CUE", help=", ".join(RECIPES))
+    args = parser.parse_args()
+    unknown = set(args.cues) - RECIPES.keys()
+    if unknown:
+        parser.error("unknown cue: " + ", ".join(sorted(unknown)))
     for name, fn in RECIPES.items():
-        write_wav(name, fn())
-    print(f"{len(RECIPES)} sfx generated")
+        # Keep noise samples deterministic when regenerating a subset of cues.
+        samples = fn()
+        if not args.cues or name in args.cues:
+            write_wav(name, samples)

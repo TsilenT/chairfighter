@@ -10,14 +10,21 @@ extends Area2D
 @export var required_flag: String = ""
 @export var required_flags: Array[String] = []
 @export var label_text: String = ""
+@export var locked_hint: String = ""
+@export var complete_flag: String = ""
+@export var grounded_entry := false
 @export var doorway_size := Vector2(72, 110)
 
 ## Arm delay: doors ignore the first beats after a zone load so respawns and
 ## held movement can't instantly re-fire a doorway you spawned beside.
 var _cooldown := 0.8
+var _label: Label
+var _was_open: bool
+var _was_complete: bool
 
 
 func _ready() -> void:
+	add_to_group("doors")
 	collision_layer = 32
 	collision_mask = 2
 	monitorable = false
@@ -27,14 +34,33 @@ func _ready() -> void:
 	shape.shape = rect
 	add_child(shape)
 	if not label_text.is_empty():
-		var label := Label.new()
-		label.text = label_text
-		label.add_theme_font_size_override("font_size", 16)
-		label.add_theme_color_override("font_color", Color(0.92, 0.86, 0.7, 0.9))
-		label.position = Vector2(-doorway_size.x, -doorway_size.y / 2.0 - 34.0)
-		label.custom_minimum_size = Vector2(doorway_size.x * 2.0, 0)
-		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		add_child(label)
+		_label = Label.new()
+		_label.add_theme_font_size_override("font_size", 16)
+		_label.add_theme_color_override("font_color", Color(0.92, 0.86, 0.7, 0.95))
+		_label.add_theme_color_override("font_outline_color", Color(0.12, 0.08, 0.06))
+		_label.add_theme_constant_override("outline_size", 5)
+		_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		add_child(_label)
+		_label.resized.connect(_position_label)
+	_was_open = is_open()
+	_was_complete = _is_complete()
+	_refresh_label()
+
+
+func _refresh_label() -> void:
+	if _label == null:
+		return
+	_label.text = label_text
+	if not _was_open and not locked_hint.is_empty():
+		_label.text += "\n" + locked_hint
+	elif _was_complete:
+		_label.text += "\nCleared"
+	_label.reset_size()
+	_position_label()
+
+
+func _position_label() -> void:
+	_label.position = Vector2(-_label.size.x * 0.5, -doorway_size.y * 0.5 - _label.size.y - 24.0)
 
 
 func is_open() -> bool:
@@ -46,17 +72,43 @@ func is_open() -> bool:
 	return true
 
 
+func _is_complete() -> bool:
+	return not complete_flag.is_empty() and GameState.has_flag(complete_flag)
+
+
+func can_interact(player: Node2D) -> bool:
+	return _cooldown <= 0.0 and is_open() and overlaps_body(player) \
+			and _at_threshold(player) \
+			and (not player.has_method("is_alive") or player.is_alive())
+
+
+func _at_threshold(player: Node2D) -> bool:
+	if not grounded_entry:
+		return true
+	var body := player as CharacterBody2D
+	return body != null and body.is_on_floor() \
+			and absf(body.global_position.y - global_position.y - doorway_size.y * 0.5) < 12.0
+
+
 func _physics_process(delta: float) -> void:
 	_cooldown = maxf(0.0, _cooldown - delta)
-	queue_redraw()
-	if _cooldown > 0.0 or not Input.is_action_pressed("move_up"):
+	var open := is_open()
+	var complete := _is_complete()
+	var state_changed := open != _was_open or complete != _was_complete
+	if state_changed:
+		_was_open = open
+		_was_complete = complete
+		_refresh_label()
+	if state_changed or not required_flags.is_empty():
+		queue_redraw()
+	if _cooldown > 0.0 or (not Input.is_action_pressed("move_up") and not Input.is_action_pressed("interact")):
 		return
 	for body in get_overlapping_bodies():
-		if not body.is_in_group("player"):
+		if not body.is_in_group("player") or not _at_threshold(body):
 			continue
 		if body.has_method("is_alive") and not body.is_alive():
 			continue  # corpses don't open doors
-		if not is_open():
+		if not open:
 			_cooldown = 0.6
 			Events.sfx_requested.emit(&"locked")
 			return
@@ -70,12 +122,17 @@ func _draw() -> void:
 	var half := doorway_size / 2.0
 	var frame := Rect2(-half, doorway_size)
 	var open := is_open()
+	var complete := _is_complete()
 	var fill := Color(0.1, 0.09, 0.08, 0.85) if open else Color(0.16, 0.07, 0.07, 0.9)
+	var trim := Color(0.85, 0.7, 0.4) if open else Color(0.5, 0.3, 0.3)
+	if open and complete:
+		fill = Color(0.075, 0.145, 0.12, 0.95)
+		trim = Color(0.57, 0.75, 0.57)
 	draw_rect(frame, fill)
-	draw_rect(frame, Color(0.85, 0.7, 0.4) if open else Color(0.5, 0.3, 0.3), false, 4.0)
+	draw_rect(frame, trim, false, 4.0)
 	if open:
 		# Inviting glow arch + "press up" chevron.
-		draw_circle(Vector2(0, -half.y * 0.25), 13.0, Color(0.95, 0.85, 0.5, 0.5))
+		draw_circle(Vector2(0, -half.y * 0.25), 13.0, Color(trim, 0.5))
 		var c := Color(0.95, 0.9, 0.7, 0.9)
 		draw_line(Vector2(-8, -half.y - 10), Vector2(0, -half.y - 20), c, 3.0)
 		draw_line(Vector2(8, -half.y - 10), Vector2(0, -half.y - 20), c, 3.0)
@@ -84,14 +141,14 @@ func _draw() -> void:
 		for i in 3:
 			var x := -half.x + doorway_size.x * (0.25 + 0.25 * i)
 			draw_line(Vector2(x, -half.y + 6), Vector2(x, half.y - 6), Color(0.55, 0.45, 0.4), 5.0)
-	# Multi-guardian seals show their progress directly on the door. Four
-	# little studs are much easier to read than repeatedly trying a locked exit.
+	# Draw earned seals across the bottom of the frame.
 	if not required_flags.is_empty():
-		var spacing := 14.0
+		var spacing := minf(14.0, (doorway_size.x - 16.0) / float(maxi(1, required_flags.size() - 1)))
+		var radius := minf(5.0, spacing * 0.35)
 		var start_x := -spacing * (required_flags.size() - 1) * 0.5
 		for i in required_flags.size():
 			var earned := GameState.has_flag(required_flags[i])
 			var pip_color := Color(0.98, 0.82, 0.3) if earned else Color(0.34, 0.18, 0.18)
-			draw_circle(Vector2(start_x + i * spacing, half.y - 12.0), 5.0, pip_color)
-			draw_circle(Vector2(start_x + i * spacing, half.y - 12.0), 5.0,
+			draw_circle(Vector2(start_x + i * spacing, half.y - 12.0), radius, pip_color)
+			draw_circle(Vector2(start_x + i * spacing, half.y - 12.0), radius,
 					Color(0.12, 0.08, 0.06), false, 1.5)

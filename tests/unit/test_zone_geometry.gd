@@ -15,10 +15,14 @@ extends RefCounted
 const ZONES: Array[String] = [
 	"res://scenes/zones/Workshop.tscn",
 	"res://scenes/zones/Lounge.tscn",
+	"res://scenes/zones/BoilerRoom.tscn",
 	"res://scenes/zones/OfficeComplex.tscn",
+	"res://scenes/zones/NightBar.tscn",
 	"res://scenes/zones/StorageCloset.tscn",
-	"res://scenes/zones/ThroneRoom.tscn",
+	"res://scenes/zones/Nursery.tscn",
 	"res://scenes/zones/Parlor.tscn",
+	"res://scenes/zones/Conservatory.tscn",
+	"res://scenes/zones/ThroneRoom.tscn",
 ]
 
 # Envelopes (px). Jump numbers leave margin under the metric maxima.
@@ -38,6 +42,7 @@ const REACH_GAP_FULL := 240.0  # generous horizontal reach envelope
 const SPEED_GATE_MIN_HEIGHT := 500.0
 const SPEED_GATE_FLOOR_Y := 400.0
 const SPEED_GATE_CEILING_MAX_Y := -100.0
+const PLAYER_SCENE := preload("res://scenes/player/Player.tscn")
 
 
 func run(tree: SceneTree) -> Array:
@@ -57,6 +62,8 @@ func run(tree: SceneTree) -> Array:
 			fails.append("%s: %s" % [zone_path.get_file(), msg])
 		zone.queue_free()
 		await tree.process_frame
+	fails.append_array(await _exercise_storage_gate(tree))
+	fails.append_array(await _exercise_throne_landing(tree))
 	return fails
 
 
@@ -72,6 +79,7 @@ func _validate_zone(zone: Node2D) -> Array[String]:
 			fails.append_array(_validate_route(zone, route_name, markers))
 	fails.append_array(_validate_platform_reachability(zone))
 	fails.append_array(_validate_speed_gates(zone))
+	fails.append_array(_validate_progression_geometry(zone))
 	return fails
 
 
@@ -196,6 +204,166 @@ func _validate_speed_gates(zone: Node2D) -> Array[String]:
 			fails.append("speed gate '%s' does not meet the %.0fpx floor" % [gate.name, SPEED_GATE_FLOOR_Y])
 		if gate.global_position.y > SPEED_GATE_CEILING_MAX_Y:
 			fails.append("speed gate '%s' leaves a jumpable opening above it" % gate.name)
+	return fails
+
+
+func _validate_progression_geometry(zone: Node2D) -> Array[String]:
+	var fails: Array[String] = []
+	match zone.scene_file_path.get_file():
+		"NightBar.tscn":
+			var clearance := _passage_clearance(zone, "Geometry/Counter", "Geometry/Floor")
+			if clearance <= Player.DASH_HEIGHT or clearance >= Player.STAND_HEIGHT:
+				fails.append("night bar counter must fit a dash but block the standing chair")
+		"StorageCloset.tscn":
+			var clearance := _passage_clearance(zone, "Geometry/TunnelCeiling", "Geometry/Floor")
+			if clearance <= Player.DASH_HEIGHT or clearance >= Player.STAND_HEIGHT:
+				fails.append("storage shelf must fit a dash but block the standing chair")
+		"Nursery.tscn":
+			var clearance := _passage_clearance(zone, "Geometry/SleepingCrib", "Geometry/Floor")
+			if clearance <= Player.FOLD_HEIGHT or clearance >= Player.DASH_HEIGHT:
+				fails.append("nursery crib must fit a folded chair but block a dash")
+		"Parlor.tscn":
+			var clearance := _passage_clearance(zone, "Geometry/Dresser", "Geometry/EntryFloor")
+			if clearance <= Player.FOLD_HEIGHT or clearance >= Player.DASH_HEIGHT:
+				fails.append("parlor dresser must fit a folded chair but block a dash")
+		"Conservatory.tscn":
+			var hatch := zone.get_node_or_null("Hazards/ServiceHatch") as CrackedFloor
+			var mezzanine := zone.get_node_or_null("Geometry/Mezzanine") as Platform
+			var divider := zone.get_node_or_null("Geometry/LoadingDivider") as Platform
+			if hatch == null or mezzanine == null or divider == null:
+				return ["conservatory needs a cracked hatch between the mezzanine and divider"]
+			var slab := hatch.top_rect()
+			var upper := mezzanine.top_rect()
+			var wall := divider.top_rect()
+			if not slab.position.is_equal_approx(Vector2(upper.end.x, upper.position.y)) \
+					or not is_equal_approx(slab.end.x, wall.position.x) \
+					or wall.position.y > upper.position.y - REACH_UP_FULL \
+					or wall.end.y < slab.end.y:
+				fails.append("conservatory hatch must seal the shaft beneath the loading divider")
+		"Workshop.tscn":
+			var vent := _passage_clearance(zone, "Geometry/NurseryVent", "Geometry/Floor")
+			if vent <= Player.FOLD_HEIGHT or vent >= Player.DASH_HEIGHT:
+				fails.append("Workshop linen cabinet must fit a folded chair but block a dash")
+			var boiler := zone.get_node("Doors/BoilerDoor") as Door
+			if boiler.position.y + boiler.doorway_size.y * 0.5 > 400.0 - 210.0:
+				fails.append("Boiler catwalk is low enough to reach with an ordinary jump")
+			var hatch := zone.get_node_or_null("Hazards/ThroneHatch") as CrackedFloor
+			var main_floor := zone.get_node_or_null("Geometry/Floor") as Platform
+			var east_wall := zone.get_node_or_null("Geometry/RightWall") as Platform
+			if hatch == null or main_floor == null or east_wall == null:
+				return ["throne access needs a cracked hatch, main floor, and adjoining wall"]
+			var slab := hatch.top_rect()
+			var upper := main_floor.top_rect()
+			if not slab.position.is_equal_approx(Vector2(upper.end.x, upper.position.y)) \
+					or not is_equal_approx(slab.end.x, east_wall.top_rect().position.x) \
+					or east_wall.top_rect().position.y > slab.position.y - REACH_UP_FULL:
+				fails.append("throne hatch must fill the well between the upper floor and outer wall")
+	return fails
+
+
+func _passage_clearance(zone: Node2D, ceiling_path: NodePath, floor_path: NodePath) -> float:
+	var ceiling := zone.get_node_or_null(ceiling_path) as Platform
+	var floor := zone.get_node_or_null(floor_path) as Platform
+	if ceiling == null or floor == null:
+		return 0.0
+	var overhead := ceiling.top_rect()
+	var base := floor.top_rect()
+	if ceiling.one_way or overhead.position.y > base.position.y - REACH_UP_FULL \
+			or overhead.position.x < base.position.x or overhead.end.x > base.end.x:
+		return 0.0
+	return base.position.y - overhead.end.y
+
+
+func _exercise_storage_gate(tree: SceneTree) -> Array[String]:
+	var fails: Array[String] = []
+	var state := tree.root.get_node("GameState")
+	state.new_game()
+	state.unlock_form(&"office")
+	var zone: Node2D = load("res://scenes/zones/StorageCloset.tscn").instantiate()
+	tree.root.add_child(zone)
+	# Exercise a real wall in isolation from the combat room around it.
+	zone.get_node("Enemies").free()
+	var player := PLAYER_SCENE.instantiate() as Player
+	var gate := zone.get_node("Hazards/StorageMidGate") as SpeedGate
+	player.position = Vector2(gate.position.x - 70.0, 400)
+	player.facing = -1.0
+	zone.add_child(player)
+	await tree.physics_frame
+	Input.action_press("special")
+	for _step in 28:
+		await tree.physics_frame
+	Input.action_release("special")
+	if state.has_flag(gate.break_flag):
+		fails.append("a dash moving away from the storage wall broke it")
+	Input.action_press("move_right")
+	for _step in 90:
+		await tree.physics_frame
+	Input.action_release("move_right")
+	if state.has_flag(gate.break_flag) or player.position.x > gate.position.x:
+		fails.append("walking bypassed the storage wall")
+	Input.action_press("special")
+	for _step in 22:
+		await tree.physics_frame
+	Input.action_release("special")
+	if not state.has_flag(gate.break_flag) or player.position.x <= gate.position.x + gate.size.x:
+		fails.append("a dash into the storage wall did not break it and cross")
+	zone.queue_free()
+	await tree.process_frame
+	state.new_game()
+	return fails
+
+
+func _exercise_throne_landing(tree: SceneTree) -> Array[String]:
+	var fails: Array[String] = []
+	var state := tree.root.get_node("GameState")
+	state.new_game()
+	state.unlock_form(&"stool")
+	for flag: String in state.FINAL_GUARDIAN_FLAGS:
+		state.set_flag(flag)
+	var zone: Node2D = load("res://scenes/zones/Workshop.tscn").instantiate()
+	tree.root.add_child(zone)
+	var player := PLAYER_SCENE.instantiate() as Player
+	player.position = Vector2(2290, 700)
+	zone.add_child(player)
+	for _step in 8:
+		await tree.physics_frame
+	Input.action_press("jump")
+	for _step in 18:
+		await tree.physics_frame
+	Input.action_release("jump")
+	Input.action_press("special")
+	for _step in 4:
+		await tree.physics_frame
+	Input.action_release("special")
+	Input.action_press("move_left")
+	for _step in 90:
+		await tree.physics_frame
+		if player.position.x < 2140.0:
+			break
+	Input.action_release("move_left")
+	for _step in 48:
+		await tree.physics_frame
+	if player.position.y > 492.0 or player.position.x > 2180.0 or not player.is_on_floor():
+		fails.append("Spring Stool could not pogo onto the throne landing: %s" % player.position)
+	var requests: Array[String] = []
+	var on_door := func(zone_path: String, _spawn: String) -> void: requests.append(zone_path)
+	Events.zone_change_requested.connect(on_door)
+	Input.action_press("move_left")
+	for _step in 30:
+		await tree.physics_frame
+		if player.position.x < 2080.0:
+			break
+	Input.action_release("move_left")
+	Input.action_press("interact")
+	for _step in 6:
+		await tree.physics_frame
+	Input.action_release("interact")
+	Events.zone_change_requested.disconnect(on_door)
+	if requests != [state.FINAL_ZONE]:
+		fails.append("interacting on the royal landing should request only the Throne Room: %s" % str(requests))
+	zone.queue_free()
+	await tree.process_frame
+	state.new_game()
 	return fails
 
 

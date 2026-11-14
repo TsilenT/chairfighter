@@ -46,6 +46,9 @@ func _ready() -> void:
 	hurtbox.add_child(hurt_shape)
 	hurtbox.hit_received.connect(func(hb: Hitbox) -> void:
 		if health.damage(hb.damage, hb.knockback_for(self)):
+			var side := signf(hb.global_position.x - global_position.x)
+			Particles.contact(get_parent(), global_position + Vector2(side * body_size.x * 0.35,
+					-body_size.y * 0.56), side, false)
 			Events.hitstop_requested.emit(0.05)
 			Events.sfx_requested.emit(&"hit"))
 	add_child(hurtbox)

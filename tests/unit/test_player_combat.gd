@@ -47,11 +47,28 @@ func run(tree: SceneTree) -> Array:
 		fails.append("recliner: holding special did not enter brace")
 	if _count_mechanic(used_mechanics, &"brace") != 1:
 		fails.append("recliner: brace should emit one successful-use hook")
+	var frontal_hit := Hitbox.new()
+	_sandbox.add_child(frontal_hit)
+	frontal_hit.global_position = player.global_position + Vector2(player.facing * 35.0, -28.0)
+	var hp := player.current_health()
+	(player.get("_hurtbox") as Hurtbox).receive_hit(frontal_hit)
+	if player.current_health() != hp:
+		fails.append("recliner: a braced frontal hit should cost no health")
+	frontal_hit.queue_free()
 	Input.action_release("special")
 	for _i in 2:
 		await tree.physics_frame
 	if player.is_bracing():
 		fails.append("recliner: releasing special did not leave brace")
+	await _tap(tree, "attack")
+	var primary := player.get_node("PrimaryHitbox") as Hitbox
+	if not is_equal_approx(primary.damage, player.form.attack_damage + Player.RIPOSTE_BONUS_DAMAGE):
+		fails.append("recliner: the first attack after a block should get the riposte bonus")
+	for _i in 40:
+		await tree.physics_frame
+	await _tap(tree, "attack")
+	if not is_equal_approx(primary.damage, player.form.attack_damage):
+		fails.append("recliner: a single block should only empower one attack")
 
 	# Bar-stool spin is also held state and reverses a real hostile projectile.
 	gs.set_form(&"barstool")

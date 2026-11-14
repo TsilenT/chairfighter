@@ -1,0 +1,241 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://src/zones/ZoneBase.gd" id="zone"]
+[ext_resource type="Script" path="res://src/game/ZoneTheme.gd" id="theme"]
+[ext_resource type="Script" path="res://src/world/Platform.gd" id="platform"]
+[ext_resource type="Script" path="res://src/world/Door.gd" id="door"]
+[ext_resource type="Script" path="res://src/world/Checkpoint.gd" id="checkpoint"]
+[ext_resource type="Script" path="res://src/enemies/FloorFurniture.gd" id="enemy"]
+[ext_resource type="Script" path="res://src/world/Spikes.gd" id="spikes"]
+[ext_resource type="Script" path="res://src/world/GrappleAnchor.gd" id="anchor"]
+[ext_resource type="PackedScene" path="res://scenes/bosses/BoilerForeman.tscn" id="boss"]
+
+[sub_resource type="Resource" id="theme"]
+script = ExtResource("theme")
+bg_top = Color(0.28, 0.18, 0.13, 1)
+bg_bottom = Color(0.11, 0.06, 0.055, 1)
+platform_base = Color(0.35, 0.23, 0.16, 1)
+platform_top = Color(0.65, 0.42, 0.23, 1)
+platform_outline = Color(0.11, 0.075, 0.09, 1)
+accent = Color(0.92, 0.64, 0.25, 1)
+parallax_far = Color(0.26, 0.15, 0.11, 1)
+parallax_near = Color(0.34, 0.2, 0.14, 1)
+
+[node name="BoilerRoom" type="Node2D"]
+script = ExtResource("zone")
+zone_display_name = "The Boiler Room"
+camera_limits = Rect2(-160, -248, 3610, 1080)
+theme_res = SubResource("theme")
+
+[node name="SpawnPoints" type="Node2D" parent="."]
+
+[node name="Default" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(140, 400)
+
+[node name="PreBoss" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(2140, 400)
+
+[node name="Geometry" type="Node2D" parent="."]
+
+[node name="EntryFloor" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("platform")
+position = Vector2(-100, 400)
+size = Vector2(690, 96)
+
+[node name="ServiceFloor" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("platform")
+position = Vector2(930, 400)
+size = Vector2(2420, 96)
+
+[node name="FurnaceCollar" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("platform")
+position = Vector2(1190, 335)
+size = Vector2(135, 65)
+
+[node name="PipeStep" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("platform")
+position = Vector2(1710, 325)
+size = Vector2(160, 75)
+
+[node name="LoadingStep" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("platform")
+position = Vector2(1870, 360)
+size = Vector2(140, 40)
+
+[node name="EntryBoundary" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("platform")
+position = Vector2(-148, -360)
+size = Vector2(48, 856)
+decor = true
+
+[node name="ArenaBoundary" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("platform")
+position = Vector2(3350, -360)
+size = Vector2(48, 856)
+decor = true
+
+[node name="Route" type="Node2D" parent="."]
+
+[node name="Marker0" type="Marker2D" parent="Route"]
+position = Vector2(140, 400)
+metadata/mode = "start"
+metadata/form = "basic"
+
+[node name="Marker1" type="Marker2D" parent="Route"]
+position = Vector2(550, 400)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="Marker2" type="Marker2D" parent="Route"]
+position = Vector2(950, 400)
+metadata/mode = "grapple"
+metadata/form = "armchair"
+
+[node name="Marker3" type="Marker2D" parent="Route"]
+position = Vector2(1160, 400)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="Marker4" type="Marker2D" parent="Route"]
+position = Vector2(1240, 335)
+metadata/mode = "jump"
+metadata/form = "basic"
+
+[node name="Marker5" type="Marker2D" parent="Route"]
+position = Vector2(1300, 335)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="Marker6" type="Marker2D" parent="Route"]
+position = Vector2(1380, 400)
+metadata/mode = "drop"
+metadata/form = "basic"
+
+[node name="Marker7" type="Marker2D" parent="Route"]
+position = Vector2(1520, 400)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="Marker8" type="Marker2D" parent="Route"]
+position = Vector2(1670, 400)
+metadata/mode = "jump"
+metadata/form = "basic"
+
+[node name="Marker9" type="Marker2D" parent="Route"]
+position = Vector2(1735, 325)
+metadata/mode = "jump"
+metadata/form = "basic"
+
+[node name="Marker10" type="Marker2D" parent="Route"]
+position = Vector2(1835, 325)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="Marker11" type="Marker2D" parent="Route"]
+position = Vector2(1920, 360)
+metadata/mode = "drop"
+metadata/form = "basic"
+
+[node name="Marker12" type="Marker2D" parent="Route"]
+position = Vector2(2050, 400)
+metadata/mode = "drop"
+metadata/form = "basic"
+
+[node name="Marker13" type="Marker2D" parent="Route"]
+position = Vector2(2510, 400)
+metadata/mode = "walk"
+metadata/form = "basic"
+
+[node name="Marker14" type="Marker2D" parent="Route"]
+position = Vector2(2770, 400)
+metadata/mode = "fight"
+metadata/form = "basic"
+
+[node name="Doors" type="Node2D" parent="."]
+
+[node name="WorkshopEntry" type="Area2D" parent="Doors"]
+script = ExtResource("door")
+position = Vector2(20, 345)
+target_zone_path = "res://scenes/zones/Workshop.tscn"
+target_spawn = "FloorLanding"
+label_text = "The Workshop"
+
+[node name="WorkshopShortcut" type="Area2D" parent="Doors"]
+script = ExtResource("door")
+position = Vector2(3220, 345)
+target_zone_path = "res://scenes/zones/Workshop.tscn"
+target_spawn = "AfterBoiler"
+required_flag = "boss_boiler_defeated"
+label_text = "Workshop Express"
+
+[node name="Hazards" type="Node2D" parent="."]
+
+[node name="EntryCheckpoint" type="Area2D" parent="Hazards"]
+script = ExtResource("checkpoint")
+position = Vector2(140, 400)
+spawn_name = "Default"
+
+[node name="PreBossCheckpoint" type="Area2D" parent="Hazards"]
+script = ExtResource("checkpoint")
+position = Vector2(2140, 400)
+spawn_name = "PreBoss"
+
+[node name="HotChannel" type="Node2D" parent="Hazards"]
+script = ExtResource("spikes")
+position = Vector2(590, 533)
+size = Vector2(340, 32)
+
+[node name="HeatGrate" type="Node2D" parent="Hazards"]
+script = ExtResource("spikes")
+position = Vector2(1545, 376)
+size = Vector2(96, 24)
+
+[node name="Enemies" type="Node2D" parent="."]
+
+[node name="FloorEnemy1" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("enemy")
+position = Vector2(1130, 400)
+role = 0
+skin_color = Color(0.65, 0.42, 0.23, 1)
+
+[node name="FloorEnemy2" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("enemy")
+position = Vector2(1440, 400)
+role = 0
+skin_color = Color(0.65, 0.42, 0.23, 1)
+
+[node name="FloorEnemy3" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("enemy")
+position = Vector2(2025, 400)
+role = 0
+skin_color = Color(0.65, 0.42, 0.23, 1)
+
+[node name="Boss" type="Node2D" parent="."]
+
+[node name="BoilerForeman" parent="Boss" instance=ExtResource("boss")]
+position = Vector2(2770, 400)
+arena_rect = Rect2(2180, -248, 1152, 648)
+
+[node name="Props" type="Node2D" parent="."]
+
+[node name="ChainHoist" type="Node2D" parent="Props"]
+script = ExtResource("anchor")
+position = Vector2(820, 205)
+
+[node name="HoistSign" type="Label" parent="Props"]
+position = Vector2(295, 254)
+theme_override_colors/font_color = Color(0.92, 0.64, 0.25, 1)
+theme_override_font_sizes/font_size = 17
+text = "BOILER FEED  →\nArmchair · face the hoist and hold your power"
+
+[node name="HeatSign" type="Label" parent="Props"]
+position = Vector2(1425, 252)
+theme_override_colors/font_color = Color(0.92, 0.64, 0.25, 1)
+theme_override_font_sizes/font_size = 17
+text = "HOT GRATE\nUse the pipe steps"
+
+[node name="BossSign" type="Label" parent="Props"]
+position = Vector2(2215, 244)
+theme_override_colors/font_color = Color(0.92, 0.64, 0.25, 1)
+theme_override_font_sizes/font_size = 17
+text = "FOREMAN'S STATION"

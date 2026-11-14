@@ -1,85 +1,195 @@
 extends CanvasLayer
-## On-screen touch controls for phones/tablets (web build included).
-## Instanced by Game only when a touchscreen is available. Built entirely in
-## code: TouchScreenButtons (native multitouch + action mapping) with
-## generated radial textures — no assets.
+## Landscape controls with independent thumb tracking and a contextual door button.
 
-const R_BIG := 62.0
-const R_MED := 50.0
-const R_SMALL := 38.0
-const MARGIN := 30.0
-const ALPHA := 0.38
+signal pause_requested
+signal forms_requested
 
-var _buttons: Dictionary = {}   # name -> TouchScreenButton
+const MOVE_COLOR := Color("#3d3856")
+const ACTION_COLOR := Color("#624052")
+const POWER_COLOR := Color("#405073")
+const RADIUS := 51.0
+const SMALL := 37.0
+const HEART_SAFE_TOP := 64.0
+
+var _surface: Control
+var _controls: Dictionary = {}
+var _touches: Dictionary = {}
+var _power_label := "Power"
+var _can_enter := false
 
 
 func _ready() -> void:
-	layer = 9  # under the HUD (10), over the game
-	_add("left", "move_left", "◀", Color(0.8, 0.75, 0.7), R_BIG)
-	_add("right", "move_right", "▶", Color(0.8, 0.75, 0.7), R_BIG)
-	_add("up", "move_up", "▲", Color(0.8, 0.75, 0.7), R_SMALL)
-	_add("jump", "jump", "JUMP", Color(0.45, 0.75, 0.5), R_BIG)
-	_add("attack", "attack", "ATK", Color(0.85, 0.4, 0.4), R_MED)
-	_add("special", "special", "PWR", Color(0.4, 0.6, 0.85), R_MED)
-	_add("form", "transform_next", "SWAP", Color(0.8, 0.7, 0.35), R_SMALL)
-	_add("pause", "pause", "II", Color(0.6, 0.6, 0.6), R_SMALL * 0.8)
+	layer = 12
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	_surface = Control.new()
+	_surface.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_surface.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(_surface)
+	_surface.draw.connect(_draw_buttons)
 	get_viewport().size_changed.connect(_layout)
-	_layout()
+	Events.form_changed.connect(_on_form_changed)
+	_on_form_changed(GameState.current_form)
+	set_enabled(false)
 
 
-func _add(key: String, action: String, label: String, color: Color, radius: float) -> void:
-	var btn := TouchScreenButton.new()
-	btn.action = action
-	btn.texture_normal = _make_texture(color, radius)
-	btn.texture_pressed = _make_texture(color.lightened(0.4), radius)
-	btn.set_meta("radius", radius)
-	add_child(btn)
-	var text := Label.new()
-	text.text = label
-	text.add_theme_font_size_override("font_size", 18 if label.length() <= 2 else 14)
-	text.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
-	text.position = Vector2(0, radius - 12)
-	text.custom_minimum_size = Vector2(radius * 2, 0)
-	text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	btn.add_child(text)
-	_buttons[key] = btn
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		_release_touches()
 
 
-func _make_texture(color: Color, radius: float) -> Texture2D:
-	var tex := GradientTexture2D.new()
-	tex.width = int(radius * 2)
-	tex.height = int(radius * 2)
-	tex.fill = GradientTexture2D.FILL_RADIAL
-	tex.fill_from = Vector2(0.5, 0.5)
-	tex.fill_to = Vector2(0.5, 0.0)
-	var grad := Gradient.new()
-	grad.offsets = PackedFloat32Array([0.0, 0.8, 0.9, 1.0])
-	grad.colors = PackedColorArray([
-		Color(color.r, color.g, color.b, ALPHA),
-		Color(color.r, color.g, color.b, ALPHA),
-		Color(color.lightened(0.3).r, color.lightened(0.3).g, color.lightened(0.3).b, minf(ALPHA + 0.25, 1.0)),
-		Color(color.r, color.g, color.b, 0.0),
-	])
-	tex.gradient = grad
-	return tex
+func set_enabled(enabled: bool) -> void:
+	if not enabled:
+		_release_touches()
+	_surface.visible = enabled
+	set_process_input(enabled)
+	set_physics_process(enabled)
 
 
-func _place(key: String, pos: Vector2) -> void:
-	var btn: TouchScreenButton = _buttons[key]
-	var r: float = btn.get_meta("radius")
-	btn.position = pos - Vector2(r, r)
+func _release_touches() -> void:
+	for finger in _touches.keys():
+		_release(int(finger))
+
+
+func _physics_process(_delta: float) -> void:
+	var player := get_tree().get_first_node_in_group("player") as Player
+	var near_door := false
+	if player != null and player.is_alive():
+		for candidate in get_tree().get_nodes_in_group("doors"):
+			var door := candidate as Door
+			if door != null and door.can_interact(player):
+				near_door = true
+				break
+	if near_door != _can_enter:
+		_can_enter = near_door
+		_surface.queue_redraw()
 
 
 func _layout() -> void:
-	var vp := get_viewport().get_visible_rect().size
-	# Left cluster: movement.
-	_place("left", Vector2(MARGIN + R_BIG, vp.y - MARGIN - R_BIG))
-	_place("right", Vector2(MARGIN + R_BIG * 3.3, vp.y - MARGIN - R_BIG))
-	_place("up", Vector2(MARGIN + R_BIG * 2.15, vp.y - MARGIN - R_BIG * 2.6))
-	# Right cluster: verbs.
-	_place("jump", Vector2(vp.x - MARGIN - R_BIG, vp.y - MARGIN - R_BIG))
-	_place("attack", Vector2(vp.x - MARGIN - R_BIG * 3.0, vp.y - MARGIN - R_MED))
-	_place("special", Vector2(vp.x - MARGIN - R_BIG * 1.9, vp.y - MARGIN - R_BIG * 2.7))
-	_place("form", Vector2(vp.x - MARGIN - R_BIG * 3.8, vp.y - MARGIN - R_BIG * 2.4))
-	# Corner: pause.
-	_place("pause", Vector2(vp.x - MARGIN - R_SMALL, MARGIN + R_SMALL))
+	var size := get_viewport().get_visible_rect().size
+	var left := 82.0
+	var right := size.x - 82.0
+	var floor := size.y - 77.0
+	_controls = {
+		&"move_left": [Vector2(left, floor), RADIUS, "", MOVE_COLOR],
+		&"move_right": [Vector2(left + 115.0, floor), RADIUS, "", MOVE_COLOR],
+		&"interact": [Vector2(left + 44.0, floor - 102.0), SMALL, "Enter", MOVE_COLOR],
+		&"jump": [Vector2(right, floor), RADIUS, "Jump", ACTION_COLOR],
+		&"attack": [Vector2(right - 115.0, floor), RADIUS, "Attack", ACTION_COLOR],
+		&"special": [Vector2(right - 12.0, floor - 112.0), RADIUS, _power_label, POWER_COLOR],
+		&"forms": [Vector2(right - 133.0, HEART_SAFE_TOP), SMALL, "Forms", POWER_COLOR],
+		&"pause": [Vector2(right - 48.0, HEART_SAFE_TOP), SMALL, "Pause", MOVE_COLOR],
+	}
+	_surface.queue_redraw()
+
+
+func _on_form_changed(id: StringName) -> void:
+	const LABELS := {
+		&"basic": "Power", &"armchair": "Hook", &"recliner": "Brace", &"office": "Dash",
+		&"barstool": "Spin", &"folding": "Fold", &"highchair": "Tray",
+		&"rocking": "Slam", &"stool": "Pogo",
+	}
+	_power_label = LABELS.get(id, "Power")
+	_layout()
+
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventScreenTouch:
+		var finger: int = event.index
+		if event.pressed and not event.canceled:
+			var action := _at(event.position)
+			if action == &"":
+				return
+			_press(finger, action)
+		else:
+			if not _touches.has(finger):
+				return
+			_release(finger)
+		get_viewport().set_input_as_handled()
+	elif event is InputEventScreenDrag and _touches.has(event.index):
+		var current: StringName = _touches[event.index]
+		if current in [&"move_left", &"move_right", &"move_idle"]:
+			var action := _at(event.position)
+			if action not in [&"move_left", &"move_right"]:
+				action = &"move_idle"
+			if action != current:
+				_release(event.index)
+				_press(event.index, action)
+		get_viewport().set_input_as_handled()
+	elif event is InputEventMouseButton and OS.get_cmdline_user_args().has("--touch-preview") \
+			and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			var action := _at(event.position)
+			if action == &"":
+				return
+			_press(-1, action)
+		elif _touches.has(-1):
+			_release(-1)
+		else:
+			return
+		get_viewport().set_input_as_handled()
+
+
+func _at(pos: Vector2) -> StringName:
+	for action: StringName in _controls:
+		if not _available(action):
+			continue
+		var rect: Array = _controls[action]
+		if pos.distance_squared_to(rect[0]) <= float(rect[1]) ** 2:
+			return action
+	return &""
+
+
+func _available(action: StringName) -> bool:
+	match action:
+		&"interact":
+			return _can_enter
+		&"forms", &"special":
+			return GameState.unlocked_forms.size() > 1
+	return true
+
+
+func _press(finger: int, action: StringName) -> void:
+	_touches[finger] = action
+	_surface.queue_redraw()
+	match action:
+		&"pause":
+			pause_requested.emit()
+		&"forms":
+			forms_requested.emit()
+		&"move_idle":
+			pass
+		_:
+			Input.action_press(action)
+
+
+func _release(finger: int) -> void:
+	var action: StringName = _touches[finger]
+	_touches.erase(finger)
+	if action not in [&"pause", &"forms", &"move_idle"] and action not in _touches.values():
+		Input.action_release(action)
+	_surface.queue_redraw()
+
+
+func _draw_buttons() -> void:
+	var font := ThemeDB.fallback_font
+	for action: StringName in _controls:
+		if not _available(action):
+			continue
+		var layout: Array = _controls[action]
+		var center: Vector2 = layout[0]
+		var radius: float = layout[1]
+		var title: String = layout[2]
+		var dim: Color = layout[3]
+		var pressed := action in _touches.values()
+		_surface.draw_circle(center, radius, Color(dim.lightened(0.32) if pressed else dim, 0.82 if pressed else 0.56))
+		_surface.draw_arc(center, radius - 1, 0.0, TAU, 36, Color(1.0, 0.93, 0.84, 0.62), 2, true)
+		if title.is_empty():
+			var direction := -1.0 if action == &"move_left" else 1.0
+			_surface.draw_polyline(PackedVector2Array([
+				center + Vector2(-8 * direction, -11), center + Vector2(7 * direction, 0),
+				center + Vector2(-8 * direction, 11),
+			]), Color("#fff3e1"), 4.0, true)
+			continue
+		var width := font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, 24).x
+		_surface.draw_string(font, center + Vector2(-width * 0.5, 8), title, HORIZONTAL_ALIGNMENT_LEFT,
+				-1, 24, Color("#fff3e1"))

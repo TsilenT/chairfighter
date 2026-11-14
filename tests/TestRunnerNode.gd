@@ -24,9 +24,9 @@ func _ready() -> void:
 		f = dir.get_next()
 	files.sort()
 	for file in files:
-		var script := load(UNIT_DIR + "/" + file)
-		if script == null:
-			failures.append("%s: failed to load" % file)
+		var script := load(UNIT_DIR + "/" + file) as Script
+		if script == null or not script.can_instantiate():
+			failures.append("%s: could not load a runnable test" % file)
 			continue
 		var inst: Object = script.new()
 		if not inst.has_method("run"):

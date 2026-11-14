@@ -24,9 +24,7 @@ static func burst(parent: Node, global_pos: Vector2, color: Color, count := 10,
 	parent.add_child(p)
 	p.global_position = global_pos
 	var t := p.get_tree().create_timer(life + 0.3, false, true)
-	t.timeout.connect(func() -> void:
-		if is_instance_valid(p):
-			p.queue_free())
+	t.timeout.connect(p.queue_free)
 
 
 static func dust(parent: Node, global_pos: Vector2, intensity := 1.0) -> void:
@@ -46,3 +44,21 @@ static func confetti(parent: Node, global_pos: Vector2) -> void:
 	for c in [Color(0.95, 0.75, 0.3), Color(0.85, 0.3, 0.4), Color(0.4, 0.7, 0.9)]:
 		burst(parent, global_pos + Vector2(randf_range(-40, 40), randf_range(-60, 0)),
 				c, 12, 320.0, 1.1, true, 700.0)
+
+
+static func contact(parent: Node2D, center: Vector2, side: float, strong: bool) -> void:
+	var color := Color("#ffcf79") if strong else Color("#ffe9bf")
+	burst(parent, center, color, 13 if strong else 8, 240.0, 0.22, false, 170.0)
+	var slash := Line2D.new()
+	slash.position = parent.to_local(center)
+	slash.width = 4.0 if strong else 2.5
+	slash.default_color = color
+	slash.antialiased = true
+	slash.points = PackedVector2Array([
+		Vector2(-16 * side, 10), Vector2(2 * side, 0), Vector2(20 * side, -14),
+	])
+	parent.add_child(slash)
+	var tween := slash.create_tween().set_ignore_time_scale()
+	tween.tween_property(slash, "scale", Vector2(1.65, 1.65), 0.14)
+	tween.parallel().tween_property(slash, "modulate:a", 0.0, 0.14)
+	tween.tween_callback(slash.queue_free)

@@ -15,25 +15,21 @@ var _edict_start_health := -1.0
 var _edict_layer: CanvasLayer
 var _edict_panel: PanelContainer
 var _edict_label: Label
-var _special_player: Node
+var _royal_hazards: Array[RoyalHazard] = []
+var _court: Array[Node2D] = []
 
 
 func _ready() -> void:
 	boss_id = &"king"
 	display_name = "The Upholstered King"
 	max_health = 90.0
-	unlock_form_id = &""
 	body_half_width = 75.0
 	body_height = 170.0
 	contact_damage = 1.0
+	contact_rehit_interval = 4.5
 	super._ready()
 	if is_queued_for_deletion():
 		return
-	# The King is enormous, so melee naturally overlaps him. Keep the contact
-	# hit honest but infrequent enough for the simple demo fighter to trade.
-	for child in get_children():
-		if child is Hitbox and (child as Hitbox).continuous:
-			(child as Hitbox).rehit_interval = 4.5
 	_build_edict_ui()
 
 
@@ -42,7 +38,7 @@ func _on_trigger(body: Node2D) -> void:
 		_show_edict("AUDIENCE DENIED", "Eight earned chairs must answer the Crown.", Color(0.9, 0.3, 0.28))
 		return
 	if not GameState.has_completed_final_trials():
-		_show_edict("HALL UNANSWERED", "Prove all eight chair specials before approaching the Crown.", Color(0.9, 0.3, 0.28))
+		_show_edict("HALL UNANSWERED", "Open all eight workshop seals before approaching the Crown.", Color(0.9, 0.3, 0.28))
 		return
 	_bind_special_signal(body)
 	super._on_trigger(body)
@@ -65,13 +61,13 @@ func _on_hit_received(hb: Hitbox) -> void:
 
 func _on_player_died() -> void:
 	_clear_edict()
+	_clear_court()
 	super._on_player_died()
 
 
 func _bind_special_signal(player: Node) -> void:
 	if player == null or not player.has_signal("special_used"):
 		return
-	_special_player = player
 	var callback := Callable(self, "_on_special_used")
 	if not player.is_connected("special_used", callback):
 		player.connect("special_used", callback)
@@ -91,6 +87,10 @@ func _on_special_used(form_id: StringName, mechanic: StringName) -> void:
 
 
 func _clear_edict() -> void:
+	for hazard in _royal_hazards:
+		if is_instance_valid(hazard):
+			hazard.queue_free()
+	_royal_hazards.clear()
 	_edict_window_active = false
 	_edict_can_counter = false
 	_edict_countered = false
@@ -174,10 +174,10 @@ func _run_edict(form_id: StringName, mechanics: Array[StringName], title: String
 	_edict_can_counter = false
 	var def: FormDef = load("res://src/forms/%s.tres" % form_id)
 	var cue_color := def.body_color.lightened(0.3) if def != null else Color(0.98, 0.72, 0.22)
+	var attack_token := _run_token
 	_show_edict(title, hint + "\nREADY — answer after the gold flash.", cue_color)
 	await telegraph(0.7)
-	if not active or defeated:
-		_clear_edict()
+	if not is_attack_current(attack_token):
 		return false
 	var response_player := player_node()
 	_edict_start_health = response_player.current_health() \
@@ -189,8 +189,10 @@ func _run_edict(form_id: StringName, mechanics: Array[StringName], title: String
 	_edict_can_counter = true
 	_show_edict(title, hint + "\nCOUNTER NOW — the attack is live.", cue_color)
 	var left := 0.9 if hazard_kind == &"grapple" else 2.2
-	while active and not defeated and left > 0.0:
+	while is_attack_current(attack_token) and left > 0.0:
 		await get_tree().physics_frame
+		if not is_attack_current(attack_token):
+			return false
 		if not can_process():
 			continue
 		if hazard_kind == &"grapple":
@@ -200,9 +202,6 @@ func _run_edict(form_id: StringName, mechanics: Array[StringName], title: String
 					and live_player.global_position.y <= arena_rect.end.y - 80.0:
 				_edict_escape_proved = true
 		left -= get_physics_process_delta_time()
-	if not active or defeated:
-		_clear_edict()
-		return false
 	_edict_window_active = false
 	var succeeded := _edict_countered and _response_survived(hazard_kind)
 	if succeeded:
@@ -212,6 +211,8 @@ func _run_edict(form_id: StringName, mechanics: Array[StringName], title: String
 				if _edict_countered else "This proof repeats until you use the named special."
 		_show_edict("EDICT UNANSWERED", missed_hint, Color(0.96, 0.46, 0.34))
 	await wait(0.65)
+	if not is_attack_current(attack_token):
+		return false
 	_clear_edict()
 	return succeeded
 
@@ -221,11 +222,8 @@ func _response_survived(hazard_kind: StringName) -> bool:
 	if player == null or not player.has_method("current_health"):
 		return false
 	if hazard_kind == &"grapple":
-		# A clean response keeps its health. If the carpet grazes the launch frame,
-		# accept only a grapple observed above the danger strip while the response
-		# was live; merely tapping grapple and remaining on the floor is not proof.
-		var unharmed := is_equal_approx(player.current_health(), _edict_start_health)
-		return unharmed or _edict_escape_proved
+		# The chair has to reach safety above the carpet during its grapple.
+		return _edict_escape_proved
 	if not is_equal_approx(player.current_health(), _edict_start_health):
 		return false
 	return GameState.current_form == &"folding" and player.has_method("is_folded") \
@@ -277,6 +275,7 @@ func _spawn_royal_hazard(at: Vector2, vel: Vector2, hazard_size: Vector2,
 	hazard.warmup = warmup
 	get_parent().add_child(hazard)
 	hazard.global_position = at
+	_royal_hazards.append(hazard)
 	Events.sfx_requested.emit(&"telegraph")
 
 
@@ -325,11 +324,18 @@ func _show_edict(title: String, hint: String, color: Color) -> void:
 # -- royal attack patterns --------------------------------------------------
 
 func _royal_smash() -> void:
-	await telegraph(0.55)
-	hop(Vector2(dir_to_player() * 280.0, -570.0))
+	var token := _run_token
+	var direction := dir_to_player()
+	await telegraph(0.58, "Carpet smash")
+	if not is_attack_current(token):
+		return
+	hop(Vector2(direction * 280.0, -570.0))
 	await wait(0.38)
+	if not is_attack_current(token):
+		return
 	velocity.y = 1050.0
-	await _wait_for_floor(0.65)
+	if not await wait_for_landing(0.65):
+		return
 	velocity.x = 0.0
 	# Fast, low arcs skim the carpet in both directions and invite a hop.
 	var wave_y := global_position.y - 18.0
@@ -342,64 +348,79 @@ func _royal_smash() -> void:
 
 
 func _summon_court() -> void:
-	await telegraph(0.65)
-	if _arena_footstool_count() < 3:
-		var court_x := [arena_rect.position.x + 150.0, arena_rect.end.x - 150.0]
-		for x: float in court_x:
-			var add := FOOTSTOOL_SCRIPT.new()
-			add.position = Vector2(x, arena_rect.end.y - 1.0)
-			add.skin_color = Color(0.48, 0.19, 0.62)
-			get_parent().add_child(add)
-			# Court etiquette: bow before re-hitting the same guest.
-			for child in add.get_children():
-				if child is Hitbox and (child as Hitbox).continuous:
-					(child as Hitbox).rehit_interval = 2.0
-			await wait(0.16)
+	var token := _run_token
+	var floor_y := arena_rect.end.y - 1.0
+	var court_spawns := PackedVector2Array([
+		Vector2(arena_rect.position.x + 150.0, floor_y),
+		Vector2(arena_rect.end.x - 150.0, floor_y),
+	])
+	await telegraph(0.65, "Call the court", court_spawns)
+	if not is_attack_current(token):
+		return
+	for spawn in court_spawns:
+		if _arena_footstool_count() >= 3:
+			break
+		var squire := FOOTSTOOL_SCRIPT.new()
+		squire.position = spawn
+		squire.skin_color = Color(0.48, 0.19, 0.62)
+		get_parent().add_child(squire)
+		_court.append(squire)
+		for child in squire.get_children():
+			if child is Hitbox and (child as Hitbox).continuous:
+				(child as Hitbox).rehit_interval = 2.0
 	await wait(1.0)
 
 
 func _cushion_volley() -> void:
-	await telegraph(0.6)
-	var origin := global_position + Vector2(0, -body_height + 28.0)
-	var flight_time := 1.05
+	var token := _run_token
+	var targets := PackedVector2Array()
 	for i in 5:
-		var target_x := lerpf(arena_rect.position.x + 135.0,
+		var x := lerpf(arena_rect.position.x + 135.0,
 				arena_rect.end.x - 135.0, float(i) / 4.0)
-		var target := Vector2(target_x, arena_rect.end.y - 14.0)
+		targets.append(Vector2(x, arena_rect.end.y - 14.0))
+	await telegraph(0.6, "Cushion volley", targets)
+	var origin := global_position + Vector2(0, -body_height + 28.0)
+	const FLIGHT_TIME := 1.05
+	for target in targets:
+		if not is_attack_current(token):
+			return
 		var delta_to_target := target - origin
-		var launch := Vector2(delta_to_target.x / flight_time,
-				(delta_to_target.y - 0.5 * Projectile.GRAVITY * flight_time * flight_time) / flight_time)
+		var launch := Vector2(delta_to_target.x / FLIGHT_TIME,
+				(delta_to_target.y - 0.5 * Projectile.GRAVITY * FLIGHT_TIME * FLIGHT_TIME) / FLIGHT_TIME)
 		spawn_projectile(origin, launch, Color(0.63, 0.25, 0.78), 13.0)
 		await wait(0.13)
 	await wait(0.85)
 
 
 func _throne_charge() -> void:
-	await telegraph(0.65)
+	var token := _run_token
+	await telegraph(0.65, "Double charge")
+	if not is_attack_current(token):
+		return
 	var left_x := arena_rect.position.x + body_half_width + 110.0
 	var right_x := arena_rect.end.x - body_half_width - 110.0
 	var start_x := left_x if absf(global_position.x - left_x) < absf(global_position.x - right_x) else right_x
 	await move_to_x(start_x, 650.0, 2.5)
-	var squash := create_tween()
-	squash.tween_property(self, "scale:y", 0.56, 0.12)
-	await wait(0.16)
-	# Two true wall-to-wall passes, low enough to read as a charging throne.
 	for pass_index in 2:
+		if not is_attack_current(token):
+			return
 		var target_x := right_x if (pass_index == 0 and start_x == left_x) \
 				or (pass_index == 1 and start_x == right_x) else left_x
+		await telegraph(0.35, "Charge!" if pass_index == 0 else "And back!")
+		if not is_attack_current(token):
+			return
 		await move_to_x(target_x, 1050.0, 1.8)
+		if not is_attack_current(token):
+			return
 		Events.screenshake_requested.emit(4.0, 0.18)
-		await wait(0.25)
-	var rise := create_tween()
-	rise.tween_property(self, "scale:y", 1.0, 0.14)
 	await wait(0.9)
 
 
-func _wait_for_floor(timeout: float) -> void:
-	var left := timeout
-	while left > 0.0 and active and not defeated and not is_on_floor():
-		await get_tree().physics_frame
-		left -= get_physics_process_delta_time()
+func _clear_court() -> void:
+	for squire in _court:
+		if is_instance_valid(squire):
+			squire.queue_free()
+	_court.clear()
 
 
 func _arena_footstool_count() -> int:
@@ -416,13 +437,13 @@ func _arena_footstool_count() -> int:
 
 func _on_died() -> void:
 	_clear_edict()
+	_clear_court()
 	super._on_died()
 	# BossBase fades and frees this node before two seconds elapse. Connect the
 	# SceneTreeTimer to the persistent event bus so the awaited finale cannot be
 	# cancelled along with the King's coroutine state.
 	var victory_timer := get_tree().create_timer(2.0, false, true)
 	victory_timer.timeout.connect(Events.game_won.emit, CONNECT_ONE_SHOT)
-	await victory_timer.timeout
 
 
 # -- placeholder portrait --------------------------------------------------

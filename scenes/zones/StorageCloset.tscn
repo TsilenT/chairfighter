@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://src/zones/StorageCloset.gd" id="1_zone"]
 [ext_resource type="Script" path="res://src/game/ZoneTheme.gd" id="2_theme"]
@@ -12,6 +12,8 @@
 [ext_resource type="Script" path="res://src/enemies/CoatRack.gd" id="10_coatrack"]
 [ext_resource type="Script" path="res://src/enemies/LampWisp.gd" id="11_wisp"]
 [ext_resource type="PackedScene" path="res://scenes/bosses/SteelFolder.tscn" id="12_folder"]
+
+[ext_resource type="Script" path="res://src/enemies/HouseFurniture.gd" id="house_furniture"]
 
 [sub_resource type="Resource" id="theme_storage"]
 script = ExtResource("2_theme")
@@ -50,24 +52,9 @@ position = Vector2(-120, 400)
 
 [node name="TunnelCeiling" type="StaticBody2D" parent="Geometry"]
 script = ExtResource("3_platform")
-size = Vector2(420, 56)
-position = Vector2(680, 304)
+size = Vector2(160, 720)
+position = Vector2(680, -360)
 decor = true
-
-[node name="CrateBottom" type="StaticBody2D" parent="Geometry"]
-script = ExtResource("3_platform")
-size = Vector2(140, 48)
-position = Vector2(870, 256)
-
-[node name="CrateMiddle" type="StaticBody2D" parent="Geometry"]
-script = ExtResource("3_platform")
-size = Vector2(110, 48)
-position = Vector2(900, 208)
-
-[node name="CrateTop" type="StaticBody2D" parent="Geometry"]
-script = ExtResource("3_platform")
-size = Vector2(80, 48)
-position = Vector2(930, 160)
 
 [node name="LeftBoundary" type="StaticBody2D" parent="Geometry"]
 script = ExtResource("3_platform")
@@ -102,7 +89,7 @@ metadata/mode = "walk"
 metadata/form = "basic"
 
 [node name="M2" type="Marker2D" parent="Route/RouteMain"]
-position = Vector2(1120, 400)
+position = Vector2(900, 400)
 metadata/mode = "dash_tunnel"
 metadata/form = "office"
 
@@ -154,16 +141,17 @@ metadata/form = "basic"
 script = ExtResource("4_door")
 position = Vector2(20, 345)
 target_zone_path = "res://scenes/zones/Workshop.tscn"
-target_spawn = "FromStorage"
+target_spawn = "FloorLanding"
 label_text = "The Workshop"
 
 [node name="WorkshopShortcut" type="Area2D" parent="Doors"]
 script = ExtResource("4_door")
 position = Vector2(3480, 345)
 target_zone_path = "res://scenes/zones/Workshop.tscn"
-target_spawn = "FromStorage"
+target_spawn = "AfterStorage"
 required_flag = "boss_folder_defeated"
-label_text = "The Workshop"
+label_text = "Return to the Workshop"
+locked_hint = "Defeat the Steel Folder"
 
 [node name="Hazards" type="Node2D" parent="."]
 
@@ -226,8 +214,9 @@ script = ExtResource("9_footstool")
 position = Vector2(1900, 400)
 skin_color = Color(0.37, 0.42, 0.48, 1)
 
-[node name="ArchiveCoatRack" type="CharacterBody2D" parent="Enemies"]
-script = ExtResource("10_coatrack")
+[node name="HardwareToolbox" type="CharacterBody2D" parent="Enemies"]
+script = ExtResource("house_furniture")
+kind = 2
 position = Vector2(1780, 400)
 skin_color = Color(0.48, 0.52, 0.56, 1)
 
@@ -248,7 +237,7 @@ arena_rect = Rect2(2448, -248, 1152, 648)
 position = Vector2(390, 245)
 theme_override_font_sizes/font_size = 17
 theme_override_colors/font_color = Color(0.96, 0.78, 0.12, 0.9)
-text = "AUTHORIZED CHAIRS\nKEEP A LOW PROFILE  >>"
+text = "BOTTOM SHELF  →\nOffice Chair · dash to duck under"
 
 [node name="GateSign" type="Label" parent="Props"]
 position = Vector2(1370, 245)

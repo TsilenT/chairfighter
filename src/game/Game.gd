@@ -9,6 +9,7 @@ const HUD_SCENE := "res://scenes/ui/HUD.tscn"
 const PAUSE_SCENE := "res://scenes/ui/PauseMenu.tscn"
 const UNLOCK_SCENE := "res://scenes/ui/UnlockBanner.tscn"
 const ENDING_SCENE := "res://scenes/ui/EndingScreen.tscn"
+const TOUCH_CONTROLS := preload("res://src/ui/TouchControls.gd")
 
 @onready var _zone_holder: Node2D = $ZoneHolder
 @onready var _ui_layer: CanvasLayer = $UILayer
@@ -19,6 +20,7 @@ var _current_zone: Node = null
 var _title: Node = null
 var _hud: Node = null
 var _pause_menu: Node = null
+var _touch: CanvasLayer
 var _transitioning := false
 var _pending_zone: Array = []   # queued [zone_path, spawn] during a transition
 var _zone_load_count := 0       # generation counter for death/door races
@@ -35,13 +37,31 @@ func _ready() -> void:
 	Events.game_won.connect(_on_game_won)
 	_fade.color = Color(0.07, 0.05, 0.04, 1.0)
 	_fade.modulate.a = 1.0
-	if DisplayServer.is_touchscreen_available():
-		var touch: Node = load("res://src/ui/TouchControls.gd").new()
-		add_child(touch)
+	GameState.touch_controls = _has_touch_input()
+	if GameState.touch_controls:
+		_touch = TOUCH_CONTROLS.new()
+		add_child(_touch)
+		_touch.pause_requested.connect(_toggle_pause)
+		_touch.forms_requested.connect(_toggle_pause)
+		Events.player_respawned.connect(_update_touch)
 	_show_title()
 
 
+func _has_touch_input() -> bool:
+	if DisplayServer.is_touchscreen_available() or OS.get_cmdline_user_args().has("--touch-preview"):
+		return true
+	return OS.has_feature("web") and bool(JavaScriptBridge.eval(
+			"matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0"))
+
+
+func _update_touch() -> void:
+	if _touch != null:
+		_touch.set_enabled(_title == null and _player != null and _player.is_alive()
+				and _pause_menu == null and not _transitioning and not _ending)
+
+
 func _show_title() -> void:
+	AudioManager.return_to_title()
 	_title = load(TITLE_SCENE).instantiate()
 	_ui_layer.add_child(_title)
 	_title.start_requested.connect(_start_new_game)
@@ -73,6 +93,7 @@ func _on_zone_change_requested(zone_path: String, spawn_name: String) -> void:
 
 func _load_zone(zone_path: String, spawn_name: String) -> void:
 	_transitioning = true
+	_update_touch()
 	await _load_zone_inner(zone_path, spawn_name)
 	# Drain any request queued mid-transition, regardless of who initiated
 	# the transition. _transitioning stays true while draining so no third
@@ -82,6 +103,7 @@ func _load_zone(zone_path: String, spawn_name: String) -> void:
 		_pending_zone = []
 		await _load_zone_inner(next[0], next[1])
 	_transitioning = false
+	_update_touch()
 
 
 func _load_zone_inner(zone_path: String, spawn_name: String) -> void:
@@ -137,6 +159,7 @@ func _find_spawn(spawn_name: String) -> Vector2:
 
 
 func _on_player_died() -> void:
+	_update_touch()
 	var generation := _zone_load_count
 	print("[Game] player died (gen %d)" % generation)
 	await get_tree().create_timer(1.4, false, true).timeout
@@ -172,6 +195,7 @@ func _on_game_won() -> void:
 		return
 	# Terminal state: no further zone changes, respawns, or pausing.
 	_ending = true
+	_update_touch()
 	_pending_zone = []
 	if _pause_menu != null:
 		_pause_menu.queue_free()
@@ -190,20 +214,38 @@ func _on_game_won() -> void:
 	await _fade_to(0.0, 1.0)
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("pause") and _title == null and not _transitioning and not _ending:
+func _input(event: InputEvent) -> void:
+	if event.is_echo():
+		return
+	if _can_pause() and (event.is_action_pressed("pause") or event.is_action_pressed("forms")):
+		get_viewport().set_input_as_handled()
 		_toggle_pause()
 
 
+func _can_pause() -> bool:
+	return _title == null and _player != null and not _transitioning and not _ending and _player.is_alive()
+
+
 func _toggle_pause() -> void:
+	if not _can_pause():
+		return
 	if _pause_menu != null:
 		_pause_menu.queue_free()
 		_pause_menu = null
 		get_tree().paused = false
+		_update_touch()
 		return
 	_pause_menu = load(PAUSE_SCENE).instantiate()
+	_pause_menu.resume_requested.connect(_toggle_pause)
+	_pause_menu.form_requested.connect(_select_form)
 	_ui_layer.add_child(_pause_menu)
 	get_tree().paused = true
+	_update_touch()
+
+
+func _select_form(id: StringName) -> void:
+	if _player.request_form(id):
+		_toggle_pause()
 
 
 func _fade_to(alpha: float, duration: float) -> void:

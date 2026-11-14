@@ -4,6 +4,11 @@
   {"op":"wait_zone","zone":"The Workshop"},
   {"op":"cheat_setup","forms":["armchair","office","folding"],"form":"basic","zone":"res://scenes/zones/Parlor.tscn","spawn":"Default","zone_name":"The Parlor"},
 
+  {"op":"transform_to","form":"folding"},
+  {"op":"walk_until_x","x":285,"tol":8,"timeout":12},
+  {"op":"special_tap"},
+  {"op":"walk_until_x","x":515,"tol":8,"timeout":15,"no_hop":true},
+  {"op":"special_tap"},
   {"op":"walk_until_x","x":600,"tol":10,"timeout":20},
   {"op":"press","action":"move_right"},
   {"op":"jump","hold":0.42},
@@ -24,6 +29,7 @@
 
   {"op":"transform_to","form":"rocking"},
   {"op":"walk_until_x","x":1960,"tol":8,"timeout":30,"no_hop":true},
+  {"op":"jump","hold":0.2},
   {"op":"press","action":"special"},
   {"op":"wait","secs":0.7},
   {"op":"release","action":"special"},

@@ -6,22 +6,34 @@ an interconnected world. The furniture went to war. Only one chair can end it.
 
 ## The arc
 
-**Workshop hub** → The Lounge (**Recliner Baron** → Armchair + Recliner) →
-The Office Complex (**Swivel Executive** → Office Chair + Bar Stool) →
-The Storage Closet (**Steel Folder** → Folding Chair + High Chair) →
-The Parlor (**Granny Tremor** → Rocking Chair + Spring Stool) →
-The Throne Room's eight-form gauntlet (**The Upholstered King** → credits).
+The Upholstered King has taken every seat in the house. Ottoman Otto holds
+the Workshop while you take the floors back, one door and one form at a time.
 
-The basic chair starts the run; each of the four guardians awards a pair, for
-eight earned forms before the final boss. Every earned form has a special verb
-and a combat identity, and the finale checks all eight in reward order.
+| Floor | Guardian | Reward |
+|---|---|---|
+| The Lounge | Recliner Baron | Armchair |
+| The Boiler Room | Boiler Foreman | Recliner |
+| The Office Complex | Swivel Executive | Office Chair |
+| The Night Bar | Velvet Bartender | Bar Stool |
+| The Storage Closet | Steel Folder | Folding Chair |
+| The Nursery | Nursery Nanny | High Chair |
+| The Parlor | Granny Tremor | Rocking Chair |
+| The Conservatory | Canopy Bouncer | Spring Stool |
+
+The Workshop doors are spread across the house. Grapple to the Boiler
+catwalk, brace against the Office relief valve, and dash through the west
+service baffle to the Night Bar. Reflect a shot into the Storage bell, fold
+under the linen cabinet to reach the Nursery, and throw a tray into the
+Parlor catch. The Conservatory is below the east hatch, which opens with
+a Rocking Chair slam. From the drains, the Spring Stool can reach the
+Throne landing. The royal workshop tests all eight forms before the King.
 Casual difficulty: checkpoints heal, respawns keep progress, bosses retain
 most damage between attempts.
 
 | Earned form | Chair power |
 |---|---|
 | Armchair | Grapple gold hooks |
-| Recliner | Brace and counter |
+| Recliner | Block a frontal hit, then release and attack to counter |
 | Office Chair | Dash through cracked barriers |
 | Bar Stool | Spin and reflect projectiles |
 | Folding Chair | Fold flat through low gaps and vents |
@@ -29,22 +41,28 @@ most damage between attempts.
 | Rocking Chair | Slam downward through cracked floors |
 | Spring Stool | Pogo-jump once in midair |
 
-## Controls (keyboard · controller-first bindings included)
+## Controls
 
-| Action | Key |
-|---|---|
-| Move | A/D or ←/→ |
-| Enter door | W / ↑ (in doorway) |
-| Jump (hold = higher) | Space |
-| Attack | J |
-| Chair power (changes with form) | K |
-| Switch form | Q / E |
-| Pause | Esc |
+| Action | Keyboard | Gamepad | Landscape touch |
+|---|---|---|---|
+| Move | A/D or Left/Right | Stick or D-pad | Left/right pad |
+| Enter door | W, Up, or F | Y or D-pad Up | Enter appears at an open door |
+| Jump higher | Hold Space | Hold A | Hold Jump |
+| Attack | J or Z | X | Attack |
+| Chair power | K or X | B | Button named for the equipped power |
+| Quick switch | Q/E | LB/RB | Forms opens the direct selector |
+| Form selector | Tab | Select/View | Forms |
+| Pause | Esc | Start/Menu | Pause |
 
 ## Run it
 
 1. Install Godot 4.6+: https://godotengine.org/download/
-2. `godot --path .` (or open in the editor and press F5)
+2. `godot --path .` (or open in the editor and press F5). This Windows
+   checkout also has the local launcher `.\bin\godot.cmd`.
+
+For the mobile browser build, export the Web preset and serve the export
+directory over HTTP. Open it in landscape and tap Play. For the desktop
+touch-layout preview, run `godot --path . -- --touch-preview`.
 
 ## Verify it
 

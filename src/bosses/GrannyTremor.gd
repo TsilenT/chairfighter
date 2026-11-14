@@ -10,26 +10,18 @@ var _stomping := false
 var _rock_time := 0.0
 var _rock_angle := 0.0
 var _charge_dir := 1.0
-var _contact_hitbox: Hitbox
 
 
 func _ready() -> void:
 	boss_id = &"granny"
 	display_name = "Granny Tremor"
 	max_health = 55.0
-	unlock_form_ids = [&"rocking", &"stool"]
 	body_half_width = 55.0
 	body_height = 130.0
 	contact_damage = 1.0
+	contact_while_idle = false
+	contact_rehit_interval = 2.0
 	super._ready()
-	# Her lap is a safe punish window. Contact turns dangerous only while an
-	# attack is moving, which keeps the driver's close-range trades fair.
-	for child in get_children():
-		if child is Hitbox and (child as Hitbox).continuous:
-			_contact_hitbox = child as Hitbox
-			_contact_hitbox.rehit_interval = 2.0
-			break
-	_set_contact_active(false)
 
 
 func _patterns() -> Array[Callable]:
@@ -39,14 +31,17 @@ func _patterns() -> Array[Callable]:
 func _on_phase_two() -> void:
 	# A shudder announces the faster, three-pass rhythm without injecting a
 	# hop into whichever attack coroutine crossed the health threshold.
-	_rock_time = 0.0
 	Events.screenshake_requested.emit(4.0, 0.25)
 	queue_redraw()
 
 
-func _on_player_died() -> void:
-	_reset_attack_pose()
-	super._on_player_died()
+func _clear_attack() -> void:
+	_rocking = false
+	_charging = false
+	_stomping = false
+	_rock_time = 0.0
+	_rock_angle = 0.0
+	super._clear_attack()
 
 
 func _physics_process(delta: float) -> void:
@@ -60,40 +55,10 @@ func _physics_process(delta: float) -> void:
 	super._physics_process(delta)
 
 
-func _set_contact_active(enabled: bool) -> void:
-	if _contact_hitbox != null and is_instance_valid(_contact_hitbox):
-		_contact_hitbox.set_deferred("monitoring", enabled)
-
-
-func _reset_attack_pose() -> void:
-	_rocking = false
-	_charging = false
-	_stomping = false
-	_rock_time = 0.0
-	_rock_angle = 0.0
-	use_gravity = true
-	_set_contact_active(false)
-	queue_redraw()
-
-
 # -- patterns ---------------------------------------------------------------
 
 func _rocking_charge() -> void:
-	await telegraph(0.55)
-	if not active or defeated:
-		return
-
-	# Rock in place until the tempo audibly/visually winds up.
-	velocity.x = 0.0
-	_rock_time = 0.0
-	_rocking = true
-	await wait(0.72 if phase >= 2 else 0.9)
-	_rocking = false
-	_rock_angle = 0.0
-	if not active or defeated:
-		_reset_attack_pose()
-		return
-
+	var token := _run_token
 	var pass_count := 3 if phase >= 2 else 2
 	var speed := 640.0 if phase >= 2 else 520.0
 	var left_x := arena_rect.position.x + body_half_width + 72.0
@@ -103,93 +68,87 @@ func _rocking_charge() -> void:
 	for pass_index in pass_count:
 		var target_x := right_x if global_position.x < arena_mid else left_x
 		_charge_dir = signf(target_x - global_position.x)
-		if is_zero_approx(_charge_dir):
-			_charge_dir = dir_to_player()
+		_rock_time = 0.0
+		_rocking = true
+		if pass_index == 0:
+			await telegraph(0.82, "Rocking charge")
+		else:
+			await telegraph(0.36, "Return rock")
+		if not is_attack_current(token):
+			return
+		_rocking = false
+		_rock_angle = 0.0
 		_charging = true
 		_set_contact_active(true)
 		await move_to_x(target_x, speed, 2.5)
-		velocity.x = 0.0
+		if not is_attack_current(token):
+			return
 		_charging = false
 		_set_contact_active(false)
-		if not active or defeated:
-			_reset_attack_pose()
-			return
-		if pass_index + 1 < pass_count:
-			# The runner squeak is the beat before the return sweep.
-			await wait(0.28)
-	await wait(0.72)
+	await recover(0.72)
 
 
 func _knit_barrage() -> void:
-	await telegraph(0.5)
-	if not active or defeated:
-		return
+	var token := _run_token
 	var count := 6 if phase >= 2 else 4
 	var dusty_rose := Color(0.74, 0.34, 0.46)
-	var origin := global_position + Vector2(0, -body_height + 22.0)
 	var p := player_node()
 	if p == null:
 		return
 	var center_x := p.global_position.x
+	var targets := PackedVector2Array()
+	center_x = clampf(center_x, arena_rect.position.x + 290.0, arena_rect.end.x - 290.0)
+	for i in count:
+		var spread := (float(i) - (float(count) - 1.0) * 0.5) * 78.0
+		targets.append(Vector2(center_x + spread, arena_rect.end.y))
+	await telegraph(0.62, "Yarn barrage", targets)
 	var flight_time := 0.92
 	for i in count:
-		if not active or defeated:
+		if not is_attack_current(token):
 			return
-		var spread := (float(i) - (float(count) - 1.0) * 0.5) * 78.0
-		var target_x := clampf(center_x + spread,
-				arena_rect.position.x + 86.0, arena_rect.end.x - 86.0)
-		var target := Vector2(target_x, arena_rect.end.y - 12.0)
+		var origin := global_position + Vector2(0, -body_height + 22.0)
+		var target := targets[i] + Vector2(0, -12.0)
 		var delta_to_target := target - origin
 		var yarn_velocity := Vector2(delta_to_target.x / flight_time,
 				(delta_to_target.y - 0.5 * Projectile.GRAVITY
 				* flight_time * flight_time) / flight_time)
-		spawn_projectile(origin, yarn_velocity, dusty_rose, 10.0)
+		spawn_projectile(origin, yarn_velocity, dusty_rose, 10.0, &"yarn")
 		await wait(0.16)
 	# Granny counts her stitches, leaving a clear melee opening.
-	await wait(0.82)
+	await recover(0.82)
 
 
 func _tremor_stomp() -> void:
-	await telegraph(0.55)
-	if not active or defeated:
+	var token := _run_token
+	var hop_x := dir_to_player() * 180.0
+	var target := Vector2(global_position.x + hop_x * 0.4, arena_rect.end.y)
+	await telegraph(0.6, "Tremor stomp", PackedVector2Array([target]))
+	if not is_attack_current(token):
 		return
 	_stomping = true
 	_set_contact_active(true)
-	hop(Vector2(dir_to_player() * 180.0, -660.0))
+	hop(Vector2(hop_x, -660.0))
 	await wait(0.36)
-	if not active or defeated:
-		_reset_attack_pose()
+	if not is_attack_current(token):
 		return
 	velocity.x *= 0.35
 	velocity.y = 1120.0
-	var landed := await _wait_for_landing(1.2)
-	if not landed or not active or defeated:
-		_reset_attack_pose()
+	var landed := await wait_for_landing(1.2)
+	if not is_attack_current(token):
+		return
+	_stomping = false
+	_set_contact_active(false)
+	if not landed:
 		return
 	velocity = Vector2.ZERO
 	Events.screenshake_requested.emit(6.0, 0.28)
 	var wave_origin := global_position + Vector2(0, -18.0)
 	var wave_color := Color(0.82, 0.57, 0.36)
 	spawn_projectile(wave_origin + Vector2(-20.0, 0), Vector2(-660.0, -175.0),
-			wave_color, 9.0)
+			wave_color, 9.0, &"wave")
 	spawn_projectile(wave_origin + Vector2(20.0, 0), Vector2(660.0, -175.0),
-			wave_color, 9.0)
-	_stomping = false
-	_set_contact_active(false)
-	await wait(0.78)
-
-
-func _wait_for_landing(timeout: float) -> bool:
-	var token := _run_token
-	var left := timeout
-	# The launch begins while the previous frame still reports floor contact.
-	await get_tree().physics_frame
-	while left > 0.0 and token == _run_token and active and not defeated:
-		if is_on_floor():
-			return true
-		await get_tree().physics_frame
-		left -= get_physics_process_delta_time()
-	return false
+			wave_color, 9.0, &"wave")
+	await recover(0.78)
 
 
 # -- placeholder visual ----------------------------------------------------
@@ -273,6 +232,11 @@ func _draw() -> void:
 			var y := -100.0 + float(i) * 28.0
 			draw_line(Vector2(trail * 68.0, y), Vector2(trail * (96.0 + i * 8.0), y),
 					brass, 3.0)
+	if _rocking:
+		var arrow := PackedVector2Array([Vector2(73 * _charge_dir, -31),
+				Vector2(88 * _charge_dir, -20), Vector2(73 * _charge_dir, -9)])
+		draw_polyline(arrow, outline, 8.0, true)
+		draw_polyline(arrow, brass, 4.0, true)
 	if _stomping:
 		draw_arc(Vector2(0, -4), 70.0, PI + 0.15, TAU - 0.15, 22,
 				Color(brass.r, brass.g, brass.b, 0.6), 4.0)

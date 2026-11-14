@@ -270,7 +270,7 @@ script = ExtResource("11_trial")
 position = Vector2(3260, 0)
 required_form = &"armchair"
 required_mechanic = &"grapple"
-prompt_action = "GRAPPLE THE GOLD HOOK"
+prompt_action = "Pull yourself up to the gold latch."
 trial_number = 1
 
 [node name="ReclinerProof" type="StaticBody2D" parent="RoyalTrials"]
@@ -278,7 +278,7 @@ script = ExtResource("11_trial")
 position = Vector2(3540, 0)
 required_form = &"recliner"
 required_mechanic = &"brace"
-prompt_action = "HOLD SPECIAL TO BRACE"
+prompt_action = "Face the launcher and brace against its shot."
 trial_number = 2
 
 [node name="OfficeProof" type="StaticBody2D" parent="RoyalTrials"]
@@ -286,7 +286,7 @@ script = ExtResource("11_trial")
 position = Vector2(3820, 0)
 required_form = &"office"
 required_mechanic = &"dash"
-prompt_action = "DASH THROUGH THE SEAL"
+prompt_action = "Build up speed and dash into the cracked panel."
 trial_number = 3
 
 [node name="BarStoolProof" type="StaticBody2D" parent="RoyalTrials"]
@@ -294,7 +294,7 @@ script = ExtResource("11_trial")
 position = Vector2(4100, 0)
 required_form = &"barstool"
 required_mechanic = &"spin"
-prompt_action = "HOLD SPECIAL TO SPIN"
+prompt_action = "Spin to send the shot back into the target."
 trial_number = 4
 
 [node name="FoldingProof" type="StaticBody2D" parent="RoyalTrials"]
@@ -302,7 +302,7 @@ script = ExtResource("11_trial")
 position = Vector2(4380, 0)
 required_form = &"folding"
 required_mechanic = &"fold"
-prompt_action = "FOLD FLAT UNDER THE SEAL"
+prompt_action = "Fold flat and crawl through."
 trial_number = 5
 
 [node name="HighChairProof" type="StaticBody2D" parent="RoyalTrials"]
@@ -310,7 +310,7 @@ script = ExtResource("11_trial")
 position = Vector2(4660, 0)
 required_form = &"highchair"
 required_mechanic = &"toss"
-prompt_action = "TOSS THE TRAY AT THE SEAL"
+prompt_action = "Throw your tray into the raised catch."
 trial_number = 6
 
 [node name="RockingProof" type="StaticBody2D" parent="RoyalTrials"]
@@ -318,7 +318,7 @@ script = ExtResource("11_trial")
 position = Vector2(4940, 0)
 required_form = &"rocking"
 required_mechanic = &"slam"
-prompt_action = "JUMP, THEN SLAM DOWN"
+prompt_action = "Land a downward slam on the floor plate."
 trial_number = 7
 
 [node name="StoolProof" type="StaticBody2D" parent="RoyalTrials"]
@@ -326,7 +326,7 @@ script = ExtResource("11_trial")
 position = Vector2(5220, 0)
 required_form = &"stool"
 required_mechanic = &"pogo"
-prompt_action = "JUMP, THEN POGO IN MIDAIR"
+prompt_action = "Pogo up and ring the hanging bell."
 trial_number = 8
 
 [node name="Enemies" type="Node2D" parent="."]
@@ -400,5 +400,5 @@ theme_override_font_sizes/font_size = 30
 theme_override_colors/font_color = Color(0.98, 0.82, 0.3, 0.94)
 theme_override_colors/font_outline_color = Color(0.08, 0.025, 0.14, 1)
 theme_override_constants/outline_size = 9
-text = "THE EIGHTFOLD AUDIENCE\nSWITCH CHAIRS • USE THE NAMED SPECIAL • EACH BROKEN SEAL IS SAVED"
+text = "THE ROYAL WORKSHOP"
 horizontal_alignment = 1

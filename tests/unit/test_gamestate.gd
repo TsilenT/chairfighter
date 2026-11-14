@@ -17,26 +17,27 @@ func run(tree: SceneTree) -> Array:
 	if gs.FORM_ORDER.size() != 9 or gs.REQUIRED_FINAL_FORMS.size() != 8:
 		fails.append("progression should contain basic + exactly 8 earned forms")
 	var authored_rewards: Array[StringName] = []
-	for flag: String in gs.FINAL_GUARDIAN_FLAGS:
-		var pair: Array = gs.BOSS_FORM_REWARDS.get(flag, [])
-		if pair.size() != 2:
-			fails.append("%s should grant exactly two forms" % flag)
-		for id: StringName in pair:
-			if id not in gs.REQUIRED_FINAL_FORMS or id in authored_rewards:
-				fails.append("guardian rewards should cover 8 unique final forms; bad id %s" % id)
-			authored_rewards.append(id)
+	var workshop: Node = load(gs.START_ZONE).instantiate()
+	var door_by_zone := {}
+	for node in workshop.get_node("Doors").get_children():
+		var door := node as Door
+		if door != null:
+			door_by_zone[door.target_zone_path.get_file().get_basename()] = door
+	for index in gs.CAMPAIGN.size():
+		var floor: Dictionary = gs.CAMPAIGN[index]
+		var id: StringName = floor["form"]
+		var flag := "boss_%s_defeated" % floor["boss"]
+		if flag != gs.FINAL_GUARDIAN_FLAGS[index] or id in authored_rewards:
+			fails.append("each floor needs its own guardian and form")
+		authored_rewards.append(id)
+		var door: Door = door_by_zone.get(floor["zone"])
+		if door == null or not door.grounded_entry:
+			fails.append("%s needs its own physical doorway" % floor["title"])
 	if authored_rewards != gs.REQUIRED_FINAL_FORMS:
-		fails.append("guardian reward order should match final/cycling order")
-	var workshop: Node = load("res://scenes/zones/Workshop.tscn").instantiate()
+		fails.append("the eight floor rewards should match final/cycling order")
 	var throne_door := workshop.get_node("Doors/ThroneDoor") as Door
-	if throne_door.required_flags != gs.FINAL_GUARDIAN_FLAGS:
-		fails.append("Workshop Throne door should require all four guardian flags")
-	var storage_speed_gate := workshop.get_node("Hazards/StorageSpeedGate") as SpeedGate
-	var stacked_escape_height := 420.0 + Player.STAND_HEIGHT
-	if 400.0 - storage_speed_gate.position.y <= stacked_escape_height \
-			or not is_equal_approx(storage_speed_gate.position.y + storage_speed_gate.size.y, 400.0):
-		fails.append("Workshop dash gate is bypassable with Stool jump + pogo")
-	workshop.free()
+	if throne_door.is_open():
+		fails.append("the Throne should be locked until all eight guardians are defeated")
 
 	# Locked form cannot be selected.
 	if gs.set_form(&"office"):
@@ -66,29 +67,36 @@ func run(tree: SceneTree) -> Array:
 	if gs.current_form != &"armchair":
 		fails.append("cycle back should reach armchair, got %s" % gs.current_form)
 
-	# Paired boss rewards arrive atomically and keep the canonical first form
-	# active, while still announcing both for the queued unlock UI.
+	# Victories award forms. Mechanical latches are separate world state.
 	gs.new_game()
 	unlocked.clear()
 	events.form_unlocked.connect(cb)
-	var baron_pair: Array[StringName] = [&"armchair", &"recliner"]
-	gs.unlock_forms(baron_pair)
+	for index in gs.CAMPAIGN.size():
+		var floor: Dictionary = gs.CAMPAIGN[index]
+		var id: StringName = floor["form"]
+		gs.defeat_boss(floor["boss"])
+		gs.defeat_boss(floor["boss"])
+		if unlocked.size() != index + 1 or unlocked.back() != id or gs.current_form != id:
+			fails.append("%s must award only %s once" % [floor["boss"], id])
+		if gs.next_floor_index() != index + 1:
+			fails.append("next floor did not advance after %s" % floor["boss"])
+		if index == 0:
+			gs.new_game()
+			if not gs.load_game() or not gs.is_unlocked(&"armchair") or gs.is_unlocked(&"recliner"):
+				fails.append("continuing immediately after the Baron should restore only Armchair")
 	events.form_unlocked.disconnect(cb)
-	if unlocked != baron_pair:
-		fails.append("paired unlock should announce both in order, got %s" % str(unlocked))
-	if gs.current_form != &"armchair" or not gs.is_unlocked(&"recliner"):
-		fails.append("paired unlock should select armchair and also unlock recliner")
-	if gs.has_all_final_forms():
-		fails.append("one guardian pair must not satisfy final progression")
-	for flag: String in gs.FINAL_GUARDIAN_FLAGS:
-		var rewards: Array[StringName] = []
-		for reward: StringName in gs.BOSS_FORM_REWARDS[flag]:
-			rewards.append(reward)
-		gs.unlock_forms(rewards)
-		gs.set_flag(flag)
-	if gs.unlocked_forms.size() != 9 or not gs.has_all_final_forms() \
-			or not gs.has_defeated_all_guardians():
-		fails.append("four guardian pairs should yield all 8 earned forms and final access")
+	if gs.unlocked_forms.size() != 9 or not gs.has_all_final_forms() or not gs.has_defeated_all_guardians():
+		fails.append("eight guardians should yield eight unique forms and final access")
+	if not throne_door.is_open():
+		fails.append("the Throne should open after the eighth guardian")
+	for zone: String in ["OfficeComplex", "StorageCloset", "Parlor"]:
+		var door: Door = door_by_zone[zone]
+		if door.is_open() or door.required_flag.is_empty():
+			fails.append("%s should remain latched after all bosses" % zone)
+		gs.set_flag(door.required_flag)
+		if not door.is_open():
+			fails.append("%s did not open when its mechanism released" % zone)
+	workshop.free()
 	if gs.has_completed_final_trials():
 		fails.append("unlocking forms must not counterfeit the Hall of Eight proofs")
 	for id: StringName in gs.REQUIRED_FINAL_FORMS:
@@ -133,10 +141,10 @@ func run(tree: SceneTree) -> Array:
 	gs.checkpoint_zone = gs.START_ZONE
 	if not gs.load_game():
 		fails.append("load_game should succeed with a save present")
-	if not gs.is_unlocked(&"armchair") or not gs.is_unlocked(&"recliner") \
+	if not gs.is_unlocked(&"armchair") or gs.is_unlocked(&"recliner") \
 			or not gs.has_flag("boss_recliner_defeated") \
 			or gs.checkpoint_spawn != "PreBoss":
-		fails.append("load_game should restore unlocks, migrate boss rewards, flags, and checkpoint")
+		fails.append("load_game should restore the single reward, flag and checkpoint")
 
 	# Legacy saves could be parked beyond the old three-form Throne entrance.
 	# They must return to the hub until the newly-required fourth guardian falls.
@@ -156,7 +164,7 @@ func run(tree: SceneTree) -> Array:
 	# repair so an old save cannot wake up beyond the new trials.
 	gs.clear_save()
 	var legacy_flags := {}
-	for flag: String in gs.FINAL_GUARDIAN_FLAGS:
+	for flag: String in gs.LEGACY_REWARDS:
 		legacy_flags[flag] = true
 	var legacy_data := {
 		"version": 1,
@@ -171,14 +179,36 @@ func run(tree: SceneTree) -> Array:
 		fails.append("could not create version-1 migration fixture")
 	else:
 		legacy_file.store_string(JSON.stringify(legacy_data))
-		legacy_file = null
+		legacy_file.close()
 		gs.new_game()
 		if not gs.load_game():
 			fails.append("complete version-1 Throne fixture should load")
 		elif gs.checkpoint_zone != gs.START_ZONE or gs.checkpoint_spawn != gs.START_SPAWN:
 			fails.append("version-1 PreBoss checkpoint should relocate before the Hall of Eight")
-		elif gs.unlocked_forms.size() != 9:
-			fails.append("version-1 guardian flags should still repair all companion rewards")
+		elif gs.unlocked_forms.size() != 9 or gs.has_defeated_all_guardians():
+			fails.append("legacy forms should survive without granting new victories")
+		legacy_data["version"] = 2
+		legacy_data["checkpoint_zone"] = "res://scenes/zones/Parlor.tscn"
+		legacy_file = FileAccess.open(gs._save_path(), FileAccess.WRITE)
+		if legacy_file != null:
+			legacy_file.store_string(JSON.stringify(legacy_data))
+			legacy_file.close()
+			gs.new_game()
+			if not gs.load_game() or gs.checkpoint_zone != gs.START_ZONE or gs.next_floor_index() != 1:
+				fails.append("legacy later-floor checkpoint should resume before the first new guardian")
+
+	# A version-2 save could already be past the newly installed Workshop
+	# hatch. Continuing there must leave a way out of the basement.
+	for zone_path: String in [gs.FINAL_ZONE, gs.START_ZONE]:
+		gs.new_game()
+		for flag: String in gs.FINAL_GUARDIAN_FLAGS:
+			gs.flags[flag] = true
+		var spawn := "Default" if zone_path == gs.FINAL_ZONE else "FromThrone"
+		gs.set_checkpoint(zone_path, spawn)
+		gs.new_game()
+		if not gs.load_game() or gs.checkpoint_zone != zone_path or gs.checkpoint_spawn != spawn \
+				or not gs.has_flag("workshop_throne_hatch_broken"):
+			fails.append("save past the Workshop hatch must restore its return path")
 
 	# The durable King flag closes the tiny save-before-ending crash window.
 	gs.clear_save()

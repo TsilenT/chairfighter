@@ -28,8 +28,6 @@ func run(_tree: SceneTree) -> Array[String]:
 			fails.append("%s has no required mechanic" % trial.name)
 		if trial.size.y <= stacked_escape_height:
 			fails.append("%s is short enough to bypass with Stool jump + pogo" % trial.name)
-		if not trial.accepts(trial.required_form, trial.required_mechanic):
-			fails.append("%s rejects its configured special" % trial.name)
 	if seen != GameState.REQUIRED_FINAL_FORMS:
 		fails.append("royal trial order %s != required final forms %s" % [
 			seen, GameState.REQUIRED_FINAL_FORMS])

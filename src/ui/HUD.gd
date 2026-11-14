@@ -13,11 +13,12 @@ extends Control
 var _hp := 5
 var _hp_max := 5
 var _chip_labels: Dictionary = {}
+var _zone_tween: Tween
 
 const FORM_HINTS := {
 	&"basic": "J / pad X — seat-first body bash",
 	&"armchair": "K / pad B (hold) — grapple gold hooks",
-	&"recliner": "K / pad B (hold) — brace and counter",
+	&"recliner": "Hold K / pad B to block head-on. Release, then attack to counter.",
 	&"office": "K / pad B — dash through cracks",
 	&"barstool": "K / pad B (hold) — spin and reflect",
 	&"folding": "K / pad B — fold flat for low passages",
@@ -37,6 +38,7 @@ func _ready() -> void:
 	Events.zone_loaded.connect(_on_zone_loaded)
 	Events.player_died.connect(func() -> void: _boss_box.visible = false)
 	_build_chips()
+	_chips.visible = not GameState.touch_controls
 	_style_mechanic_hint()
 	_hearts.draw.connect(_draw_hearts)
 	_boss_box.visible = false
@@ -143,8 +145,15 @@ func _refresh_chips() -> void:
 				sb.border_width_right = 3
 				sb.border_color = Color(0.98, 0.85, 0.4)
 		chip.add_theme_stylebox_override("normal", sb)
-	_mechanic_hint.text = "Q/E switch  ·  %s" % FORM_HINTS.get(
-			GameState.current_form, "J / pad X — attack")
+	if GameState.touch_controls:
+		var form := load("res://src/forms/%s.tres" % GameState.current_form) as FormDef
+		_mechanic_hint.text = form.display_name
+		_mechanic_hint.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+		_mechanic_hint.position = Vector2(15, 62)
+		_mechanic_hint.size = Vector2(200, 42)
+	else:
+		_mechanic_hint.text = "Tab / Select for forms  ·  %s" % FORM_HINTS.get(
+				GameState.current_form, "J / Z / pad X — attack")
 
 
 func _on_boss_started(_id: StringName, display_name: String) -> void:
@@ -158,8 +167,11 @@ func _on_boss_health(_id: StringName, current: float, maximum: float) -> void:
 
 
 func _on_zone_loaded(zone_name: String) -> void:
+	if _zone_tween != null and _zone_tween.is_valid():
+		_zone_tween.kill()
 	_zone_banner.text = zone_name
-	var tween := create_tween()
-	tween.tween_property(_zone_banner, "modulate:a", 1.0, 0.4)
-	tween.tween_interval(1.8)
-	tween.tween_property(_zone_banner, "modulate:a", 0.0, 0.8)
+	_zone_banner.modulate.a = 0.0
+	_zone_tween = create_tween()
+	_zone_tween.tween_property(_zone_banner, "modulate:a", 1.0, 0.25)
+	_zone_tween.tween_interval(1.65)
+	_zone_tween.tween_property(_zone_banner, "modulate:a", 0.0, 0.6)

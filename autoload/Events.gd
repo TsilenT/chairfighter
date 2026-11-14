@@ -20,4 +20,3 @@ signal game_won
 signal hitstop_requested(duration: float)
 signal screenshake_requested(strength: float, duration: float)
 signal sfx_requested(sfx_name: StringName)
-signal unlock_banner_requested(form_id: StringName, display_name: String, blurb: String)

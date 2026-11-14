@@ -13,6 +13,7 @@ var damage := 1.0
 var knockback_strength := 240.0
 var gravity_scale := 1.0
 var visual_style: StringName = &"ball"
+var is_player_tray := false
 
 var _age := 0.0
 var _hitbox: Hitbox
@@ -50,6 +51,8 @@ func _physics_process(delta: float) -> void:
 	global_position += motion
 	if visual_style == &"tray" and velocity.length_squared() > 1.0:
 		rotation = velocity.angle()
+	elif visual_style == &"cushion" or visual_style == &"paper" or visual_style == &"yarn":
+		rotation = _age * (2.5 if velocity.x >= 0 else -2.5)
 	queue_redraw()
 
 
@@ -78,17 +81,33 @@ func deflect(horizontal_hint: float) -> void:
 
 
 func _draw() -> void:
-	if visual_style == &"tray":
+	var outline := Color(0.15, 0.1, 0.08)
+	if visual_style == &"tray" or visual_style == &"cushion" or visual_style == &"paper":
+		var thickness := 0.42 if visual_style == &"tray" else 0.78
 		var points := PackedVector2Array([
-			Vector2(-radius, -radius * 0.42), Vector2(radius, -radius * 0.42),
-			Vector2(radius * 0.8, radius * 0.42), Vector2(-radius * 0.8, radius * 0.42),
+			Vector2(-radius, -radius * thickness), Vector2(radius, -radius * thickness),
+			Vector2(radius * 0.8, radius * thickness), Vector2(-radius * 0.8, radius * thickness),
 		])
 		draw_colored_polygon(points, color)
-		draw_polyline(PackedVector2Array([points[0], points[1], points[2], points[3], points[0]]),
-				Color(0.15, 0.1, 0.08), 2.0)
-		draw_line(Vector2(-radius * 0.65, -radius * 0.12),
-				Vector2(radius * 0.65, -radius * 0.12), color.lightened(0.35), 2.0)
+		points.append(points[0])
+		draw_polyline(points, outline, 2.0, true)
+		if visual_style == &"paper":
+			for offset in [-0.31, 0.13]:
+				draw_line(Vector2(-radius * 0.55, radius * offset),
+						Vector2(radius * 0.45, radius * offset), color.darkened(0.47), 1.8, true)
+		else:
+			draw_line(Vector2(-radius * 0.65, -radius * 0.12),
+					Vector2(radius * 0.65, -radius * 0.12), color.lightened(0.35), 2.0, true)
+	elif visual_style == &"wave":
+		draw_arc(Vector2.ZERO, radius, PI, TAU, 12, outline, 6.0, true)
+		draw_arc(Vector2.ZERO, radius, PI, TAU, 12, color, 3.0, true)
+		draw_line(Vector2(-radius, 1), Vector2(radius, 1), color, 3.0, true)
 	else:
 		draw_circle(Vector2.ZERO, radius, color)
-		draw_circle(Vector2.ZERO, radius, Color(0.15, 0.1, 0.08), false, 2.0)
-		draw_circle(Vector2(-radius * 0.3, -radius * 0.3), radius * 0.3, color.lightened(0.35))
+		draw_circle(Vector2.ZERO, radius, outline, false, 2.0)
+		if visual_style == &"yarn":
+			for offset in [-0.4, 0.0, 0.4]:
+				draw_line(Vector2(-radius * 0.64, radius * (offset - 0.2)),
+						Vector2(radius * 0.64, radius * (offset + 0.2)), color.lightened(0.4), 1.8, true)
+		else:
+			draw_circle(Vector2(-radius * 0.3, -radius * 0.3), radius * 0.3, color.lightened(0.35))

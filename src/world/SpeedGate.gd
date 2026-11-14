@@ -1,10 +1,7 @@
 class_name SpeedGate
 extends StaticBody2D
-## Breakable barrier: shatters when the player hits it while dashing fast
-## enough. A slightly wider sensor detects the incoming dash before the
-## solid body would stop it. Origin = TOP-LEFT.
-
-const BREAK_SPEED := 450.0
+## Breakable barrier: a head-on dash must actually strike the solid wall.
+## Origin = TOP-LEFT.
 
 @export var size := Vector2(40, 140)
 ## Optional flag set when broken (for validator/driver assertions).
@@ -29,50 +26,28 @@ func _ready() -> void:
 		queue_redraw()
 		return
 
-	var sensor := Area2D.new()
-	sensor.collision_layer = 32
-	sensor.collision_mask = 2
-	var sensor_shape := CollisionShape2D.new()
-	var sensor_rect := RectangleShape2D.new()
-	sensor_rect.size = size + Vector2(90, 0)
-	sensor_shape.shape = sensor_rect
-	sensor_shape.position = size / 2.0
-	sensor.add_child(sensor_shape)
-	add_child(sensor)
-	sensor.body_entered.connect(_on_sensor)
-
-
-func _on_sensor(body: Node2D) -> void:
-	if _broken or not body.is_in_group("player"):
-		return
-	_try_break(body)
-
-
 func _physics_process(_delta: float) -> void:
 	if _broken:
 		return
-	# Also poll while the player lingers in the sensor (re-dash attempts).
-	for area_body in get_tree().get_nodes_in_group("player"):
-		var p := area_body as CharacterBody2D
-		if p == null:
-			continue
-		if absf(p.global_position.x - (global_position.x + size.x / 2.0)) < size.x / 2.0 + 100.0 \
-				and absf(p.global_position.y - (global_position.y + size.y)) < size.y + 40.0:
-			_try_break(p)
+	var player := get_tree().get_first_node_in_group("player") as Player
+	if player == null or not player.is_dashing():
+		return
+	# move_and_slide can zero the player's velocity on contact. Use the
+	# collision normal against the live dash direction instead.
+	for i in player.get_slide_collision_count():
+		var collision := player.get_slide_collision(i)
+		if collision.get_collider() == self and collision.get_normal().x * player.facing < -0.9:
+			_break_at(collision.get_position())
+			return
 
 
-func _try_break(p: Node2D) -> void:
-	if not (p.has_method("is_dashing") and p.is_dashing()):
-		return
-	var body := p as CharacterBody2D
-	if body == null or absf(body.velocity.x) < BREAK_SPEED:
-		return
+func _break_at(contact: Vector2) -> void:
 	_broken = true
 	if not break_flag.is_empty():
 		GameState.set_flag(break_flag)
 	Events.sfx_requested.emit(&"break")
 	Events.screenshake_requested.emit(4.0, 0.2)
-	Particles.shards(get_parent(), global_position + size / 2.0, Color(0.8, 0.68, 0.3))
+	Particles.shards(get_parent(), contact, Color(0.8, 0.68, 0.3))
 	# Leave rubble stubs, drop collision.
 	for child in get_children():
 		if child is CollisionShape2D:

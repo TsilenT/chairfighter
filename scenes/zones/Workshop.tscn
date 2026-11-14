@@ -1,15 +1,15 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://src/zones/Workshop.gd" id="1_zone"]
 [ext_resource type="Script" path="res://src/game/ZoneTheme.gd" id="2_theme"]
 [ext_resource type="Script" path="res://src/world/Platform.gd" id="3_platform"]
-[ext_resource type="Script" path="res://src/world/GrappleAnchor.gd" id="4_anchor"]
-[ext_resource type="Script" path="res://src/world/Door.gd" id="5_door"]
-[ext_resource type="Script" path="res://src/world/Checkpoint.gd" id="6_checkpoint"]
-[ext_resource type="Script" path="res://src/world/SpeedGate.gd" id="7_speedgate"]
-[ext_resource type="Script" path="res://src/world/AbilityGate.gd" id="8_abilitygate"]
-[ext_resource type="Script" path="res://src/enemies/Footstool.gd" id="9_footstool"]
-[ext_resource type="Script" path="res://src/npc/OttomanOtto.gd" id="10_otto"]
+[ext_resource type="Script" path="res://src/world/Door.gd" id="4_door"]
+[ext_resource type="Script" path="res://src/world/CrackedFloor.gd" id="5_cracked"]
+[ext_resource type="Script" path="res://src/npc/OttomanOtto.gd" id="6_otto"]
+
+[ext_resource type="Script" path="res://src/world/GrappleAnchor.gd" id="7_hoist"]
+[ext_resource type="Script" path="res://src/world/SpeedGate.gd" id="8_wall"]
+[ext_resource type="Script" path="res://src/world/WorkshopRelease.gd" id="9_release"]
 
 [sub_resource type="Resource" id="theme_workshop"]
 script = ExtResource("2_theme")
@@ -25,7 +25,7 @@ parallax_near = Color(0.29, 0.21, 0.15, 1)
 [node name="Workshop" type="Node2D"]
 script = ExtResource("1_zone")
 zone_display_name = "The Workshop"
-camera_limits = Rect2(-200, -400, 3450, 1400)
+camera_limits = Rect2(-1800, -360, 4960, 1290)
 theme_res = SubResource("theme_workshop")
 
 [node name="SpawnPoints" type="Node2D" parent="."]
@@ -33,256 +33,410 @@ theme_res = SubResource("theme_workshop")
 [node name="Default" type="Marker2D" parent="SpawnPoints"]
 position = Vector2(200, 400)
 
+[node name="FloorLanding" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(200, 400)
+
+[node name="AfterLounge" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(640, 400)
+
+[node name="AfterBoiler" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(-680, 400)
+
+[node name="AfterOffice" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(-790, 400)
+
+[node name="AfterNightBar" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(900, 400)
+
+[node name="AfterStorage" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(-790, 400)
+
+[node name="AfterNursery" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(1970, 400)
+
+[node name="AfterParlor" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(2730, 400)
+
+[node name="AfterConservatory" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(2430, 700)
+
 [node name="FromLounge" type="Marker2D" parent="SpawnPoints"]
-position = Vector2(2620, 400)
+position = Vector2(320, 400)
 
 [node name="FromOffice" type="Marker2D" parent="SpawnPoints"]
-position = Vector2(2470, 160)
+position = Vector2(-680, 400)
+
+[node name="FromOfficeShortcut" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(-790, 400)
 
 [node name="FromStorage" type="Marker2D" parent="SpawnPoints"]
-position = Vector2(130, 400)
+position = Vector2(900, 400)
 
-[node name="FromThrone" type="Marker2D" parent="SpawnPoints"]
-position = Vector2(2060, 700)
+[node name="FromStorageShortcut" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(-790, 400)
 
 [node name="FromParlor" type="Marker2D" parent="SpawnPoints"]
-position = Vector2(1580, 400)
+position = Vector2(1970, 400)
+
+[node name="FromParlorShortcut" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(2730, 400)
+
+[node name="FromThrone" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(2100, 490)
 
 [node name="Geometry" type="Node2D" parent="."]
 
 [node name="Floor" type="StaticBody2D" parent="Geometry"]
 script = ExtResource("3_platform")
-size = Vector2(3000, 96)
-position = Vector2(-100, 400)
-
-[node name="Step1" type="StaticBody2D" parent="Geometry"]
-script = ExtResource("3_platform")
-size = Vector2(180, 80)
-position = Vector2(760, 320)
-
-[node name="Step2" type="StaticBody2D" parent="Geometry"]
-script = ExtResource("3_platform")
-size = Vector2(260, 160)
-position = Vector2(940, 240)
-
-[node name="Step3" type="StaticBody2D" parent="Geometry"]
-script = ExtResource("3_platform")
-size = Vector2(80, 80)
-position = Vector2(1200, 320)
-
-[node name="OfficePlatform" type="StaticBody2D" parent="Geometry"]
-script = ExtResource("3_platform")
-size = Vector2(300, 32)
-position = Vector2(2200, 160)
-one_way = true
+position = Vector2(-1730, 400)
+size = Vector2(4630, 16)
 
 [node name="LeftWall" type="StaticBody2D" parent="Geometry"]
 script = ExtResource("3_platform")
-size = Vector2(80, 600)
-position = Vector2(-180, -104)
+position = Vector2(-1810, -360)
+size = Vector2(80, 776)
 decor = true
 
 [node name="RightWall" type="StaticBody2D" parent="Geometry"]
 script = ExtResource("3_platform")
-size = Vector2(80, 900)
-position = Vector2(3020, -100)
+position = Vector2(3020, -360)
+size = Vector2(80, 1140)
 decor = true
 
 [node name="BasementFloor" type="StaticBody2D" parent="Geometry"]
 script = ExtResource("3_platform")
-size = Vector2(1200, 96)
 position = Vector2(1900, 700)
+size = Vector2(1120, 96)
 
 [node name="BasementLeftWall" type="StaticBody2D" parent="Geometry"]
 script = ExtResource("3_platform")
-size = Vector2(40, 400)
 position = Vector2(1860, 396)
+size = Vector2(40, 400)
 decor = true
 
-[node name="VentBlock" type="StaticBody2D" parent="Geometry"]
+[node name="ThroneLanding" type="StaticBody2D" parent="Geometry"]
 script = ExtResource("3_platform")
-size = Vector2(400, 178)
-position = Vector2(2100, 496)
-decor = true
+position = Vector2(1900, 490)
+size = Vector2(340, 22)
+one_way = true
 
 [node name="PitReturnLedge" type="StaticBody2D" parent="Geometry"]
 script = ExtResource("3_platform")
-size = Vector2(50, 24)
-position = Vector2(2960, 490)
+position = Vector2(2968, 505)
+size = Vector2(52, 18)
+one_way = true
+
+[node name="HatchReturnLedge" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+position = Vector2(2968, 316)
+size = Vector2(52, 18)
+one_way = true
+
+[node name="BoilerCatwalk" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+position = Vector2(735, 130)
+size = Vector2(295, 29)
+one_way = true
+
+[node name="NurseryVent" type="StaticBody2D" parent="Geometry"]
+script = ExtResource("3_platform")
+position = Vector2(-1440, -360)
+size = Vector2(145, 733)
+decor = true
 
 [node name="Route" type="Node2D" parent="."]
 
-[node name="RouteLounge" type="Node2D" parent="Route"]
+[node name="RouteBoiler" type="Node2D" parent="Route"]
 
-[node name="M0" type="Marker2D" parent="Route/RouteLounge"]
-position = Vector2(200, 400)
-metadata/mode = "start"
-metadata/form = "basic"
-
-[node name="M1" type="Marker2D" parent="Route/RouteLounge"]
-position = Vector2(2650, 400)
-metadata/mode = "walk"
-metadata/form = "basic"
-
-[node name="RouteOffice" type="Node2D" parent="Route"]
-
-[node name="M0" type="Marker2D" parent="Route/RouteOffice"]
-position = Vector2(2350, 400)
+[node name="HoistFoot" type="Marker2D" parent="Route/RouteBoiler"]
+position = Vector2(690, 400)
 metadata/mode = "start"
 metadata/form = "armchair"
 
-[node name="M1" type="Marker2D" parent="Route/RouteOffice"]
-position = Vector2(2350, 160)
+[node name="Catwalk" type="Marker2D" parent="Route/RouteBoiler"]
+position = Vector2(910, 130)
 metadata/mode = "grapple"
 metadata/form = "armchair"
 
-[node name="RouteStorage" type="Node2D" parent="Route"]
+[node name="RouteWestService" type="Node2D" parent="Route"]
 
-[node name="M0" type="Marker2D" parent="Route/RouteStorage"]
-position = Vector2(500, 400)
+[node name="ApproachWall" type="Marker2D" parent="Route/RouteWestService"]
+position = Vector2(-485, 400)
 metadata/mode = "start"
 metadata/form = "office"
 
-[node name="M1" type="Marker2D" parent="Route/RouteStorage"]
-position = Vector2(20, 400)
+[node name="LoadingPassage" type="Marker2D" parent="Route/RouteWestService"]
+position = Vector2(-1060, 400)
 metadata/mode = "speed_gate"
 metadata/form = "office"
 
-[node name="RouteThrone" type="Node2D" parent="Route"]
-
-[node name="M0" type="Marker2D" parent="Route/RouteThrone"]
-position = Vector2(2870, 400)
-metadata/mode = "start"
-metadata/form = "folding"
-
-[node name="M1" type="Marker2D" parent="Route/RouteThrone"]
-position = Vector2(2930, 700)
-metadata/mode = "drop"
-metadata/form = "folding"
-
-[node name="M2" type="Marker2D" parent="Route/RouteThrone"]
-position = Vector2(2300, 700)
-metadata/mode = "vent"
-metadata/form = "folding"
-
-[node name="M3" type="Marker2D" parent="Route/RouteThrone"]
-position = Vector2(2010, 700)
+[node name="VentApproach" type="Marker2D" parent="Route/RouteWestService"]
+position = Vector2(-1240, 400)
 metadata/mode = "walk"
 metadata/form = "folding"
 
-[node name="RouteBasementReturn" type="Node2D" parent="Route"]
-
-[node name="M0" type="Marker2D" parent="Route/RouteBasementReturn"]
-position = Vector2(2935, 700)
-metadata/mode = "start"
+[node name="Nursery" type="Marker2D" parent="Route/RouteWestService"]
+position = Vector2(-1520, 400)
+metadata/mode = "vent"
 metadata/form = "folding"
 
-[node name="M1" type="Marker2D" parent="Route/RouteBasementReturn"]
-position = Vector2(2975, 490)
+[node name="RouteThrone" type="Node2D" parent="Route"]
+
+[node name="OverHatch" type="Marker2D" parent="Route/RouteThrone"]
+position = Vector2(2925, 285)
+metadata/mode = "start"
+metadata/form = "rocking"
+
+[node name="Hatch" type="Marker2D" parent="Route/RouteThrone"]
+position = Vector2(2925, 400)
+metadata/mode = "smash"
+metadata/form = "rocking"
+
+[node name="Basement" type="Marker2D" parent="Route/RouteThrone"]
+position = Vector2(2925, 700)
+metadata/mode = "drop"
+metadata/form = "rocking"
+
+[node name="Approach" type="Marker2D" parent="Route/RouteThrone"]
+position = Vector2(2290, 700)
+metadata/mode = "walk"
+metadata/form = "stool"
+
+[node name="Landing" type="Marker2D" parent="Route/RouteThrone"]
+position = Vector2(2140, 490)
 metadata/mode = "pogo"
 metadata/form = "stool"
 
-[node name="M2" type="Marker2D" parent="Route/RouteBasementReturn"]
-position = Vector2(2880, 400)
-metadata/mode = "jump"
+[node name="Door" type="Marker2D" parent="Route/RouteThrone"]
+position = Vector2(2070, 490)
+metadata/mode = "walk"
+metadata/form = "stool"
+
+[node name="RouteConservatory" type="Node2D" parent="Route"]
+
+[node name="OverHatch" type="Marker2D" parent="Route/RouteConservatory"]
+position = Vector2(2925, 285)
+metadata/mode = "start"
+metadata/form = "rocking"
+
+[node name="Hatch" type="Marker2D" parent="Route/RouteConservatory"]
+position = Vector2(2925, 400)
+metadata/mode = "smash"
+metadata/form = "rocking"
+
+[node name="Drains" type="Marker2D" parent="Route/RouteConservatory"]
+position = Vector2(2925, 700)
+metadata/mode = "drop"
+metadata/form = "rocking"
+
+[node name="Door" type="Marker2D" parent="Route/RouteConservatory"]
+position = Vector2(2760, 700)
+metadata/mode = "walk"
+metadata/form = "rocking"
+
+[node name="RouteReturn" type="Node2D" parent="Route"]
+
+[node name="Basement" type="Marker2D" parent="Route/RouteReturn"]
+position = Vector2(2925, 700)
+metadata/mode = "start"
+metadata/form = "stool"
+
+[node name="FirstShelf" type="Marker2D" parent="Route/RouteReturn"]
+position = Vector2(2985, 505)
+metadata/mode = "pogo"
+metadata/form = "stool"
+
+[node name="SecondShelf" type="Marker2D" parent="Route/RouteReturn"]
+position = Vector2(2985, 316)
+metadata/mode = "pogo"
+metadata/form = "stool"
+
+[node name="Workshop" type="Marker2D" parent="Route/RouteReturn"]
+position = Vector2(2820, 400)
+metadata/mode = "drop"
 metadata/form = "stool"
 
 [node name="Doors" type="Node2D" parent="."]
 
 [node name="LoungeDoor" type="Area2D" parent="Doors"]
-script = ExtResource("5_door")
-position = Vector2(2700, 345)
+script = ExtResource("4_door")
+position = Vector2(420, 345)
 target_zone_path = "res://scenes/zones/Lounge.tscn"
-target_spawn = "Default"
+grounded_entry = true
+complete_flag = "boss_recliner_defeated"
 label_text = "The Lounge"
 
+[node name="BoilerDoor" type="Area2D" parent="Doors"]
+script = ExtResource("4_door")
+position = Vector2(895, 75)
+target_zone_path = "res://scenes/zones/BoilerRoom.tscn"
+grounded_entry = true
+complete_flag = "boss_boiler_defeated"
+label_text = "The Boiler Room"
+
 [node name="OfficeDoor" type="Area2D" parent="Doors"]
-script = ExtResource("5_door")
-position = Vector2(2400, 105)
+script = ExtResource("4_door")
+position = Vector2(-360, 345)
 target_zone_path = "res://scenes/zones/OfficeComplex.tscn"
-target_spawn = "Default"
+grounded_entry = true
+complete_flag = "boss_swivel_defeated"
 label_text = "The Office Complex"
+required_flag = "workshop_office_unlatched"
+locked_hint = "Air latch under pressure"
+
+[node name="NightBarDoor" type="Area2D" parent="Doors"]
+script = ExtResource("4_door")
+position = Vector2(-1110, 345)
+target_zone_path = "res://scenes/zones/NightBar.tscn"
+grounded_entry = true
+complete_flag = "boss_bartender_defeated"
+label_text = "The Night Bar"
 
 [node name="StorageDoor" type="Area2D" parent="Doors"]
-script = ExtResource("5_door")
-position = Vector2(-30, 345)
+script = ExtResource("4_door")
+position = Vector2(1480, 345)
 target_zone_path = "res://scenes/zones/StorageCloset.tscn"
-target_spawn = "Default"
+grounded_entry = true
+complete_flag = "boss_folder_defeated"
 label_text = "The Storage Closet"
+required_flag = "workshop_storage_unlatched"
+locked_hint = "Bell-operated release"
 
-[node name="ThroneDoor" type="Area2D" parent="Doors"]
-script = ExtResource("5_door")
-position = Vector2(1980, 645)
-target_zone_path = "res://scenes/zones/ThroneRoom.tscn"
-target_spawn = "Default"
-required_flags = Array[String](["boss_recliner_defeated", "boss_swivel_defeated", "boss_folder_defeated", "boss_granny_defeated"])
-label_text = "The Throne Room · 8-form finale"
+[node name="NurseryDoor" type="Area2D" parent="Doors"]
+script = ExtResource("4_door")
+position = Vector2(-1590, 345)
+target_zone_path = "res://scenes/zones/Nursery.tscn"
+grounded_entry = true
+complete_flag = "boss_nanny_defeated"
+label_text = "The Nursery"
 
 [node name="ParlorDoor" type="Area2D" parent="Doors"]
-script = ExtResource("5_door")
-position = Vector2(1650, 345)
+script = ExtResource("4_door")
+position = Vector2(2380, 345)
 target_zone_path = "res://scenes/zones/Parlor.tscn"
-target_spawn = "Default"
-required_flag = "boss_folder_defeated"
-label_text = "The Parlor · fourth guardian"
+grounded_entry = true
+complete_flag = "boss_granny_defeated"
+label_text = "The Parlor"
+required_flag = "workshop_parlor_unlatched"
+locked_hint = "Tray counterweight"
+
+[node name="ConservatoryDoor" type="Area2D" parent="Doors"]
+script = ExtResource("4_door")
+position = Vector2(2760, 645)
+target_zone_path = "res://scenes/zones/Conservatory.tscn"
+grounded_entry = true
+complete_flag = "boss_bouncer_defeated"
+label_text = "The Conservatory"
+
+[node name="ThroneDoor" type="Area2D" parent="Doors"]
+script = ExtResource("4_door")
+position = Vector2(2070, 458)
+target_zone_path = "res://scenes/zones/ThroneRoom.tscn"
+required_flags = Array[String](["boss_recliner_defeated", "boss_boiler_defeated", "boss_swivel_defeated", "boss_bartender_defeated", "boss_folder_defeated", "boss_nanny_defeated", "boss_granny_defeated", "boss_bouncer_defeated"])
+label_text = "The Throne Room"
+locked_hint = "The Crown keeps eight seals"
+doorway_size = Vector2(72, 64)
+grounded_entry = true
+
+[node name="BasementLift" type="Area2D" parent="Doors"]
+script = ExtResource("4_door")
+position = Vector2(2550, 645)
+target_zone_path = "res://scenes/zones/Workshop.tscn"
+target_spawn = "FloorLanding"
+label_text = "Workshop lift"
 
 [node name="Hazards" type="Node2D" parent="."]
 
-[node name="StorageSpeedGate" type="StaticBody2D" parent="Hazards"]
-script = ExtResource("7_speedgate")
-position = Vector2(60, -360)
-size = Vector2(40, 760)
-break_flag = "gate_workshop_storage_broken"
-
 [node name="ThroneHatch" type="StaticBody2D" parent="Hazards"]
-script = ExtResource("8_abilitygate")
+script = ExtResource("5_cracked")
 position = Vector2(2900, 400)
 size = Vector2(120, 24)
-required_form = "folding"
+break_flag = "workshop_throne_hatch_broken"
 
-[node name="StartCheckpoint" type="Area2D" parent="Hazards"]
-script = ExtResource("6_checkpoint")
-position = Vector2(200, 400)
-spawn_name = "Default"
+[node name="NightBarBaffle" type="StaticBody2D" parent="Hazards"]
+script = ExtResource("8_wall")
+position = Vector2(-950, -360)
+size = Vector2(40, 760)
+break_flag = "workshop_night_bar_wall_broken"
 
-[node name="Enemies" type="Node2D" parent="."]
+[node name="OfficeRelease" type="Node2D" parent="Hazards"]
+script = ExtResource("9_release")
+position = Vector2(-450, 400)
+mechanic = "brace"
+clear_flag = "workshop_office_unlatched"
 
-[node name="PracticeFootstool" type="CharacterBody2D" parent="Enemies"]
-script = ExtResource("9_footstool")
-position = Vector2(1450, 400)
-skin_color = Color(0.5, 0.38, 0.28, 1)
+[node name="StorageRelease" type="Node2D" parent="Hazards"]
+script = ExtResource("9_release")
+position = Vector2(1390, 400)
+mechanic = "spin"
+clear_flag = "workshop_storage_unlatched"
+
+[node name="ParlorRelease" type="Node2D" parent="Hazards"]
+script = ExtResource("9_release")
+position = Vector2(2290, 400)
+mechanic = "toss"
+clear_flag = "workshop_parlor_unlatched"
 
 [node name="Props" type="Node2D" parent="."]
 
-[node name="OfficeAnchor" type="Node2D" parent="Props"]
-script = ExtResource("4_anchor")
-position = Vector2(2350, 90)
-
 [node name="Otto" type="Node2D" parent="Props"]
-script = ExtResource("10_otto")
-position = Vector2(420, 400)
+script = ExtResource("6_otto")
+position = Vector2(205, 400)
 
-[node name="SignMove" type="Label" parent="Props"]
-position = Vector2(120, 150)
-theme_override_font_sizes/font_size = 19
-theme_override_colors/font_color = Color(0.85, 0.78, 0.65, 0.85)
-text = "A / D · stick — move        SPACE · pad A — jump (hold for height)"
+[node name="SignLobby" type="Label" parent="Props"]
+position = Vector2(335, 168)
+theme_override_colors/font_color = Color(0.91, 0.8, 0.58, 0.94)
+theme_override_font_sizes/font_size = 26
+text = "THE WORKSHOP"
 
-[node name="SignAttack" type="Label" parent="Props"]
-position = Vector2(1330, 230)
-theme_override_font_sizes/font_size = 19
-theme_override_colors/font_color = Color(0.85, 0.78, 0.65, 0.85)
-text = "J · pad X — attack!"
-
-[node name="SignGate" type="Label" parent="Props"]
-position = Vector2(120, 250)
+[node name="SignControls" type="Label" parent="Props"]
+position = Vector2(330, 203)
+theme_override_colors/font_color = Color(0.91, 0.8, 0.58, 0.94)
 theme_override_font_sizes/font_size = 16
-theme_override_colors/font_color = Color(0.8, 0.68, 0.35, 0.8)
-text = "cracked wall...
-needs SPEED"
+text = "West: offices and service wing · East: storage and guest rooms"
 
-[node name="SignVent" type="Label" parent="Props"]
-position = Vector2(2560, 640)
+[node name="SignThrone" type="Label" parent="Props"]
+position = Vector2(2695, 227)
+theme_override_colors/font_color = Color(0.91, 0.8, 0.58, 0.94)
 theme_override_font_sizes/font_size = 16
-theme_override_colors/font_color = Color(0.8, 0.68, 0.35, 0.8)
-text = "THRONE SEAL: defeat 4 guardians\nthen FOLD through the low vent"
+text = "GLASSHOUSE / ROYAL SERVICE HATCH →\nRocking Chair · jump, then slam the boards"
+
+[node name="SignPogo" type="Label" parent="Props"]
+position = Vector2(2215, 601)
+theme_override_colors/font_color = Color(0.91, 0.8, 0.58, 0.94)
+theme_override_font_sizes/font_size = 16
+text = "THRONE ROOM ←\nSpring Stool · jump, then pogo onto the landing"
+
+[node name="SignReturn" type="Label" parent="Props"]
+position = Vector2(2675, 570)
+theme_override_colors/font_color = Color(0.91, 0.8, 0.58, 0.94)
+theme_override_font_sizes/font_size = 16
+text = "WORKSHOP ↑\nSpring Stool · pogo up\nthe shelves in the shaft"
+
+[node name="BoilerHoist" type="Node2D" parent="Props"]
+script = ExtResource("7_hoist")
+position = Vector2(825, 70)
+
+[node name="HoistSign" type="Label" parent="Props"]
+position = Vector2(660, 224)
+theme_override_colors/font_color = Color(0.91, 0.8, 0.58, 0.94)
+theme_override_font_sizes/font_size = 17
+text = "BOILER CATWALK ↑\nThe gold hoist reaches the platform."
+
+[node name="WestServiceSign" type="Label" parent="Props"]
+position = Vector2(-877, 225)
+theme_override_colors/font_color = Color(0.91, 0.8, 0.58, 0.94)
+theme_override_font_sizes/font_size = 17
+text = "SERVICE WING ←\nThe bar is beyond the cracked baffle."
+
+[node name="NurseryVentSign" type="Label" parent="Props"]
+position = Vector2(-1275, 224)
+theme_override_colors/font_color = Color(0.91, 0.8, 0.58, 0.94)
+theme_override_font_sizes/font_size = 17
+text = "NURSERY ←\nFold flat to crawl under the linen cabinet."
+
+[node name="LowerServiceSign" type="Label" parent="Props"]
+position = Vector2(2610, 556)
+theme_override_colors/font_color = Color(0.91, 0.8, 0.58, 0.94)
+theme_override_font_sizes/font_size = 17
+text = "GLASSHOUSE DRAINS →"
