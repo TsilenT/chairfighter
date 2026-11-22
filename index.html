@@ -117,13 +117,29 @@ body {
 	z-index: 2;
 	width: 2.5rem;
 	height: 2.5rem;
-	font-size: 1.25rem;
-	line-height: 1;
 	color: white;
 	background-color: rgba(0, 0, 0, 0.4);
 	border: 1px solid rgba(255, 255, 255, 0.6);
 	border-radius: 0.5rem;
 	cursor: pointer;
+}
+
+#fullscreen-button::before {
+	content: "";
+	display: block;
+	width: 1rem;
+	height: 1rem;
+	margin: auto;
+	background:
+		linear-gradient(currentColor, currentColor) left top / 0.4rem 2px,
+		linear-gradient(currentColor, currentColor) left top / 2px 0.4rem,
+		linear-gradient(currentColor, currentColor) right top / 0.4rem 2px,
+		linear-gradient(currentColor, currentColor) right top / 2px 0.4rem,
+		linear-gradient(currentColor, currentColor) left bottom / 0.4rem 2px,
+		linear-gradient(currentColor, currentColor) left bottom / 2px 0.4rem,
+		linear-gradient(currentColor, currentColor) right bottom / 0.4rem 2px,
+		linear-gradient(currentColor, currentColor) right bottom / 2px 0.4rem;
+	background-repeat: no-repeat;
 }
 
 #rotate-overlay {
@@ -143,7 +159,12 @@ body {
 }
 
 #rotate-overlay .rotate-icon {
-	font-size: 3rem;
+	width: 1.5rem;
+	height: 2.5rem;
+	border: 2px solid currentColor;
+	border-bottom-width: 0.35rem;
+	border-radius: 0.3rem;
+	transform: rotate(-35deg);
 }
 		</style>
 		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
@@ -162,20 +183,20 @@ body {
 		<div id="status">
 			<img id="status-splash" class="show-image--true fullsize--true use-filter--true" src="index.png" alt="">
 			<progress id="status-progress"></progress>
-			<button id="status-play">&#9654;&nbsp;&nbsp;Tap to play</button>
+			<button id="status-play">Tap to play</button>
 			<div id="status-notice"></div>
 		</div>
 
-		<button id="fullscreen-button" title="Fullscreen">&#x26F6;</button>
+		<button id="fullscreen-button" type="button" title="Fullscreen" aria-label="Fullscreen"></button>
 
 		<div id="rotate-overlay">
-			<div class="rotate-icon">&#8635;</div>
+			<div class="rotate-icon" aria-hidden="true"></div>
 			<div>Rotate your device</div>
 		</div>
 
 		<script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":4349476,"index.wasm":37700666},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":4357712,"index.wasm":37700666},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 const GODOT_THREADS_ENABLED = false;
 const engine = new Engine(GODOT_CONFIG);
 
