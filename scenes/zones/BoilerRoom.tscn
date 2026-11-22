@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://src/zones/ZoneBase.gd" id="zone"]
 [ext_resource type="Script" path="res://src/game/ZoneTheme.gd" id="theme"]
@@ -9,6 +9,8 @@
 [ext_resource type="Script" path="res://src/world/Spikes.gd" id="spikes"]
 [ext_resource type="Script" path="res://src/world/GrappleAnchor.gd" id="anchor"]
 [ext_resource type="PackedScene" path="res://scenes/bosses/BoilerForeman.tscn" id="boss"]
+
+[ext_resource type="Script" path="res://src/world/DirectionalSign.gd" id="direction_sign"]
 
 [sub_resource type="Resource" id="theme"]
 script = ExtResource("theme")
@@ -223,10 +225,11 @@ script = ExtResource("anchor")
 position = Vector2(820, 205)
 
 [node name="HoistSign" type="Label" parent="Props"]
+script = ExtResource("direction_sign")
 position = Vector2(295, 254)
 theme_override_colors/font_color = Color(0.92, 0.64, 0.25, 1)
 theme_override_font_sizes/font_size = 17
-text = "BOILER FEED  →\nArmchair · face the hoist and hold your power"
+text = "BOILER FEED\nArmchair · face the hoist and hold your power"
 
 [node name="HeatSign" type="Label" parent="Props"]
 position = Vector2(1425, 252)

@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://src/zones/ZoneBase.gd" id="zone"]
 [ext_resource type="Script" path="res://src/game/ZoneTheme.gd" id="theme"]
@@ -9,6 +9,8 @@
 [ext_resource type="Script" path="res://src/world/CrackedFloor.gd" id="cracked"]
 [ext_resource type="Script" path="res://src/world/Spikes.gd" id="spikes"]
 [ext_resource type="PackedScene" path="res://scenes/bosses/CanopyBouncer.tscn" id="boss"]
+
+[ext_resource type="Script" path="res://src/world/DirectionalSign.gd" id="direction_sign"]
 
 [sub_resource type="Resource" id="theme"]
 script = ExtResource("theme")
@@ -240,16 +242,18 @@ arena_rect = Rect2(2180, 2, 1152, 648)
 [node name="Props" type="Node2D" parent="."]
 
 [node name="HatchSign" type="Label" parent="Props"]
+script = ExtResource("direction_sign")
 position = Vector2(405, 238)
 theme_override_colors/font_color = Color(0.89, 0.76, 0.42, 1)
 theme_override_font_sizes/font_size = 17
-text = "LOWER GLASSHOUSE  →\nRocking Chair · jump and drop onto the cracked service hatch"
+text = "LOWER GLASSHOUSE\nRocking Chair · jump and drop onto the cracked service hatch"
 
 [node name="DrainSign" type="Label" parent="Props"]
+script = ExtResource("direction_sign")
 position = Vector2(1030, 510)
 theme_override_colors/font_color = Color(0.89, 0.76, 0.42, 1)
 theme_override_font_sizes/font_size = 17
-text = "DRAIN PIPE SERVICE  →"
+text = "DRAIN PIPE SERVICE"
 
 [node name="BossSign" type="Label" parent="Props"]
 position = Vector2(2250, 495)

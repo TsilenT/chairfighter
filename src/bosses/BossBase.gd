@@ -168,7 +168,7 @@ func _lock_camera(lock: bool) -> void:
 		return
 	var rig: CameraRig = player.get_camera_rig()
 	if lock:
-		rig.lock_to(arena_rect)
+		rig.lock_to(arena_rect, _spawn_pos.y)
 	else:
 		rig.unlock()
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://src/zones/Parlor.gd" id="1_zone"]
 [ext_resource type="Script" path="res://src/game/ZoneTheme.gd" id="2_theme"]
@@ -14,6 +14,9 @@
 [ext_resource type="PackedScene" path="res://scenes/bosses/GrannyTremor.tscn" id="12_granny"]
 
 [ext_resource type="Script" path="res://src/enemies/HouseFurniture.gd" id="house_furniture"]
+
+[ext_resource type="Script" path="res://src/world/DirectionalSign.gd" id="direction_sign"]
+[ext_resource type="Script" path="res://src/world/ClockFace.gd" id="clock_face"]
 
 [sub_resource type="Resource" id="theme_parlor"]
 script = ExtResource("2_theme")
@@ -399,30 +402,28 @@ contact_damage = 1.0
 [node name="Props" type="Node2D" parent="."]
 
 [node name="SignDresser" type="Label" parent="Props"]
+script = ExtResource("direction_sign")
 position = Vector2(165, 252)
 theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.93, 0.78, 0.49, 0.95)
-text = "MIND THE DRESSER →\nFold flat and crawl underneath."
+text = "MIND THE DRESSER\nFold flat and crawl underneath."
 
 [node name="SignDresserReturn" type="Label" parent="Props"]
+script = ExtResource("direction_sign")
+direction = Vector2(-1, 0)
 position = Vector2(480, 274)
 theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(0.93, 0.78, 0.49, 0.95)
-text = "← WORKSHOP\nFold to fit underneath"
+text = "WORKSHOP\nFold to fit underneath"
 
-[node name="ClockFaceWest" type="Label" parent="Props"]
-position = Vector2(374, 72)
-theme_override_font_sizes/font_size = 20
-theme_override_colors/font_color = Color(0.82, 0.64, 0.28, 0.9)
-text = "XII\n  ◉\n VI"
-horizontal_alignment = 1
+[node name="ClockFaceWest" type="Node2D" parent="Props"]
+script = ExtResource("clock_face")
+position = Vector2(404, 115)
 
-[node name="ClockFaceEast" type="Label" parent="Props"]
-position = Vector2(2154, 62)
-theme_override_font_sizes/font_size = 20
-theme_override_colors/font_color = Color(0.82, 0.64, 0.28, 0.9)
-text = "XII\n  ◉\n VI"
-horizontal_alignment = 1
+[node name="ClockFaceEast" type="Node2D" parent="Props"]
+script = ExtResource("clock_face")
+position = Vector2(2184, 105)
+hand_angle = 0.72
 
 [node name="PendulumPlaque" type="Label" parent="Props"]
 position = Vector2(735, 105)

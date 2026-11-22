@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://src/zones/StorageCloset.gd" id="1_zone"]
 [ext_resource type="Script" path="res://src/game/ZoneTheme.gd" id="2_theme"]
@@ -14,6 +14,8 @@
 [ext_resource type="PackedScene" path="res://scenes/bosses/SteelFolder.tscn" id="12_folder"]
 
 [ext_resource type="Script" path="res://src/enemies/HouseFurniture.gd" id="house_furniture"]
+
+[ext_resource type="Script" path="res://src/world/DirectionalSign.gd" id="direction_sign"]
 
 [sub_resource type="Resource" id="theme_storage"]
 script = ExtResource("2_theme")
@@ -234,10 +236,11 @@ arena_rect = Rect2(2448, -248, 1152, 648)
 [node name="Props" type="Node2D" parent="."]
 
 [node name="TunnelSign" type="Label" parent="Props"]
+script = ExtResource("direction_sign")
 position = Vector2(390, 245)
 theme_override_font_sizes/font_size = 17
 theme_override_colors/font_color = Color(0.96, 0.78, 0.12, 0.9)
-text = "BOTTOM SHELF  →\nOffice Chair · dash to duck under"
+text = "BOTTOM SHELF\nOffice Chair · dash to duck under"
 
 [node name="GateSign" type="Label" parent="Props"]
 position = Vector2(1370, 245)

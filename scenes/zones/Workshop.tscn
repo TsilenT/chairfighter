@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://src/zones/Workshop.gd" id="1_zone"]
 [ext_resource type="Script" path="res://src/game/ZoneTheme.gd" id="2_theme"]
@@ -10,6 +10,8 @@
 [ext_resource type="Script" path="res://src/world/GrappleAnchor.gd" id="7_hoist"]
 [ext_resource type="Script" path="res://src/world/SpeedGate.gd" id="8_wall"]
 [ext_resource type="Script" path="res://src/world/WorkshopRelease.gd" id="9_release"]
+
+[ext_resource type="Script" path="res://src/world/DirectionalSign.gd" id="direction_sign"]
 
 [sub_resource type="Resource" id="theme_workshop"]
 script = ExtResource("2_theme")
@@ -396,47 +398,59 @@ theme_override_font_sizes/font_size = 16
 text = "West: offices and service wing · East: storage and guest rooms"
 
 [node name="SignThrone" type="Label" parent="Props"]
+script = ExtResource("direction_sign")
 position = Vector2(2695, 227)
 theme_override_colors/font_color = Color(0.91, 0.8, 0.58, 0.94)
 theme_override_font_sizes/font_size = 16
-text = "GLASSHOUSE / ROYAL SERVICE HATCH →\nRocking Chair · jump, then slam the boards"
+text = "GLASSHOUSE / ROYAL SERVICE HATCH\nRocking Chair · jump, then slam the boards"
 
 [node name="SignPogo" type="Label" parent="Props"]
+script = ExtResource("direction_sign")
+direction = Vector2(-1, 0)
 position = Vector2(2215, 601)
 theme_override_colors/font_color = Color(0.91, 0.8, 0.58, 0.94)
 theme_override_font_sizes/font_size = 16
-text = "THRONE ROOM ←\nSpring Stool · jump, then pogo onto the landing"
+text = "THRONE ROOM\nSpring Stool · jump, then pogo onto the landing"
 
 [node name="SignReturn" type="Label" parent="Props"]
+script = ExtResource("direction_sign")
+direction = Vector2(0, -1)
 position = Vector2(2675, 570)
 theme_override_colors/font_color = Color(0.91, 0.8, 0.58, 0.94)
 theme_override_font_sizes/font_size = 16
-text = "WORKSHOP ↑\nSpring Stool · pogo up\nthe shelves in the shaft"
+text = "WORKSHOP\nSpring Stool · pogo up\nthe shelves in the shaft"
 
 [node name="BoilerHoist" type="Node2D" parent="Props"]
 script = ExtResource("7_hoist")
 position = Vector2(825, 70)
 
 [node name="HoistSign" type="Label" parent="Props"]
+script = ExtResource("direction_sign")
+direction = Vector2(0, -1)
 position = Vector2(660, 224)
 theme_override_colors/font_color = Color(0.91, 0.8, 0.58, 0.94)
 theme_override_font_sizes/font_size = 17
-text = "BOILER CATWALK ↑\nThe gold hoist reaches the platform."
+text = "BOILER CATWALK\nThe gold hoist reaches the platform."
 
 [node name="WestServiceSign" type="Label" parent="Props"]
+script = ExtResource("direction_sign")
+direction = Vector2(-1, 0)
 position = Vector2(-877, 225)
 theme_override_colors/font_color = Color(0.91, 0.8, 0.58, 0.94)
 theme_override_font_sizes/font_size = 17
-text = "SERVICE WING ←\nThe bar is beyond the cracked baffle."
+text = "SERVICE WING\nThe bar is beyond the cracked baffle."
 
 [node name="NurseryVentSign" type="Label" parent="Props"]
+script = ExtResource("direction_sign")
+direction = Vector2(-1, 0)
 position = Vector2(-1275, 224)
 theme_override_colors/font_color = Color(0.91, 0.8, 0.58, 0.94)
 theme_override_font_sizes/font_size = 17
-text = "NURSERY ←\nFold flat to crawl under the linen cabinet."
+text = "NURSERY\nFold flat to crawl under the linen cabinet."
 
 [node name="LowerServiceSign" type="Label" parent="Props"]
+script = ExtResource("direction_sign")
 position = Vector2(2610, 556)
 theme_override_colors/font_color = Color(0.91, 0.8, 0.58, 0.94)
 theme_override_font_sizes/font_size = 17
-text = "GLASSHOUSE DRAINS →"
+text = "GLASSHOUSE DRAINS"
